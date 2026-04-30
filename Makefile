@@ -1,4 +1,4 @@
-# Makefile — LeakMonitor
+# Makefile — BreachRadar
 # Commandes standardisées pour développement, tests et déploiement
 # Usage : make <target>
 
@@ -21,7 +21,7 @@ install-dev:
 
 # ─── Tests ───────────────────────────────────────────────────────────────────
 test:
-	$(PYTEST) tests/unit/ -v --cov=leakmonitor --cov-report=html --cov-report=term-missing
+	$(PYTEST) tests/unit/ -v --cov=breachradar --cov-report=html --cov-report=term-missing
 
 test-ransomlook:
 	$(PYTEST) tests/test_clients/test_ransomlook.py tests/test_ransom_tracker.py -v
@@ -34,33 +34,33 @@ test-integration:
 
 # ─── Qualité de code ─────────────────────────────────────────────────────────
 lint:
-	uv run ruff check leakmonitor/ tests/
-	uv run ruff format --check leakmonitor/ tests/
+	uv run ruff check breachradar/ tests/
+	uv run ruff format --check breachradar/ tests/
 
 lint-fix:
-	uv run ruff check --fix leakmonitor/ tests/
-	uv run ruff format leakmonitor/ tests/
+	uv run ruff check --fix breachradar/ tests/
+	uv run ruff format breachradar/ tests/
 
 type-check:
-	uv run mypy leakmonitor/
+	uv run mypy breachradar/
 
 # ─── Scans ───────────────────────────────────────────────────────────────────
 scan:
-	$(PYTHON) -m leakmonitor scan
+	$(PYTHON) -m breachradar scan
 
 scan-ransom:
-	$(PYTHON) -m leakmonitor ransomlook --check
+	$(PYTHON) -m breachradar ransomlook --check
 
 scan-email:
 	@read -p "Email à vérifier : " email; \
-	$(PYTHON) -m leakmonitor check --email $$email
+	$(PYTHON) -m breachradar check --email $$email
 
 # ─── Rapports ────────────────────────────────────────────────────────────────
 report:
-	$(PYTHON) -m leakmonitor scan --format markdown,json,html
+	$(PYTHON) -m breachradar scan --format markdown,json,html
 
 sources-status:
-	$(PYTHON) -m leakmonitor sources --status
+	$(PYTHON) -m breachradar sources --status
 
 # ─── Nettoyage ───────────────────────────────────────────────────────────────
 clean:
@@ -107,9 +107,9 @@ ransomlook-backup:
 	docker compose exec ransomlook-redis redis-cli BGSAVE
 	@echo "✅ Sauvegarde déclenchée"
 
-# ─── Docker — LeakMonitor ────────────────────────────────────────────────────
+# ─── Docker — BreachRadar ────────────────────────────────────────────────────
 docker-build:
-	docker build -t leakmonitor:latest .
+	docker build -t breachradar:latest .
 
 docker-run:
 	docker compose up --build
@@ -119,7 +119,7 @@ docker-down:
 
 # ─── Aide ────────────────────────────────────────────────────────────────────
 help:
-	@echo "LeakMonitor — Commandes disponibles"
+	@echo "BreachRadar — Commandes disponibles"
 	@echo ""
 	@echo "  Installation :"
 	@echo "    install           Installer les dépendances"
@@ -149,6 +149,6 @@ help:
 	@echo "    ransomlook-logs   Afficher les logs en temps réel"
 	@echo ""
 	@echo "  Docker :"
-	@echo "    docker-build      Builder l'image LeakMonitor"
+	@echo "    docker-build      Builder l'image BreachRadar"
 	@echo "    docker-run        Démarrer la stack complète"
 	@echo "    clean             Nettoyer caches et rapports"

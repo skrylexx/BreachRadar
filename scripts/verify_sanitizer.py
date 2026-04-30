@@ -15,7 +15,7 @@ from pathlib import Path
 # Ajouter le répertoire parent au path pour l'import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from leakmonitor.core.sanitizer import DataSanitizer
+from breachradar.core.sanitizer import DataSanitizer
 
 sanitizer = DataSanitizer()
 
@@ -67,7 +67,7 @@ TEST_CASES: list[tuple[str | dict, bool, str]] = [
 
 def run_tests() -> bool:
     print("=" * 60)
-    print("  LeakMonitor — Vérification Sanitizer")
+    print("  BreachRadar — Vérification Sanitizer")
     print("=" * 60)
     print()
 

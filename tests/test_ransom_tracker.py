@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from leakmonitor.core.ransom_tracker import RansomwareTracker
-from leakmonitor.models.ransom import RansomFinding, RansomStats, RansomStatus
+from breachradar.core.ransom_tracker import RansomwareTracker
+from breachradar.models.ransom import RansomFinding, RansomStats, RansomStatus
 
 
 class TestRansomwareTrackerRun:

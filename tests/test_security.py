@@ -18,11 +18,11 @@ from datetime import date
 
 import pytest
 
-from leakmonitor.core.aggregator import ResultAggregator
-from leakmonitor.core.sanitizer import DataSanitizer
-from leakmonitor.models.finding import LeakFinding, Severity
-from leakmonitor.models.ransom import RansomFinding, RansomStatus
-from leakmonitor.models.report import ReportMetadata
+from breachradar.core.aggregator import ResultAggregator
+from breachradar.core.sanitizer import DataSanitizer
+from breachradar.models.finding import LeakFinding, Severity
+from breachradar.models.ransom import RansomFinding, RansomStatus
+from breachradar.models.report import ReportMetadata
 
 # Patterns sensibles qui ne doivent JAMAIS apparaître dans un rapport final
 FORBIDDEN_PATTERNS = [
@@ -131,7 +131,7 @@ class TestOnionUrlNotInReport:
 
     def test_data_integrity_flags_onion_excluded(self) -> None:
         """Le flag DataIntegrity.onion_urls_excluded_from_report est True."""
-        from leakmonitor.models.report import DataIntegrity
+        from breachradar.models.report import DataIntegrity
         integrity = DataIntegrity()
         assert integrity.onion_urls_excluded_from_report is True
 

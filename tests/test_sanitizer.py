@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from leakmonitor.core.sanitizer import DataSanitizer, SanitizedResult
+from breachradar.core.sanitizer import DataSanitizer, SanitizedResult
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-# SECURITY.md — Procédures de Sécurité LeakMonitor
+# SECURITY.md — Procédures de Sécurité BreachRadar
 
 > **Document critique** — À lire avant toute manipulation de clés API.
 > Révisé : 2026-04-30 | Version : 1.0
@@ -243,7 +243,7 @@ export HIBP_API_KEY="votre_clé"   # Temporaire, pas dans l'historique
 # .envrc (gitignored) → direnv allow
 
 # JAMAIS : mettre une clé dans la commande directement
-uv run python -m leakmonitor scan --api-key=sk-xxx  # NON
+uv run python -m breachradar scan --api-key=sk-xxx  # NON
 ```
 
 ### 5.3 Permissions des fichiers sensibles
@@ -270,10 +270,10 @@ find . -name ".env" -perm /044 -ls
 uv add --dev bandit
 
 # Scan complet du code source
-uv run bandit -r leakmonitor/ -ll -f txt
+uv run bandit -r breachradar/ -ll -f txt
 
 # Rapport détaillé en HTML
-uv run bandit -r leakmonitor/ -f html -o security_report.html
+uv run bandit -r breachradar/ -f html -o security_report.html
 
 # Codes à surveiller particulièrement :
 # B105, B106, B107 → hardcoded passwords
@@ -294,7 +294,7 @@ uv pip compile pyproject.toml -o /tmp/req.txt
 safety check -r /tmp/req.txt
 ```
 
-### 6.3 Lancer les tests de sécurité LeakMonitor
+### 6.3 Lancer les tests de sécurité BreachRadar
 
 ```bash
 # Tests unitaires de non-régression sécurité
@@ -313,7 +313,7 @@ uv run pytest tests/test_security.py -v
 uv run pytest tests/test_sanitizer.py -v --tb=short
 
 # Couverture complète
-uv run pytest tests/ -v --cov=leakmonitor --cov-report=term-missing
+uv run pytest tests/ -v --cov=breachradar --cov-report=term-missing
 ```
 
 ### 6.4 Vérification manuelle du sanitizer
@@ -322,7 +322,7 @@ uv run pytest tests/ -v --cov=leakmonitor --cov-report=term-missing
 # Script de vérification rapide (à lancer avant chaque release)
 # Sauvegarder comme scripts/verify_sanitizer.py
 
-from leakmonitor.core.sanitizer import DataSanitizer
+from breachradar.core.sanitizer import DataSanitizer
 
 sanitizer = DataSanitizer()
 
@@ -368,7 +368,7 @@ Avant chaque mise en production ou partage du projet :
 [ ] detect-secrets scan ne retourne aucun nouveau secret
 [ ] pre-commit run --all-files passe sans erreur
 [ ] uv run pytest tests/test_security.py passe à 100%
-[ ] uv run bandit -r leakmonitor/ -ll ne retourne aucun HIGH
+[ ] uv run bandit -r breachradar/ -ll ne retourne aucun HIGH
 [ ] Les clés API dans .env ont les permissions minimales nécessaires
 [ ] Les clés API ont une date d'expiration configurée (si le service le permet)
 [ ] Un mécanisme de révocation rapide est documenté (section 4.1)
@@ -393,7 +393,7 @@ Planifier la rotation selon le coût/risque du service :
 | URLScan | Annuel | Dashboard URLScan |
 | OTX | Annuel | Settings → API Key |
 
-> Après chaque rotation : mettre à jour `.env`, relancer `uv run python -m leakmonitor sources --status` pour confirmer que tout fonctionne.
+> Après chaque rotation : mettre à jour `.env`, relancer `uv run python -m breachradar sources --status` pour confirmer que tout fonctionne.
 
 ---
 
@@ -405,11 +405,11 @@ Planifier la rotation selon le coût/risque du service :
 HTTP_PROXY=socks5://127.0.0.1:1080
 HTTPS_PROXY=socks5://127.0.0.1:1080
 
-# Option 2 : VPN ou VPS dédié à LeakMonitor
+# Option 2 : VPN ou VPS dédié à BreachRadar
 # Avantage : les requêtes OSINT n'exposent pas votre IP réelle aux services tiers
 
 # Option 3 (développement uniquement) : Wireguard local
-# → Isole le trafic LeakMonitor du reste de la machine
+# → Isole le trafic BreachRadar du reste de la machine
 ```
 
 ---

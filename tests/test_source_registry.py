@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from leakmonitor.config.source_registry import SourceRegistry
+from breachradar.config.source_registry import SourceRegistry
 
 
 class TestSourceRegistryAvailability:

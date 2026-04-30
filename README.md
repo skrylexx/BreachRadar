@@ -1,4 +1,6 @@
-# 🔍 LeakMonitor
+# 🔍 BreachRadar
+
+![Logo **Breach**Radar](images/logo.png)
 
 > **Outil de détection de fuites de données ciblé sur un domaine.**
 > Usage légal — surveillance défensive de votre propre domaine uniquement.
@@ -11,7 +13,7 @@
 
 ## Présentation
 
-LeakMonitor détecte si des données appartenant à un domaine (`@mondomaine.fr`) ont été compromises, en agrégeant plusieurs sources publiques et APIs légitimes, et produit un **rapport neutre sans donnée sensible exposée**.
+BreachRadar détecte si des données appartenant à un domaine (`@mondomaine.fr`) ont été compromises, en agrégeant plusieurs sources publiques et APIs légitimes, et produit un **rapport neutre sans donnée sensible exposée**.
 
 **Deux dimensions complémentaires :**
 
@@ -27,28 +29,28 @@ LeakMonitor détecte si des données appartenant à un domaine (`@mondomaine.fr`
 ## Architecture technique
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                       LeakMonitor                         │
+┌───────────────────────────────────────────────────────────┐
+│                       BreachRadar                         │
 │                                                           │
-│  ┌───────────┐   ┌─────────────────┐   ┌──────────────┐  │
+│  ┌───────────┐    ┌─────────────────┐   ┌──────────────┐  │
 │  │ Scheduler │──▶│  Orchestrator   │──▶│Report Engine │  │
-│  │ APSchedul.│   │  (Async Core)   │   │(Jinja2+JSON) │  │
-│  └───────────┘   └────────┬────────┘   └──────────────┘  │
+│  │ APSchedul.│    │  (Async Core)   │   │(Jinja2+JSON) │  │
+│  └───────────┘    └────────┬────────┘   └──────────────┘  │
 │                            │                              │
-│          ┌─────────────────┼──────────────┐              │
-│          ▼                 ▼              ▼              │
-│  ┌──────────────┐  ┌─────────────┐  ┌──────────────┐    │
-│  │ API Clients  │  │Feed Monitor │  │RansomLook    │    │
-│  │ HIBP         │  │Pastebin     │  │Client        │    │
-│  │ LeakCheck    │  │GitHub       │  │→ Docker:8888 │    │
-│  │ Dehashed...  │  │Telegram/RSS │  └──────────────┘    │
-│  └──────────────┘  └─────────────┘                      │
+│          ┌─────────────────┼──────────────┐               │
+│          ▼                 ▼              ▼               │
+│  ┌──────────────┐  ┌─────────────┐  ┌──────────────┐      │
+│  │ API Clients  │  │Feed Monitor │  │RansomLook    │      │
+│  │ HIBP         │  │Pastebin     │  │Client        │      │
+│  │ LeakCheck    │  │GitHub       │  │→ Docker:8888 │      │
+│  │ Dehashed...  │  │Telegram/RSS │  └──────────────┘      │
+│  └──────────────┘  └─────────────┘                        │
 │                                                           │
-│  ┌──────────────────────────────────────────────────┐    │
+│  ┌───────────────────────────────────────────────────┐    │
 │  │         Sanitizer / Anonymizer Layer              │    │
 │  │  (Masquage passwords, hashs, tokens, sauf ransom) │    │
-│  └──────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────┘
+│  └───────────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────────┘
 ```
 
 ### Flux de données
@@ -106,8 +108,8 @@ LeakMonitor détecte si des données appartenant à un domaine (`@mondomaine.fr`
 
 ```bash
 # Cloner le projet
-git clone https://github.com/yourorg/leakmonitor.git
-cd leakmonitor
+git clone https://github.com/yourorg/breachradar.git
+cd breachradar
 
 # Installer les dépendances Python
 uv sync
@@ -147,19 +149,19 @@ docker compose up -d
 ### Mode développement
 ```bash
 # Scan complet
-uv run python -m leakmonitor scan
+uv run python -m breachradar scan
 
 # Vérification d'urgence RansomLook
-uv run python -m leakmonitor ransomlook --check
+uv run python -m breachradar ransomlook --check
 
 # Rapport complet (JSON + MD + HTML)
-uv run python -m leakmonitor scan --format markdown,json,html
+uv run python -m breachradar scan --format markdown,json,html
 
 # Email spécifique
-uv run python -m leakmonitor check --email alice@mondomaine.fr
+uv run python -m breachradar check --email alice@mondomaine.fr
 
 # Scheduler en arrière-plan
-uv run python -m leakmonitor schedule --start
+uv run python -m breachradar schedule --start
 ```
 
 ### Commandes Make
@@ -196,7 +198,7 @@ Voir [`.env.example`](.env.example) pour la liste complète.
 ## Arborescence
 
 ```
-leakmonitor/
+breachradar/
 ├── README.md
 ├── ROADMAP.md
 ├── pyproject.toml
@@ -205,7 +207,7 @@ leakmonitor/
 ├── .gitignore
 ├── docker-compose.yml
 ├── Dockerfile
-├── leakmonitor/
+├── breachradar/
 │   ├── __init__.py
 │   ├── main.py                # CLI (Typer)
 │   ├── config/

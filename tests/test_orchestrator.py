@@ -4,10 +4,10 @@ Tests unitaires pour l'Orchestrateur (ScanOrchestrator).
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from leakmonitor.core.orchestrator import ScanOrchestrator
-from leakmonitor.models.finding import LeakFinding, Severity
-from leakmonitor.config.settings import Settings
-from leakmonitor.config.source_registry import SourceRegistry
+from breachradar.core.orchestrator import ScanOrchestrator
+from breachradar.models.finding import LeakFinding, Severity
+from breachradar.config.settings import Settings
+from breachradar.config.source_registry import SourceRegistry
 
 @pytest.fixture
 def mock_settings():

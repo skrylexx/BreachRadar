@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "leakmonitor"
+name = "breachradar"
 version = "0.1.0"
 description = "Outil de détection de fuites de données ciblé sur un domaine — OSINT défensif"
 readme = "README.md"
@@ -57,7 +57,7 @@ dev = [
 ]
 
 [project.scripts]
-leakmonitor = "leakmonitor.main:app"
+breachradar = "breachradar.main:app"
 
 [tool.ruff]
 line-length = 100
@@ -81,8 +81,8 @@ testpaths = ["tests"]
 addopts = "-v --tb=short"
 
 [tool.coverage.run]
-source = ["leakmonitor"]
+source = ["breachradar"]
 omit = ["tests/*"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["leakmonitor"]
+packages = ["breachradar"]

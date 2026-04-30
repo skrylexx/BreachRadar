@@ -1,4 +1,4 @@
-# QUICKSTART — LeakMonitor
+# QUICKSTART — BreachRadar
 
 Ce guide va vous accompagner pas à pas pour configurer l'environnement, lancer l'infrastructure via Docker et valider que l'ensemble des modules (Orchestrateur, Scheduler, Webhook, RansomLook) fonctionnent correctement.
 
@@ -33,7 +33,7 @@ Nous avons unifié l'intégralité de l'infrastructure dans le fichier `docker-c
    ```bash
    docker-compose ps
    ```
-   Vous devriez voir `leakmonitor`, `ransomlook-app`, `ransomlook-redis`, et `ransomlook-tor` avec le statut `Up`. Les `healthchecks` vont passer au vert (`healthy`) au bout de quelques secondes.
+   Vous devriez voir `breachradar`, `ransomlook-app`, `ransomlook-redis`, et `ransomlook-tor` avec le statut `Up`. Les `healthchecks` vont passer au vert (`healthy`) au bout de quelques secondes.
 
 ## Étape 3 : Tests manuels de validation
 
@@ -42,13 +42,13 @@ Maintenant que l'application tourne en arrière-plan (en mode `schedule`), vous 
 ### Test A : Le Scan manuel
 Si vous souhaitez déclencher un scan unique pour tester l'orchestrateur immédiatement, utilisez la commande `scan` en exécutant l'outil depuis le conteneur principal :
 ```bash
-docker-compose exec leakmonitor python -m leakmonitor scan
+docker-compose exec breachradar python -m breachradar scan
 ```
 👉 Observez la console : L'outil devrait valider le domaine, résoudre les emails (theHarvester + Hunter), et interroger les APIs en respectant le rate-limit.
 👉 Vérifiez la génération du rapport dans le dossier partagé `./reports/`. Le `report.html` ou le `report.pdf` devrait être magnifiquement formaté avec le nouveau dashboard.
 
 ### Test B : Le serveur Webhook GitHub
-Le conteneur LeakMonitor écoute par défaut sur le port `8080` pour intercepter les Webhooks GitHub (Secret Scanning ou Push Events).
+Le conteneur BreachRadar écoute par défaut sur le port `8080` pour intercepter les Webhooks GitHub (Secret Scanning ou Push Events).
 Vous pouvez simuler l'envoi d'une alerte avec un utilitaire comme `curl` :
 ```bash
 curl -X POST http://localhost:8080/webhook/github \
@@ -56,7 +56,7 @@ curl -X POST http://localhost:8080/webhook/github \
      -H "X-GitHub-Event: secret_scanning_alert" \
      -d '{"action": "created", "repository": {"full_name": "votre/repo"}, "alert": {"secret_type": "aws_access_key", "html_url": "https://github.com/votre/repo/security/secret-scanning/1"}}'
 ```
-👉 Regardez les logs de LeakMonitor : `docker-compose logs -f leakmonitor`
+👉 Regardez les logs de BreachRadar : `docker-compose logs -f breachradar`
 Vous devriez voir l'interception de la requête, le log de l'alerte (`[🚨 ALERTE GITHUB]`), et si vous avez configuré un Webhook Discord/Slack, l'alerte y sera poussée instantanément.
 
 ### Test C : L'alerte critique Ransomware (RansomLook)
@@ -67,7 +67,7 @@ Le moteur RansomwareTracker est prioritaire. Si le `TARGET_DOMAIN` configuré da
 En cas de comportement inattendu, les logs de l'application sont votre meilleur atout :
 ```bash
 # Voir les logs en direct du moniteur de fuites et du webhook
-docker-compose logs -f leakmonitor
+docker-compose logs -f breachradar
 
 # Voir les logs du scraper RansomLook (si les données mettent du temps à apparaître)
 docker-compose logs -f ransomlook-app

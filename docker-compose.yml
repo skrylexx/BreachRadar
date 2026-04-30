@@ -1,4 +1,4 @@
-# docker-compose.yml — LeakMonitor + RansomLook stack complète
+# docker-compose.yml — BreachRadar + RansomLook stack complète
 # ⚠️  Sécurité : RansomLook est exposé UNIQUEMENT sur 127.0.0.1:8888 (jamais 0.0.0.0)
 
 version: "3.9"
@@ -37,7 +37,7 @@ services:
 
   # ─── RansomLook — Application principale ────────────────────────────────────
   ransomlook-app:
-    image: ghcr.io/ransomlook/ransomlook:latest
+    image: travishunting/ransomlook:latest
     container_name: ransomlook-app
     restart: unless-stopped
     depends_on:
@@ -65,12 +65,12 @@ services:
       retries: 5
       start_period: 60s   # Laisser le temps au premier scraping
 
-  # ─── LeakMonitor — Application principale ───────────────────────────────────
-  leakmonitor:
+  # ─── BreachRadar — Application principale ───────────────────────────────────
+  breachradar:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: leakmonitor
+    container_name: breachradar
     restart: unless-stopped
     depends_on:
       ransomlook-app:

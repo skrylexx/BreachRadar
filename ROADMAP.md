@@ -1,4 +1,4 @@
-# ROADMAP — LeakMonitor
+# ROADMAP — BreachRadar
 
 > Journal de bord structuré — mis à jour à chaque itération IA ou humaine.
 > **Protocole handoff** : Lire ce fichier + README.md avant toute contribution.
@@ -26,36 +26,36 @@ Phase 5          [░░░░░░░░░░]  0%
 - [x] pyproject.toml (dépendances)
 - [x] .env.example (template configuration)
 - [x] .gitignore
-- [x] docker-compose.yml (LeakMonitor + RansomLook stack complète)
+- [x] docker-compose.yml (BreachRadar + RansomLook stack complète)
 - [x] Dockerfile
 - [x] Makefile
-- [x] leakmonitor/models/finding.py (LeakFinding, Severity)
-- [x] leakmonitor/models/ransom.py (RansomFinding, RansomStats, RansomStatus)
-- [x] leakmonitor/models/report.py (FinalReport, ReportMetadata)
-- [x] leakmonitor/config/settings.py (Pydantic Settings)
-- [x] leakmonitor/config/sources.yaml
-- [x] leakmonitor/config/group_names.yaml
-- [x] leakmonitor/clients/base.py (BaseLeakClient ABC)
-- [x] leakmonitor/clients/ransomlook.py (RansomLookClient)
-- [x] leakmonitor/core/sanitizer.py (DataSanitizer)
-- [x] leakmonitor/core/aggregator.py (ResultAggregator)
-- [x] leakmonitor/core/ransom_tracker.py (RansomwareTracker)
-- [x] leakmonitor/config/source_registry.py (SourceRegistry — disponibilité dynamique)
+- [x] breachradar/models/finding.py (LeakFinding, Severity)
+- [x] breachradar/models/ransom.py (RansomFinding, RansomStats, RansomStatus)
+- [x] breachradar/models/report.py (FinalReport, ReportMetadata)
+- [x] breachradar/config/settings.py (Pydantic Settings)
+- [x] breachradar/config/sources.yaml
+- [x] breachradar/config/group_names.yaml
+- [x] breachradar/clients/base.py (BaseLeakClient ABC)
+- [x] breachradar/clients/ransomlook.py (RansomLookClient)
+- [x] breachradar/core/sanitizer.py (DataSanitizer)
+- [x] breachradar/core/aggregator.py (ResultAggregator)
+- [x] breachradar/core/ransom_tracker.py (RansomwareTracker)
+- [x] breachradar/config/source_registry.py (SourceRegistry — disponibilité dynamique)
 - [x] SECURITY.md (procédures sécurité complètes)
 - [x] .pre-commit-config.yaml (detect-secrets, ruff, hooks git)
 - [x] scripts/verify_sanitizer.py (vérification manuelle sanitizer)
 - [x] tests/test_source_registry.py (14 tests de disponibilité des sources)
-- [x] leakmonitor/clients/hibp.py
-- [x] leakmonitor/clients/github_monitor.py
-- [x] leakmonitor/core/orchestrator.py
-- [x] leakmonitor/core/scheduler.py
-- [x] leakmonitor/resolver/email_resolver.py
-- [x] leakmonitor/report/engine.py
-- [x] leakmonitor/report/templates/report.md.j2
-- [x] leakmonitor/report/templates/report.html.j2
-- [x] leakmonitor/report/templates/notification.txt.j2
-- [x] leakmonitor/notifications/engine.py
-- [x] leakmonitor/main.py (CLI Typer)
+- [x] breachradar/clients/hibp.py
+- [x] breachradar/clients/github_monitor.py
+- [x] breachradar/core/orchestrator.py
+- [x] breachradar/core/scheduler.py
+- [x] breachradar/resolver/email_resolver.py
+- [x] breachradar/report/engine.py
+- [x] breachradar/report/templates/report.md.j2
+- [x] breachradar/report/templates/report.html.j2
+- [x] breachradar/report/templates/notification.txt.j2
+- [x] breachradar/notifications/engine.py
+- [x] breachradar/main.py (CLI Typer)
 - [x] tests/conftest.py
 - [x] tests/test_sanitizer.py
 - [x] tests/test_aggregator.py
@@ -67,17 +67,17 @@ Phase 5          [░░░░░░░░░░]  0%
 - [x] tests/fixtures/ransomlook/victim_not_found.json
 
 ### Phase 2 — Enrichissement sources
-- [x] leakmonitor/clients/leakcheck.py
-- [x] leakmonitor/clients/dehashed.py
-- [x] leakmonitor/clients/pastebin_monitor.py
+- [x] breachradar/clients/leakcheck.py
+- [x] breachradar/clients/dehashed.py
+- [x] breachradar/clients/pastebin_monitor.py
 - [x] Domain Email Resolver (Hunter.io + theHarvester)
 - [x] Rapport HTML avec dashboard visuel
 - [x] Scheduler + notifications email
 
 ### Phase 3 — Monitoring continu
-- [x] leakmonitor/clients/telegram_monitor.py
+- [x] breachradar/clients/telegram_monitor.py
 - [x] GitHub webhook monitoring
-- [x] leakmonitor/clients/intelx.py
+- [x] breachradar/clients/intelx.py
 - [x] Docker full stack (un seul `docker compose up`)
 - [x] Export PDF
 
@@ -111,21 +111,21 @@ Phase 5          [░░░░░░░░░░]  0%
 | `pyproject.toml` | Dépendances complètes selon le cahier des charges (uv/poetry) |
 | `.env.example` | Template de configuration — toutes les clés API documentées |
 | `.gitignore` | Exclusions : .env, reports/, sessions Telegram, caches |
-| `docker-compose.yml` | Stack complète : LeakMonitor + RansomLook (app + redis + tor) |
+| `docker-compose.yml` | Stack complète : BreachRadar + RansomLook (app + redis + tor) |
 | `Dockerfile` | Image Python 3.12-slim, non-root, uv optimisé |
 | `Makefile` | Toutes les commandes du cahier des charges |
-| `leakmonitor/__init__.py` | Package init avec version |
-| `leakmonitor/models/finding.py` | LeakFinding, Severity, EmailFindingResult |
-| `leakmonitor/models/ransom.py` | RansomFinding, RansomStats, RansomStatus |
-| `leakmonitor/models/report.py` | FinalReport, ReportMetadata, SeverityBreakdown |
-| `leakmonitor/config/settings.py` | Pydantic Settings — validation complète |
-| `leakmonitor/config/sources.yaml` | Activation/désactivation de chaque source |
-| `leakmonitor/config/group_names.yaml` | Mapping 40+ groupes ransomware |
-| `leakmonitor/clients/base.py` | BaseLeakClient ABC — interface commune |
-| `leakmonitor/clients/ransomlook.py` | RansomLookClient complet avec retry + dedup |
-| `leakmonitor/core/sanitizer.py` | DataSanitizer — masquage données sensibles |
-| `leakmonitor/core/aggregator.py` | ResultAggregator — dédup + sévérité |
-| `leakmonitor/core/ransom_tracker.py` | RansomwareTracker — orchestration + alerte immédiate |
+| `breachradar/__init__.py` | Package init avec version |
+| `breachradar/models/finding.py` | LeakFinding, Severity, EmailFindingResult |
+| `breachradar/models/ransom.py` | RansomFinding, RansomStats, RansomStatus |
+| `breachradar/models/report.py` | FinalReport, ReportMetadata, SeverityBreakdown |
+| `breachradar/config/settings.py` | Pydantic Settings — validation complète |
+| `breachradar/config/sources.yaml` | Activation/désactivation de chaque source |
+| `breachradar/config/group_names.yaml` | Mapping 40+ groupes ransomware |
+| `breachradar/clients/base.py` | BaseLeakClient ABC — interface commune |
+| `breachradar/clients/ransomlook.py` | RansomLookClient complet avec retry + dedup |
+| `breachradar/core/sanitizer.py` | DataSanitizer — masquage données sensibles |
+| `breachradar/core/aggregator.py` | ResultAggregator — dédup + sévérité |
+| `breachradar/core/ransom_tracker.py` | RansomwareTracker — orchestration + alerte immédiate |
 | `reports/.gitkeep` | Répertoire de sortie (gitignored) |
 
 #### Décisions techniques prises
@@ -139,11 +139,11 @@ Phase 5          [░░░░░░░░░░]  0%
 
 #### Prochaines tâches (priorité pour l'itération suivante)
 
-1. **`leakmonitor/clients/hibp.py`** — Client HIBP avec k-anonymity pour les passwords + rate limit 1500ms
-2. **`leakmonitor/clients/github_monitor.py`** — Recherche de credentials hardcodés dans les repos publics
-3. **`leakmonitor/core/orchestrator.py`** — Chef d'orchestre : asyncio.gather() sur tous les clients
-4. **`leakmonitor/main.py`** — CLI Typer avec les commandes : scan, ransomlook, check, schedule, sources
-5. **`leakmonitor/report/engine.py`** — Générateur de rapports Jinja2 (MD + JSON)
+1. **`breachradar/clients/hibp.py`** — Client HIBP avec k-anonymity pour les passwords + rate limit 1500ms
+2. **`breachradar/clients/github_monitor.py`** — Recherche de credentials hardcodés dans les repos publics
+3. **`breachradar/core/orchestrator.py`** — Chef d'orchestre : asyncio.gather() sur tous les clients
+4. **`breachradar/main.py`** — CLI Typer avec les commandes : scan, ransomlook, check, schedule, sources
+5. **`breachradar/report/engine.py`** — Générateur de rapports Jinja2 (MD + JSON)
 6. **`tests/test_sanitizer.py`** + **`tests/test_ransom_tracker.py`** — Tests unitaires prioritaires
 
 ---
@@ -156,15 +156,15 @@ Phase 5          [░░░░░░░░░░]  0%
 
 | Fichier | Description |
 |---|---|
-| `leakmonitor/clients/hibp.py` | Implémentation du client HIBP (Rate Limiting de 1.5s, support K-Anonymity pour MDP) |
-| `leakmonitor/clients/github_monitor.py` | Recherche de mentions de domaines et d'emails sur GitHub (gestion d'API anonyme) |
-| `leakmonitor/core/orchestrator.py` | Orchestration parallèle des clients avec `asyncio.gather` |
-| `leakmonitor/core/scheduler.py` | Placeholder en prévision de la Phase 2 |
-| `leakmonitor/resolver/email_resolver.py` | Résolveur initial (liste commune de préfixes et lecture fichier `emails.txt`) |
-| `leakmonitor/report/engine.py` | Générateur de rapports exploitant Jinja2 pour Markdown/HTML et Pydantic pour le JSON |
-| `leakmonitor/report/templates/report.*.j2` | 3 templates Jinja2 (Markdown, HTML, Texte/Notification) respectant la RGPD |
-| `leakmonitor/notifications/engine.py` | Envoi d'alertes webhook pour les compromissions critiques RansomLook |
-| `leakmonitor/main.py` | Interface ligne de commande basée sur `typer` (`scan`, `check`, `ransomlook`, `sources`, etc.) |
+| `breachradar/clients/hibp.py` | Implémentation du client HIBP (Rate Limiting de 1.5s, support K-Anonymity pour MDP) |
+| `breachradar/clients/github_monitor.py` | Recherche de mentions de domaines et d'emails sur GitHub (gestion d'API anonyme) |
+| `breachradar/core/orchestrator.py` | Orchestration parallèle des clients avec `asyncio.gather` |
+| `breachradar/core/scheduler.py` | Placeholder en prévision de la Phase 2 |
+| `breachradar/resolver/email_resolver.py` | Résolveur initial (liste commune de préfixes et lecture fichier `emails.txt`) |
+| `breachradar/report/engine.py` | Générateur de rapports exploitant Jinja2 pour Markdown/HTML et Pydantic pour le JSON |
+| `breachradar/report/templates/report.*.j2` | 3 templates Jinja2 (Markdown, HTML, Texte/Notification) respectant la RGPD |
+| `breachradar/notifications/engine.py` | Envoi d'alertes webhook pour les compromissions critiques RansomLook |
+| `breachradar/main.py` | Interface ligne de commande basée sur `typer` (`scan`, `check`, `ransomlook`, `sources`, etc.) |
 | `tests/test_clients/test_*.py` | Tests unitaires pour les clients HIBP et RansomLook |
 
 #### Décisions techniques prises
@@ -189,13 +189,13 @@ Phase 5          [░░░░░░░░░░]  0%
 
 | Fichier | Description |
 |---|---|
-| `leakmonitor/clients/leakcheck.py` | Implémentation du client LeakCheck API v2. |
-| `leakmonitor/clients/dehashed.py` | Implémentation du client Dehashed API. |
-| `leakmonitor/core/orchestrator.py` | Intégration des clients LeakCheck et Dehashed au moment de l'initialisation. |
-| `leakmonitor/config/settings.py` | Ajout de `hunter_api_key` pour configurer le résolveur d'emails. |
-| `leakmonitor/resolver/email_resolver.py` | Intégration de Hunter.io (API) et de theHarvester (via `subprocess`). |
-| `leakmonitor/core/scheduler.py` | Implémentation de `ScanScheduler` utilisant `APScheduler` (CronTrigger). |
-| `leakmonitor/main.py` | Mise à jour de la commande `schedule` pour utiliser `ScanScheduler` de façon non bloquante. |
+| `breachradar/clients/leakcheck.py` | Implémentation du client LeakCheck API v2. |
+| `breachradar/clients/dehashed.py` | Implémentation du client Dehashed API. |
+| `breachradar/core/orchestrator.py` | Intégration des clients LeakCheck et Dehashed au moment de l'initialisation. |
+| `breachradar/config/settings.py` | Ajout de `hunter_api_key` pour configurer le résolveur d'emails. |
+| `breachradar/resolver/email_resolver.py` | Intégration de Hunter.io (API) et de theHarvester (via `subprocess`). |
+| `breachradar/core/scheduler.py` | Implémentation de `ScanScheduler` utilisant `APScheduler` (CronTrigger). |
+| `breachradar/main.py` | Mise à jour de la commande `schedule` pour utiliser `ScanScheduler` de façon non bloquante. |
 | `tests/test_aggregator.py` | Création de la suite de tests (déduplication, sévérité, priorisation RansomLook). |
 | `tests/test_orchestrator.py` | Création de la suite de tests pour l'orchestrateur (tests async avec mocks). |
 
@@ -220,10 +220,10 @@ Phase 5          [░░░░░░░░░░]  0%
 
 | Fichier | Description |
 |---|---|
-| `leakmonitor/report/templates/report.html.j2` | Refonte complète : UI/UX Premium, Glassmorphism, Dark Mode, Grilles CSS. |
-| `leakmonitor/clients/pastebin_monitor.py` | Client OSINT via l'API publique de PsbDmp.ws. |
-| `leakmonitor/notifications/engine.py` | Implémentation de `send_email` utilisant `smtplib` en asynchrone (`asyncio.to_thread`). |
-| `leakmonitor/config/settings.py` | Ajout des variables de configuration `smtp_server`, `smtp_port`, etc. |
+| `breachradar/report/templates/report.html.j2` | Refonte complète : UI/UX Premium, Glassmorphism, Dark Mode, Grilles CSS. |
+| `breachradar/clients/pastebin_monitor.py` | Client OSINT via l'API publique de PsbDmp.ws. |
+| `breachradar/notifications/engine.py` | Implémentation de `send_email` utilisant `smtplib` en asynchrone (`asyncio.to_thread`). |
+| `breachradar/config/settings.py` | Ajout des variables de configuration `smtp_server`, `smtp_port`, etc. |
 
 #### Décisions techniques prises
 
@@ -250,11 +250,11 @@ Phase 5          [░░░░░░░░░░]  0%
 
 | Fichier | Description |
 |---|---|
-| `leakmonitor/clients/telegram_monitor.py` | Client Telethon pour interroger les canaux Telegram. |
-| `leakmonitor/clients/intelx.py` | Client Intelligence X complet avec logique de polling (attente des résultats). |
-| `leakmonitor/clients/github_webhook.py` | Serveur `aiohttp` léger pour réceptionner les Webhooks GitHub (Secret Scanning). |
-| `leakmonitor/main.py` | Ajout du lancement asynchrone du serveur Webhook GitHub via la commande `schedule`. |
-| `leakmonitor/report/engine.py` | Ajout de la méthode `_generate_pdf` s'appuyant sur WeasyPrint. |
+| `breachradar/clients/telegram_monitor.py` | Client Telethon pour interroger les canaux Telegram. |
+| `breachradar/clients/intelx.py` | Client Intelligence X complet avec logique de polling (attente des résultats). |
+| `breachradar/clients/github_webhook.py` | Serveur `aiohttp` léger pour réceptionner les Webhooks GitHub (Secret Scanning). |
+| `breachradar/main.py` | Ajout du lancement asynchrone du serveur Webhook GitHub via la commande `schedule`. |
+| `breachradar/report/engine.py` | Ajout de la méthode `_generate_pdf` s'appuyant sur WeasyPrint. |
 | `docker-compose.yml` | Ouverture du port 8080 pour le Webhook. La stack est désormais totalement unifiée. |
 
 #### Décisions techniques prises
@@ -262,7 +262,7 @@ Phase 5          [░░░░░░░░░░]  0%
 1. **Telegram Monitor** : Utilisation de Telethon. Le fichier gère la nécessité d'une authentification manuelle préalable (création du fichier `.session`) avant de tenter des recherches pour éviter des erreurs silencieuses.
 2. **GitHub Webhook** : Utilisation de `aiohttp.web` (déjà dans les dépendances) pour créer un petit serveur intégré sur le port 8080. Il valide la signature HMAC (`X-Hub-Signature-256`) pour des raisons de sécurité.
 3. **Export PDF** : Repose sur `WeasyPrint` avec un fallback vers le HTML standard en cas d'absence de la dépendance (qui requiert souvent des librairies C système).
-4. **Docker Full Stack** : Le conteneur principal (`leakmonitor`) se lance désormais via `python -m leakmonitor schedule`, gérant ainsi les scans cron ET le webhook serveur en tâche de fond continue.
+4. **Docker Full Stack** : Le conteneur principal (`breachradar`) se lance désormais via `python -m breachradar schedule`, gérant ainsi les scans cron ET le webhook serveur en tâche de fond continue.
 
 #### Prochaines tâches (Phase 4 - Validation Globale)
 
@@ -297,10 +297,10 @@ n'apparaît dans le rapport final, même si elle est stockée dans le RansomFind
 - En mode local : `RANSOMLOOK_URL=http://localhost:8888`
 - En mode Docker (inter-container) : `RANSOMLOOK_URL=http://ransomlook-app:8888`
 - Le `docker-compose.yml` injecte automatiquement `RANSOMLOOK_URL=http://ransomlook-app:8888`
-  dans le container LeakMonitor.
+  dans le container BreachRadar.
 
 ### ⚠️ Structure des fichiers créés
-Vérifier que `leakmonitor/report/templates/` existe avant de créer les templates Jinja2.
+Vérifier que `breachradar/report/templates/` existe avant de créer les templates Jinja2.
 Utiliser `Path(__file__).parent / "templates"` pour référencer les templates de manière portable.
 
 ---

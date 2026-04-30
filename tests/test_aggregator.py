@@ -4,10 +4,10 @@ Tests unitaires pour l'agrégateur (ResultAggregator).
 import pytest
 from datetime import date, datetime
 
-from leakmonitor.core.aggregator import ResultAggregator
-from leakmonitor.models.finding import LeakFinding, Severity
-from leakmonitor.models.ransom import RansomFinding, RansomStatus
-from leakmonitor.models.report import ReportMetadata
+from breachradar.core.aggregator import ResultAggregator
+from breachradar.models.finding import LeakFinding, Severity
+from breachradar.models.ransom import RansomFinding, RansomStatus
+from breachradar.models.report import ReportMetadata
 
 @pytest.fixture
 def aggregator():

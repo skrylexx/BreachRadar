@@ -1,11 +1,11 @@
-# Dockerfile — LeakMonitor
+# Dockerfile — BreachRadar
 # Base : Python 3.12 slim pour minimiser la surface d'attaque
 # Utilisateur non-root pour la sécurité en production
 
 FROM python:3.12-slim AS base
 
 # Métadonnées
-LABEL maintainer="LeakMonitor Team"
+LABEL maintainer="BreachRadar Team"
 LABEL description="Outil de détection de fuites de données — OSINT défensif"
 
 # Variables d'environnement
@@ -27,13 +27,15 @@ COPY pyproject.toml ./
 COPY uv.lock* ./
 
 # Installer les dépendances dans un venv isolé
-RUN uv sync --frozen --no-install-project --no-dev
+RUN uv sync --all-extras --no-install-project --no-dev
 
 # Copier le code source
-COPY leakmonitor/ ./leakmonitor/
+COPY breachradar/ ./breachradar/
+COPY README.md ./
+COPY LICENSE ./
 
-# Installer le projet lui-même
-RUN uv sync --frozen --no-dev
+# Installer le projet lui-même avec les extras
+RUN uv sync --all-extras --no-dev
 
 # ─── Stage de production ─────────────────────────────────────────────────────
 FROM base AS production
@@ -41,18 +43,18 @@ FROM base AS production
 WORKDIR /app
 
 # Créer un utilisateur non-root pour la sécurité
-RUN groupadd --gid 1000 leakmonitor && \
-    useradd --uid 1000 --gid leakmonitor --shell /bin/bash --create-home leakmonitor
+RUN groupadd --gid 1000 breachradar && \
+    useradd --uid 1000 --gid breachradar --shell /bin/bash --create-home breachradar
 
 # Copier le venv et le code depuis le builder
-COPY --from=builder --chown=leakmonitor:leakmonitor /app/.venv /app/.venv
-COPY --from=builder --chown=leakmonitor:leakmonitor /app/leakmonitor /app/leakmonitor
+COPY --from=builder --chown=breachradar:breachradar /app/.venv /app/.venv
+COPY --from=builder --chown=breachradar:breachradar /app/breachradar /app/breachradar
 
 # Créer le répertoire de rapports avec les bonnes permissions
-RUN mkdir -p /app/reports && chown leakmonitor:leakmonitor /app/reports
+RUN mkdir -p /app/reports && chown breachradar:breachradar /app/reports
 
 # Passer à l'utilisateur non-root
-USER leakmonitor
+USER breachradar
 
 # Ajouter le venv au PATH
 ENV PATH="/app/.venv/bin:$PATH"
@@ -61,5 +63,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 VOLUME ["/app/reports"]
 
 # Point d'entrée : scheduler en arrière-plan par défaut
-# Peut être overridé avec : docker run leakmonitor python -m leakmonitor scan
-CMD ["python", "-m", "leakmonitor", "schedule", "--start"]
+# Peut être overridé avec : docker run breachradar python -m breachradar scan
+CMD ["python", "-m", "breachradar", "schedule", "--start"]

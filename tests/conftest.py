@@ -1,7 +1,7 @@
 """
 tests/conftest.py
 
-Fixtures pytest partagées pour tous les tests LeakMonitor.
+Fixtures pytest partagées pour tous les tests BreachRadar.
 """
 
 from __future__ import annotations
@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import respx
 
-from leakmonitor.models.finding import LeakFinding, Severity
-from leakmonitor.models.ransom import RansomFinding, RansomStats, RansomStatus
+from breachradar.models.finding import LeakFinding, Severity
+from breachradar.models.ransom import RansomFinding, RansomStats, RansomStatus
 
 # Répertoire des fixtures JSON
 FIXTURES_DIR = Path(__file__).parent / "fixtures"

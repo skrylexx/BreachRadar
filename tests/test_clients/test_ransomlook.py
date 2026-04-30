@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from leakmonitor.clients.ransomlook import RansomLookClient
-from leakmonitor.models.ransom import RansomStatus
+from breachradar.clients.ransomlook import RansomLookClient
+from breachradar.models.ransom import RansomStatus
 
 
 class TestRansomLookClient:

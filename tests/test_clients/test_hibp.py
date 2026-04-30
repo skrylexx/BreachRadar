@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from leakmonitor.clients.hibp import HIBPClient
-from leakmonitor.core.sanitizer import DataSanitizer
+from breachradar.clients.hibp import HIBPClient
+from breachradar.core.sanitizer import DataSanitizer
 
 
 class TestHIBPClient:
