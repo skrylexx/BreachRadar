@@ -3,8 +3,8 @@
 
 ---
 
-> **Version** : 1.0  
-> **Statut** : Draft  
+> **Version** : 1.1  
+> **Statut** : Draft — Mise à jour : intégration complète RansomLook  
 > **Cadre** : Usage légal — surveillance de son propre domaine (OSINT défensif)
 
 ---
@@ -17,13 +17,14 @@
 4. [Architecture générale](#4-architecture-générale)
 5. [Stack technique](#5-stack-technique)
 6. [Sources de données](#6-sources-de-données)
-7. [Modules fonctionnels](#7-modules-fonctionnels)
-8. [Modèle de rapport](#8-modèle-de-rapport)
-9. [Sécurité & vie privée by design](#9-sécurité--vie-privée-by-design)
-10. [Structure du projet et README](#10-structure-du-projet-et-readme)
-11. [Configuration des clés API](#11-configuration-des-clés-api)
-12. [Plan de tests](#12-plan-de-tests)
-13. [Roadmap et évolutions](#13-roadmap-et-évolutions)
+7. [RansomLook — Déploiement et intégration complète](#7-ransomlook--déploiement-et-intégration-complète)
+8. [Modules fonctionnels](#8-modules-fonctionnels)
+9. [Modèle de rapport](#9-modèle-de-rapport)
+10. [Sécurité & vie privée by design](#10-sécurité--vie-privée-by-design)
+11. [Structure du projet et README](#11-structure-du-projet-et-readme)
+12. [Configuration des clés API et services](#12-configuration-des-clés-api-et-services)
+13. [Plan de tests](#13-plan-de-tests)
+14. [Roadmap et évolutions](#14-roadmap-et-évolutions)
 
 ---
 
@@ -86,6 +87,7 @@ Exposition via API REST
 | GitHub / GitLab / Bitbucket | Repos publics, gists | Publique, API officielle |
 | S3 Buckets mal configurés | Recherche via grayhat, buckets.grayhatwarfare.com | Publique |
 | Telegram channels | Canaux de partage de leaks | Publique/restreint |
+| **Sites "Name & Shame" ransomware** | **LockBit, BlackCat, Cl0p, Play… (via RansomLook)** | **Publique agrégée, auto-hébergeable** |
 
 ### 1.3 Est-ce du scraping/crawling ? Est-ce légal ?
 
@@ -134,10 +136,17 @@ Exposition via API REST
 
 ### 3.1 Objectif principal
 
-Créer un outil CLI + scheduler permettant de **détecter si des données appartenant à un domaine donné (`@mondomaine.fr`) ont été compromises**, en agrégeant plusieurs sources publiques et APIs légitimes, et en produisant un **rapport neutre sans donnée sensible exposée**.  
-Ajouter une dimension **Early Warning System** à l'aide de RansomLook :
-- Nouvel indicateur de compromission (IoC) : Le nom de l'organisation ou le nom de domaine sur un site de "Name & Shame" de groupe de ransomware.
-- On ne cherche plus seulement si user@domain.fr est dans une base, mais si domain.fr est listé comme victime d'un groupe (LockBit, BlackCat, etc.) avant même que les données ne soient téléchargeables.
+Créer un outil CLI + scheduler permettant de **détecter si des données appartenant à un domaine donné (`@mondomaine.fr`) ont été compromises**, en agrégeant plusieurs sources publiques et APIs légitimes, et en produisant un **rapport neutre sans donnée sensible exposée**.
+
+Ce projet intègre deux dimensions complémentaires :
+
+**Dimension 1 — Détection de fuites passées (backward-looking)**
+Recherche si des emails du domaine ont déjà été compromis dans des breaches connues (HIBP, Dehashed, LeakCheck…). La donnée est déjà dans la nature.
+
+**Dimension 2 — Early Warning System ransomware (forward-looking) via RansomLook**
+Détecte si le domaine ou l'organisation apparaît sur un site "Name & Shame" de groupe de ransomware **avant même que les données ne soient publiées**. C'est un indicateur de compromission actif (IoC) de niveau catastrophique : cela signifie qu'une exfiltration massive est en cours ou vient de se terminer, et que le groupe extorque actuellement l'organisation. La fenêtre de réaction (entre la publication sur le site du groupe et la mise en ligne publique des données) est typiquement de 5 à 30 jours.
+
+> **Concrètement** : on ne cherche plus seulement si `user@domain.fr` est dans une base de données leakée, mais si `domain.fr` est listé comme victime d'un groupe (LockBit, BlackCat/ALPHV, Cl0p, Play, etc.) sur son portail d'extorsion.
 
 ### 3.2 Ce qui est dans le scope
 
@@ -159,49 +168,63 @@ Ajouter une dimension **Early Warning System** à l'aide de RansomLook :
 ## 4. Architecture générale
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                        LeakMonitor                                                  │
-│                                                                                     │
-│  ┌───────────────┐     ┌──────────────┐     ┌──────────────────┐                    │
-│  │  Scheduler    │───▶│ Orchestrator │───▶ │  Report Engine   │                    │
-│  │  (APScheduler │     │ (Async Core) │     │  (Jinja2 + JSON) │                    │
-│  │   / Cron)     │     │              │     │                  │                    │
-│  └───────────────┘     └──────┬───────┘     └──────────────────┘                    │
-│                               │                                                     │
-│              ┌────────────────┼──────────────|──────────────────────┐               │
-│              ▼                ▼              ▼                      ▼               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐       │
-│  │  API Clients │  │ Feed Monitor │  │ Local HIBP   │  | Local RansomLook   |       │
-│  │              │  │              │  │ Dataset      │  | Ransomware Tracker |       │
-│  │ - HIBP API   │  │ - Pastebin   │  │ (Optional)   │  | (Recommanded)      |       │
-│  │ - IntelX     │  │ - GH/GL      │  │              │  |                    |       │
-│  │ - LeakCheck  │  │ - Telegram   │  └──────────────┘  └────────────────────┘       │
-│  │ - Dehashed   │  │              │                                                 │
-│  └──────────────┘  └──────────────┘                                                 │
-│                                                                                     │
-│  ┌──────────────────────────────────────────────────────────┐                       │
-│  │              Anonymizer / Sanitizer Layer                │                       │
-│  │  (Masquage des mots de passe, hashs, clés API, tokens)   │                       │
-│  └──────────────────────────────────────────────────────────┘                       │
-│                                                                                     │
-│  ┌──────────────┐                                                                   │
-│  │  No-Storage  │  Aucune donnée personnelle persistée                              │
-│  │  Policy      │  (traitement en mémoire uniquement)                               │
-│  └──────────────┘                                                                   │
-└─────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│                                  LeakMonitor                                         │
+│                                                                                      │
+│  ┌───────────────┐     ┌───────────────┐     ┌──────────────────┐                   │
+│  │  Scheduler    │────▶│  Orchestrator │────▶│  Report Engine   │                   │
+│  │  (APScheduler │     │  (Async Core) │     │  (Jinja2 + JSON) │                   │
+│  │   / Cron)     │     │               │     │                  │                   │
+│  └───────────────┘     └──────┬────────┘     └──────────────────┘                   │
+│                               │                                                      │
+│         ┌─────────────────────┼──────────────────────┐                              │
+│         ▼                     ▼                      ▼                              │
+│  ┌─────────────┐    ┌──────────────────┐   ┌─────────────────────────────────────┐  │
+│  │ API Clients │    │  Feed Monitor    │   │  RansomLook Client                  │  │
+│  │             │    │                  │   │  (HTTP → localhost:8888)            │  │
+│  │ - HIBP API  │    │ - Pastebin       │   │                                     │  │
+│  │ - IntelX    │    │ - GitHub / GL    │   │  ┌──────────────────────────────┐   │  │
+│  │ - LeakCheck │    │ - Telegram       │   │  │  Docker : ransomlook         │   │  │
+│  │ - Dehashed  │    │ - RSS/CERT/ANSSI │   │  │  ├── app  (Python/Flask)     │   │  │
+│  │ - URLScan   │    │                  │   │  │  ├── redis (stockage)         │   │  │
+│  │ - OTX       │    └──────────────────┘   │  │  └── tor  (accès .onion)     │   │  │
+│  └─────────────┘                           │  └──────────────────────────────┘   │  │
+│                                            │  Surveille 100+ groupes ransomware  │  │
+│                                            │  et leurs portails d'extorsion      │  │
+│                                            └─────────────────────────────────────┘  │
+│                                                                                      │
+│  ┌───────────────────────────────────────────────────────────┐                      │
+│  │               Anonymizer / Sanitizer Layer                │                      │
+│  │  (Masquage des mots de passe, hashs, clés API, tokens)    │                      │
+│  │  Note : les données RansomLook (nom victime, description) │                      │
+│  │  sont publiques par nature — elles ne sont PAS masquées   │                      │
+│  └───────────────────────────────────────────────────────────┘                      │
+│                                                                                      │
+│  ┌──────────────┐                                                                    │
+│  │  No-Storage  │  Aucune donnée personnelle persistée                               │
+│  │  Policy      │  (traitement en mémoire uniquement)                                │
+│  └──────────────┘                                                                    │
+└──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 4.1 Flux de données
 
 ```
-1. Scheduler déclenche une analyse (manuelle ou planifiée)
-2. L'Orchestrator charge la config (domaine cible, sources activées, clés API)
-3. Chaque module source est appelé en parallèle (asyncio)
-4. Les résultats bruts transitent par le Sanitizer (masquage immédiat)
-5. L'Orchestrator déduplique et agrège les findings
-6. Le Report Engine génère le rapport final (JSON + Markdown/HTML)
-7. Les données brutes sont purgées de la mémoire
-8. (Optionnel) Notification par email/webhook
+1.  Scheduler déclenche une analyse (manuelle ou planifiée)
+2.  L'Orchestrator charge la config (domaine cible, sources activées, clés API)
+3a. Chaque module API client est appelé en parallèle (asyncio)
+3b. Le Feed Monitor interroge les flux en temps réel
+3c. Le RansomLook Client interroge l'instance Docker locale
+         └── Si le domaine est trouvé : ALERTE CRITIQUE immédiate
+             (notification déclenchée sans attendre la fin du scan complet)
+4.  Les résultats bruts transitent par le Sanitizer (masquage immédiat)
+         └── Exception RansomLook : données déjà publiques, pas de masquage
+5.  L'Orchestrator déduplique et agrège les findings
+         └── Un finding RansomLook élève automatiquement la sévérité globale à CRITICAL
+6.  Le Report Engine génère le rapport final (JSON + Markdown/HTML)
+         └── Section dédiée "Alertes Ransomware" en tête de rapport si applicable
+7.  Les données brutes sont purgées de la mémoire
+8.  (Optionnel) Notification par email/webhook
 ```
 
 ---
@@ -335,9 +358,76 @@ mypy = "^1.10"            # Type checking
 - **URL** : `https://breach.directory/api/search?query={email}`
 - **Auth** : Clé API (tier gratuit limité)
 
-#### 6.1.9 RansomLook (gratuit si hébergé)
-- **URL** : `https://www.ransomlook.io/doc/` #URL de la documentation API, à déployer en interne
-- **Auth** : Clé API (gratuit illimité)
+#### 6.1.9 RansomLook (gratuit, auto-hébergé via Docker — **Fortement recommandé**)
+
+RansomLook est un projet open source qui **agrège et normalise les publications des portails d'extorsion de groupes ransomware** (leurs sites "Name & Shame" sur le dark web et clearnet). Il surveille en continu plus de 100 groupes actifs (LockBit, BlackCat/ALPHV, Cl0p, Play, Akira, RansomHub, etc.) et expose leurs publications via une API REST locale.
+
+> **Pourquoi c'est différent des autres sources** : HIBP et les autres APIs détectent des fuites *passées*. RansomLook détecte une compromission *en cours* — avant même que les données ne soient publiées. C'est la seule source qui donne une chance de réagir pendant la fenêtre d'extorsion.
+
+**Dépôt GitHub** : `https://github.com/RansomLook/RansomLook`  
+**Instance publique** : `https://www.ransomlook.io`  
+**Auth** : Aucune sur instance locale ; clé API sur l'instance publique (voir section 12.12)  
+**Coût** : Gratuit (auto-hébergé) — seuls les coûts d'infrastructure s'appliquent
+
+**Endpoints API utilisés dans LeakMonitor :**
+
+```
+# Instance locale sur Docker (port 8888 par défaut)
+BASE_URL = http://localhost:8888
+
+GET /api/v1/recent
+  → Liste des victimes publiées récemment (toutes groupes confondus)
+  → Paramètre optionnel : ?days=7 (derniers N jours)
+
+GET /api/v1/groups
+  → Liste de tous les groupes ransomware suivis avec leur statut (actif/inactif)
+
+GET /api/v1/group?name={group_name}
+  → Toutes les victimes d'un groupe spécifique
+  → Ex : /api/v1/group?name=lockbit3
+
+GET /api/v1/victims
+  → Toutes les victimes indexées (pagination recommandée)
+
+GET /api/v1/victim?name={search_term}
+  → Recherche par nom de victime / domaine
+  → C'est l'endpoint principal utilisé par LeakMonitor
+
+GET /api/v1/stats
+  → Statistiques globales (nombre de groupes, victimes, date dernière mise à jour)
+```
+
+**Exemple de réponse `/api/v1/victim?name=mondomaine` :**
+
+```json
+[
+  {
+    "post_title": "MonDomaine SA",
+    "group_name": "lockbit3",
+    "discovered": "2025-04-20T14:32:00Z",
+    "published": "2025-04-20T14:32:00Z",
+    "post_url": "http://lockbit3abc[.]onion/post/abc123",
+    "description": "500GB of internal data, including SQL databases and employee emails.",
+    "website": "mondomaine.fr",
+    "country": "France",
+    "activity": "Technology",
+    "claim_size": "500GB",
+    "infostealer": false,
+    "added": "2025-04-20T15:00:00Z"
+  }
+]
+```
+
+**Stratégie de matching dans LeakMonitor :**
+
+La recherche ne se fait pas uniquement sur le nom de domaine exact — l'organisation peut être listée sous son nom commercial, ses filiales, ou son acronyme. LeakMonitor applique une stratégie de matching en cascade :
+
+```python
+# Termes de recherche configurables dans .env
+RANSOMLOOK_SEARCH_TERMS=mondomaine.fr,MonDomaine,MDomaine,MD Group
+# → Chaque terme génère une requête GET /api/v1/victim?name={term}
+# → Les résultats sont fusionnés et dédupliqués
+```
 
 ### 6.2 Sources payantes recommandées
 
@@ -372,14 +462,369 @@ mypy = "^1.10"            # Type checking
 
 ---
 
-## 7. Modules fonctionnels
+## 7. RansomLook — Déploiement et intégration complète
 
-### 7.1 Configuration Manager
+### 7.1 Qu'est-ce que RansomLook ?
+
+RansomLook est un **agrégateur open source de sites "Name & Shame" de groupes ransomware**. Ces groupes, lorsqu'ils chiffrent les données d'une organisation et que la rançon n'est pas payée, publient le nom de leur victime sur un portail web (souvent en .onion sur Tor, parfois aussi sur le clearnet) pour exercer une pression supplémentaire. RansomLook scrape automatiquement ces portails et expose les données via une API REST normalisée.
+
+**Ce que RansomLook surveille :**
+- 100+ groupes ransomware actifs (LockBit, BlackCat/ALPHV, Cl0p, Play, Akira, RansomHub, Medusa, etc.)
+- Les portails .onion (via Tor intégré) **et** les miroirs clearnet
+- Les nouvelles publications en quasi temps réel (refresh configurable, typiquement toutes les heures)
+- Les métadonnées associées : date, taille des données revendiquées, secteur, pays, description
+
+**Ce que RansomLook ne fait PAS :**
+- Il ne télécharge pas les données volées
+- Il n'accède pas aux espaces privés des portails (nécessitant un paiement ou une clé)
+- Il ne déchiffre aucune donnée
+
+> **Statut légal** : RansomLook consulte des pages web publiquement accessibles (même sur Tor) pour collecter des informations que les groupes ransomware ont délibérément rendues publiques. Cette pratique est analogue à la surveillance de presse et est légale dans le cadre d'un usage défensif, notamment en France sous le régime de l'intérêt légitime (RGPD Art. 6.1.f) et dans le cadre de la LPM / NIS2.
+
+---
+
+### 7.2 Architecture Docker de RansomLook
+
+RansomLook est composé de trois services Docker :
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│               Stack Docker RansomLook                           │
+│                                                                 │
+│  ┌─────────────────┐    ┌──────────────┐    ┌───────────────┐  │
+│  │  ransomlook-app │    │    redis     │    │      tor      │  │
+│  │  (Python/Flask) │◄──▶│  (stockage   │    │  (accès aux   │  │
+│  │  Port: 8888     │    │   des        │◄───│  sites .onion)│  │
+│  │                 │    │   données)   │    │               │  │
+│  │  - API REST     │    │  Port: 6379  │    │  Port: 9050   │  │
+│  │  - Scheduler    │    └──────────────┘    └───────────────┘  │
+│  │    interne      │                                           │
+│  └─────────────────┘                                           │
+│           ▲                                                     │
+│           │ HTTP REST                                           │
+│  LeakMonitor (Python)                                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 7.3 Fichier `docker-compose.yml` complet du projet
+
+Le `docker-compose.yml` de LeakMonitor intègre RansomLook comme service dépendant :
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+
+services:
+
+  # ─────────────────────────────────────────
+  # RansomLook — stack complète auto-hébergée
+  # ─────────────────────────────────────────
+
+  ransomlook-redis:
+    image: redis:7-alpine
+    container_name: ransomlook-redis
+    restart: unless-stopped
+    volumes:
+      - ransomlook_redis_data:/data
+    networks:
+      - ransomlook_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ransomlook-tor:
+    image: dperson/torproxy:latest
+    container_name: ransomlook-tor
+    restart: unless-stopped
+    networks:
+      - ransomlook_net
+    environment:
+      - TOR_MaxCircuitDirtiness=600
+    healthcheck:
+      test: ["CMD", "curl", "--socks5", "localhost:9050", "https://check.torproject.org/api/ip"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+  ransomlook-app:
+    image: ghcr.io/ransomlook/ransomlook:latest
+    container_name: ransomlook-app
+    restart: unless-stopped
+    depends_on:
+      ransomlook-redis:
+        condition: service_healthy
+      ransomlook-tor:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8888:8888"   # Exposé uniquement en localhost — jamais en 0.0.0.0
+    networks:
+      - ransomlook_net
+    environment:
+      - REDIS_HOST=ransomlook-redis
+      - REDIS_PORT=6379
+      - TOR_PROXY=socks5://ransomlook-tor:9050
+      - REFRESH_INTERVAL=3600     # Rafraîchissement toutes les heures
+      - LOG_LEVEL=WARNING
+    volumes:
+      - ransomlook_app_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/v1/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s           # Laisser le temps au premier scrape
+
+  # ─────────────────────────────────────────
+  # LeakMonitor — application principale
+  # ─────────────────────────────────────────
+
+  leakmonitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leakmonitor
+    restart: unless-stopped
+    depends_on:
+      ransomlook-app:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - RANSOMLOOK_URL=http://ransomlook-app:8888   # Communication inter-container
+    volumes:
+      - ./reports:/app/reports
+    networks:
+      - ransomlook_net
+
+volumes:
+  ransomlook_redis_data:
+  ransomlook_app_data:
+
+networks:
+  ransomlook_net:
+    driver: bridge
+```
+
+> **Note de sécurité** : L'API RansomLook est liée à `127.0.0.1:8888` uniquement (pas `0.0.0.0`). Elle ne doit pas être exposée sur Internet — elle contient des informations sur des victimes de ransomware et n'a pas de système d'authentification sur les endpoints de lecture.
+
+---
+
+### 7.4 Premier démarrage et initialisation
+
+```bash
+# 1. Démarrer la stack RansomLook uniquement (pour le premier peuplement des données)
+docker-compose up ransomlook-redis ransomlook-tor ransomlook-app -d
+
+# 2. Vérifier que les services sont sains
+docker-compose ps
+
+# 3. Attendre le premier cycle de scraping (peut prendre 10-30 minutes)
+#    Surveiller les logs :
+docker-compose logs -f ransomlook-app
+
+# 4. Vérifier que l'API répond et que des données sont présentes
+curl http://localhost:8888/api/v1/stats
+# Attendu : {"groups": 120, "posts": 14500, "last_update": "2025-..."}
+
+# 5. Tester la recherche par domaine
+curl "http://localhost:8888/api/v1/victim?name=mondomaine.fr"
+# Attendu : [] (tableau vide si votre domaine n'est pas compromis — c'est le scénario souhaité)
+
+# 6. Démarrer la stack complète (LeakMonitor + RansomLook)
+docker-compose up -d
+```
+
+---
+
+### 7.5 Modèle de données RansomLook (Pydantic)
+
+Ces modèles sont spécifiques à RansomLook et distincts du modèle `LeakFinding` standard (les données ransomware sont publiques, pas de sanitisation) :
+
+```python
+# leakmonitor/models/ransom.py
+
+from pydantic import BaseModel
+from datetime import datetime
+from enum import Enum
+
+class RansomStatus(str, Enum):
+    LISTED = "LISTED"           # Victime listée, données pas encore publiées
+    PUBLISHED = "PUBLISHED"     # Données publiées / téléchargeables
+    REMOVED = "REMOVED"         # Publication supprimée (rançon payée ?)
+    UNKNOWN = "UNKNOWN"
+
+class RansomFinding(BaseModel):
+    """
+    Résultat d'une correspondance RansomLook.
+    Ces données sont publiques (publiées par le groupe ransomware lui-même)
+    et ne nécessitent pas de sanitisation.
+    """
+    source: str = "ransomlook"
+    group_name: str                  # Ex: "lockbit3", "blackcat", "play"
+    group_display_name: str          # Ex: "LockBit 3.0", "BlackCat/ALPHV"
+    victim_name: str                 # Nom tel qu'affiché sur le portail du groupe
+    victim_website: str | None       # Domaine de la victime si disponible
+    discovered_at: datetime          # Date de découverte par RansomLook
+    published_at: datetime | None    # Date de publication sur le portail
+    description: str | None          # Description publique (SANS données réelles)
+    country: str | None              # Pays de la victime
+    activity: str | None             # Secteur d'activité
+    claim_size: str | None           # Taille revendiquée ("500GB", "2TB")
+    status: RansomStatus
+    portal_url: str | None           # URL .onion (affichée masquée dans le rapport)
+    search_term_matched: str         # Terme de recherche qui a matché
+    severity: str = "CRITICAL"       # Toujours CRITICAL — pas de négociation
+
+class RansomStats(BaseModel):
+    """Statistiques de l'instance RansomLook locale."""
+    groups_tracked: int
+    total_posts: int
+    last_update: datetime | None
+    instance_url: str
+    is_healthy: bool
+```
+
+---
+
+### 7.6 Client Python `ransomlook.py`
+
+```python
+# leakmonitor/clients/ransomlook.py
+
+import httpx
+from tenacity import retry, stop_after_attempt, wait_exponential
+from leakmonitor.clients.base import BaseLeakClient
+from leakmonitor.models.ransom import RansomFinding, RansomStats, RansomStatus
+from leakmonitor.config.settings import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Mapping des noms de groupes techniques → noms affichables
+GROUP_DISPLAY_NAMES = {
+    "lockbit3": "LockBit 3.0",
+    "blackcat": "BlackCat / ALPHV",
+    "clop": "Cl0p",
+    "play": "Play",
+    "akira": "Akira",
+    "ransomhub": "RansomHub",
+    "medusa": "Medusa",
+    "bianlian": "BianLian",
+    "8base": "8Base",
+    # ... liste complète dans config/group_names.yaml
+}
+
+class RansomLookClient(BaseLeakClient):
+    name = "ransomlook"
+    rate_limit_delay = 0.5  # Requêtes locales — pas de rate limit strict
+
+    def __init__(self):
+        self.base_url = settings.ransomlook_url.rstrip("/")
+        self.search_terms = settings.ransomlook_search_terms  # list[str]
+        self.timeout = httpx.Timeout(30.0)
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
+    async def _get(self, path: str, params: dict = None) -> dict | list:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(f"{self.base_url}{path}", params=params)
+            response.raise_for_status()
+            return response.json()
+
+    async def check_health(self) -> RansomStats:
+        """Vérifie que l'instance RansomLook est opérationnelle."""
+        try:
+            data = await self._get("/api/v1/stats")
+            return RansomStats(
+                groups_tracked=data.get("groups", 0),
+                total_posts=data.get("posts", 0),
+                last_update=data.get("last_update"),
+                instance_url=self.base_url,
+                is_healthy=True,
+            )
+        except Exception as e:
+            logger.error(f"RansomLook instance non joignable : {e}")
+            return RansomStats(
+                groups_tracked=0, total_posts=0, last_update=None,
+                instance_url=self.base_url, is_healthy=False
+            )
+
+    async def check_domain(self, domain: str) -> list[RansomFinding]:
+        """
+        Recherche le domaine ET tous les termes configurés dans RANSOMLOOK_SEARCH_TERMS.
+        Déduplique les résultats par (group_name, victim_name, published_at).
+        """
+        findings: list[RansomFinding] = []
+        seen: set[tuple] = set()
+
+        # On cherche sur tous les termes configurés (domaine + noms d'organisation)
+        search_terms = list({domain, *self.search_terms})
+
+        for term in search_terms:
+            try:
+                results = await self._get("/api/v1/victim", params={"name": term})
+                for item in results:
+                    dedup_key = (
+                        item.get("group_name"),
+                        item.get("post_title"),
+                        item.get("published"),
+                    )
+                    if dedup_key in seen:
+                        continue
+                    seen.add(dedup_key)
+
+                    group_name = item.get("group_name", "unknown")
+                    finding = RansomFinding(
+                        group_name=group_name,
+                        group_display_name=GROUP_DISPLAY_NAMES.get(
+                            group_name, group_name.title()
+                        ),
+                        victim_name=item.get("post_title", ""),
+                        victim_website=item.get("website"),
+                        discovered_at=item.get("added") or item.get("discovered"),
+                        published_at=item.get("published"),
+                        description=item.get("description"),
+                        country=item.get("country"),
+                        activity=item.get("activity"),
+                        claim_size=item.get("claim_size"),
+                        status=RansomStatus.LISTED,
+                        portal_url=item.get("post_url"),  # Stocké mais masqué en rapport
+                        search_term_matched=term,
+                    )
+                    findings.append(finding)
+                    logger.critical(
+                        f"🚨 RANSOMWARE ALERT : {domain} trouvé sur portail {group_name} "
+                        f"(terme matché : '{term}')"
+                    )
+
+            except Exception as e:
+                logger.error(f"Erreur RansomLook pour terme '{term}' : {e}")
+
+        return findings
+
+    async def get_recent_victims(self, days: int = 7) -> list[dict]:
+        """Retourne les victimes récentes pour enrichissement de contexte."""
+        return await self._get("/api/v1/recent", params={"days": days})
+
+    # check_email n'est pas applicable pour RansomLook (recherche par organisation)
+    async def check_email(self, email: str) -> list[RansomFinding]:
+        return []
+```
+
+---
+
+## 8. Modules fonctionnels
+
+### 8.1 Configuration Manager
 
 ```
 config/
 ├── settings.py          # Pydantic Settings — lecture .env + validation
 ├── sources.yaml         # Activation/désactivation de chaque source
+├── group_names.yaml     # Mapping technique → affichable des groupes ransomware
 └── templates/
     └── report.html.j2   # Template Jinja2 du rapport
 ```
@@ -389,7 +834,7 @@ config/
 # Domaine cible (IMMUABLE dans ce projet)
 TARGET_DOMAIN=mondomaine.fr
 
-# Clés API (voir Section 11 pour obtenir chacune)
+# Clés API (voir Section 12 pour obtenir chacune)
 HIBP_API_KEY=
 GITHUB_TOKEN=
 GITLAB_TOKEN=
@@ -402,6 +847,20 @@ URLSCAN_API_KEY=
 OTX_API_KEY=
 TELEGRAM_API_ID=
 TELEGRAM_API_HASH=
+
+# ─── RansomLook ─────────────────────────────────────────────────
+# URL de l'instance Docker locale (ne pas modifier si docker-compose standard)
+RANSOMLOOK_URL=http://localhost:8888
+
+# Termes de recherche : domaine + noms alternatifs de l'organisation
+# Séparés par des virgules — le domaine cible est toujours ajouté automatiquement
+RANSOMLOOK_SEARCH_TERMS=MonDomaine,Mon Domaine SA,MDomaine
+
+# Notification immédiate si le domaine est trouvé sur RansomLook
+# (indépendamment du scheduler normal)
+RANSOMLOOK_ALERT_EMAIL=security@mondomaine.fr
+RANSOMLOOK_ALERT_WEBHOOK=
+# ────────────────────────────────────────────────────────────────
 
 # Configuration rapport
 REPORT_OUTPUT_DIR=./reports
@@ -416,7 +875,7 @@ HTTP_PROXY=
 HTTPS_PROXY=
 ```
 
-### 7.2 Domain Email Resolver
+### 8.2 Domain Email Resolver
 
 Avant toute recherche, ce module tente de reconstituer la **liste des adresses connues** du domaine via :
 
@@ -436,7 +895,7 @@ class DomainEmailResolver:
         """
 ```
 
-### 7.3 API Clients (un par source)
+### 8.3 API Clients (un par source)
 
 Chaque client est une classe async héritant d'une base commune :
 
@@ -471,7 +930,7 @@ class LeakFinding(BaseModel):
     # NOTE : Aucun champ mot de passe, hash, token, clé API n'existe dans ce modèle
 ```
 
-### 7.4 Sanitizer Layer
+### 8.4 Sanitizer Layer
 
 Module central appliqué **immédiatement** après réception de toute réponse d'API :
 
@@ -502,7 +961,7 @@ class DataSanitizer:
         # Ex: "password: abc123" → has_password=True, valeur purgée
 ```
 
-### 7.5 Deduplicator & Aggregator
+### 8.5 Deduplicator & Aggregator
 
 ```python
 class ResultAggregator:
@@ -510,15 +969,23 @@ class ResultAggregator:
     - Déduplique les findings identiques provenant de sources multiples
     - Agrège par email, par breach, par type de données
     - Calcule un score de sévérité global par email
+    - Intègre les RansomFinding comme signal de sévérité maximale globale
 
-    !! ATTENTION
-    Si le domaine apparaît sur RansomLook, la sévérité doit être CRITICAL, et une alerte immédiate doit être envoyée car cela signifie qu'une exfiltration massive de données est en cours ou terminée.
+    ⚠️  RÈGLE CRITIQUE RansomLook :
+    Si un RansomFinding est présent (domaine détecté sur portail ransomware),
+    la sévérité GLOBALE du rapport est élevée à CRITICAL et une notification
+    immédiate est déclenchée, SANS attendre la fin de l'analyse des emails.
+    Cela traduit le fait qu'une exfiltration massive est probable ou en cours.
     """
-    
-    def aggregate(self, findings: list[LeakFinding]) -> AggregatedReport: ...
+
+    def aggregate(
+        self,
+        email_findings: list[LeakFinding],
+        ransom_findings: list[RansomFinding],
+    ) -> AggregatedReport: ...
 ```
 
-**Calcul de sévérité :**
+**Calcul de sévérité pour les findings email :**
 
 | Condition | Niveau |
 |---|---|
@@ -528,7 +995,15 @@ class ResultAggregator:
 | Email + mot de passe en clair ou clé API | CRITICAL |
 | Fuite récente (< 6 mois) + tout type | +1 niveau |
 
-### 7.6 Feed Monitor (surveillance continue)
+**Règles de sévérité RansomLook (sévérité globale du rapport) :**
+
+| Condition RansomLook | Sévérité globale | Action immédiate |
+|---|---|---|
+| Aucun résultat | — | Aucune |
+| Domaine trouvé, données non encore publiées | **CRITICAL** | Alerte immédiate + rapport d'urgence |
+| Domaine trouvé, données publiées | **CRITICAL** | Alerte immédiate + rapport d'urgence + CNIL |
+
+### 8.6 Feed Monitor (surveillance continue)
 
 Module asynchrone tournant en arrière-plan pour surveiller :
 
@@ -546,7 +1021,7 @@ class FeedMonitor:
 - Noms de services internes (si configurés).
 - Fichiers `.env`, `config.yml`, `credentials.json` mentionnant le domaine.
 
-### 7.7 Scheduler
+### 8.7 Scheduler
 
 ```python
 # Utilise APScheduler avec persistance en mémoire (pas de DB)
@@ -562,50 +1037,121 @@ scheduler.add_job(
 )
 ```
 
-### 7.8 Notification Engine (optionnel)
+### 8.8 Notification Engine (optionnel)
 
 ```python
 class NotificationEngine:
     async def send_email(self, report: FinalReport, recipient: str): ...
     async def send_webhook(self, report: FinalReport, webhook_url: str): ...
     async def send_slack(self, report: FinalReport, channel: str): ...
+
+    async def send_ransom_alert(self, finding: RansomFinding) -> None:
+        """
+        Notification d'urgence déclenchée IMMÉDIATEMENT à la détection
+        d'un RansomFinding, sans attendre la fin du scan complet.
+        Contient : groupe ransomware, date de détection, taille revendiquée.
+        Ne contient PAS : URL .onion, description complète (peut contenir des PII).
+        """
 ```
 
-**Note** : Les notifications ne contiennent que le résumé (nombre de comptes compromis, sévérité max) — jamais de données sensibles.
+**Note** : Les notifications standard ne contiennent que le résumé (nombre de comptes compromis, sévérité max) — jamais de données sensibles. Les alertes RansomLook contiennent le nom du groupe et la date de détection, sans les données de la victime publiées par le groupe.
 
-### 7.9 RansomwareTracker (si RansomLook déployé)
+### 8.9 RansomwareTracker — Module d'orchestration
+
+Ce module orchestre les appels au `RansomLookClient` et gère la logique d'alerte immédiate. Il est distinct du client HTTP (section 7.6) qui lui est délégué.
 
 ```python
-class RansomwareTracker(BaseLeakClient):
-    name: "RansomLook"
-    
-    async def check_domain(self, domain: str) -> list[LeakFinding]:
-        """
-        Requête RansomLook pour voir si le domaine apparaît 
-        sur un blog de ransomware.
-        """
-        # Si trouvé, génère un Finding de sévérité CRITICAL
-        # même si aucun email individuel n'est encore leaké.
+# leakmonitor/core/ransom_tracker.py
+
+class RansomwareTracker:
+    """
+    Orchestre la surveillance ransomware via RansomLookClient.
+    Gère l'alerte immédiate et l'intégration avec l'Orchestrator principal.
+    """
+
+    def __init__(self, client: RansomLookClient, notifier: NotificationEngine):
+        self.client = client
+        self.notifier = notifier
+
+    async def run(self, domain: str) -> list[RansomFinding]:
+        # 1. Vérifier la santé de l'instance RansomLook
+        stats = await self.client.check_health()
+        if not stats.is_healthy:
+            logger.error("Instance RansomLook non disponible — module ignoré")
+            return []
+
+        # 2. Recherche multi-termes
+        findings = await self.client.check_domain(domain)
+
+        # 3. Alerte immédiate si trouvé (n'attend pas la fin du scan global)
+        for finding in findings:
+            await self.notifier.send_ransom_alert(finding)
+
+        return findings
+
+    async def get_context(self) -> RansomStats:
+        """Retourne les statistiques de l'instance pour inclusion dans le rapport."""
+        return await self.client.check_health()
 ```
 
 ---
 
-## 8. Modèle de rapport
+## 9. Modèle de rapport
 
-### 8.1 Structure JSON (format brut)
+### 9.1 Structure JSON (format brut)
 
 ```json
 {
   "report_metadata": {
     "generated_at": "2025-01-15T08:00:00Z",
     "target_domain": "mondomaine.fr",
-    "sources_queried": ["hibp", "leakcheck", "github", "dehashed"],
+    "sources_queried": ["hibp", "leakcheck", "github", "dehashed", "ransomlook"],
     "sources_errors": [],
     "scan_duration_seconds": 42.3,
     "total_emails_checked": 87,
-    "total_findings": 12
+    "total_findings": 12,
+    "ransomlook_instance": {
+      "url": "http://localhost:8888",
+      "is_healthy": true,
+      "groups_tracked": 124,
+      "total_posts_indexed": 16340,
+      "last_update": "2025-01-15T07:45:00Z"
+    }
+  },
+  "ransomware_alerts": {
+    "domain_listed": true,
+    "alert_count": 1,
+    "alerts": [
+      {
+        "group_name": "lockbit3",
+        "group_display_name": "LockBit 3.0",
+        "victim_name": "MonDomaine SA",
+        "discovered_at": "2025-01-14T14:32:00Z",
+        "published_at": "2025-01-14T14:32:00Z",
+        "country": "France",
+        "activity": "Technology",
+        "claim_size": "500GB",
+        "status": "LISTED",
+        "description_available": true,
+        "description": "500GB of internal data, including SQL databases and employee emails.",
+        "portal_url_available": true,
+        "portal_url": "[URL .onion masquée — disponible dans les logs sécurisés]",
+        "search_term_matched": "MonDomaine",
+        "severity": "CRITICAL",
+        "recommended_actions": [
+          "Activer immédiatement le plan de réponse aux incidents (PRI)",
+          "Contacter un cabinet de forensics spécialisé ransomware",
+          "Notifier la CNIL sous 72h (Art. 33 RGPD)",
+          "Évaluer le périmètre de l'exfiltration avec les logs réseau",
+          "NE PAS contacter le groupe ransomware sans conseil juridique",
+          "Préserver les preuves (logs, artefacts système) pour investigation"
+        ]
+      }
+    ]
   },
   "summary": {
+    "global_severity": "CRITICAL",
+    "ransomware_detected": true,
     "emails_compromised": 5,
     "emails_clean": 82,
     "severity_breakdown": {
@@ -667,18 +1213,47 @@ class RansomwareTracker(BaseLeakClient):
     "no_plaintext_passwords_stored": true,
     "no_hashes_stored": true,
     "sanitizer_applied": true,
-    "data_purged_after_report": true
+    "data_purged_after_report": true,
+    "ransomlook_data_is_public": true
   }
 }
 ```
 
-### 8.2 Rapport Markdown (format humain)
+### 9.2 Rapport Markdown (format humain)
 
 ```markdown
 # 🔍 Rapport LeakMonitor — mondomaine.fr
 **Généré le** : 15 janvier 2025 à 08:00  
-**Sources consultées** : HIBP, LeakCheck, GitHub, Dehashed  
+**Sources consultées** : HIBP, LeakCheck, GitHub, Dehashed, RansomLook  
 **Durée d'analyse** : 42 secondes
+
+---
+
+## 💀 ALERTE RANSOMWARE — ACTION IMMÉDIATE REQUISE
+
+> ⚠️ **Votre domaine a été détecté sur un portail d'extorsion ransomware.**  
+> Cela indique qu'une exfiltration de données est probable ou en cours.  
+> Contactez immédiatement votre équipe sécurité et un cabinet de forensics.
+
+| Indicateur | Valeur |
+|---|---|
+| **Groupe détecté** | LockBit 3.0 |
+| **Date de détection** | 14 janvier 2025 à 14:32 |
+| **Taille revendiquée** | 500 GB |
+| **Statut** | Données non encore publiées (fenêtre de négociation) |
+| **Pays** | France |
+| **Secteur** | Technology |
+
+**Description publiée par le groupe :**  
+*"500GB of internal data, including SQL databases and employee emails."*
+
+**Actions critiques à entreprendre :**
+1. 🚨 Activer le Plan de Réponse aux Incidents (PRI) immédiatement
+2. 🔒 Isoler les systèmes potentiellement compromis du réseau
+3. 🔍 Mandater un cabinet de forensics spécialisé ransomware
+4. 📋 Notifier la CNIL dans les 72h (Article 33 RGPD)
+5. ⚖️  Ne PAS contacter le groupe sans conseil juridique préalable
+6. 📁 Préserver tous les logs et artefacts système pour investigation
 
 ---
 
@@ -689,26 +1264,17 @@ class RansomwareTracker(BaseLeakClient):
 | Emails analysés | 87 |
 | **Emails compromis** | **5** |
 | Sévérité maximale | 🔴 CRITICAL |
+| Alerte ransomware | 🔴 OUI — LockBit 3.0 |
 | Fuite la plus récente | 15 mars 2024 |
 | Sources en erreur | Aucune |
+| RansomLook — Groupes suivis | 124 |
+| RansomLook — Dernière mise à jour | 15 jan. 2025 07:45 |
 
-### Répartition par sévérité
+### Répartition par sévérité (emails)
 - 🔴 CRITICAL : 1 compte
 - 🟠 HIGH : 2 comptes  
 - 🟡 MEDIUM : 2 comptes
 - 🟢 LOW : 0 compte
-
----
-
-## 💀 Alertes Ransomware (via RansomLook)
-
-Statut : **DOMAINE DÉTECTÉ**
-Groupe : *LockBit 3.0*
-
-Date de publication : 2026-04-20
-Description : "500GB of internal data, including SQL databases and employee emails."
-
-Note : Les données n'ont pas encore été publiées (période de négociation). Risque de fuite massive imminent.
 
 ---
 
@@ -743,15 +1309,16 @@ Note : Les données n'ont pas encore été publiées (période de négociation).
 
 ## 🔒 Attestation d'intégrité
 - Aucun mot de passe, hash ou credential n'a été stocké
-- Le sanitizer a été appliqué sur toutes les données brutes
+- Le sanitizer a été appliqué sur toutes les données brutes (hors données RansomLook — publiques)
 - Les données temporaires ont été purgées en mémoire après génération du rapport
+- L'URL du portail .onion n'est pas incluse dans ce rapport
 ```
 
 ---
 
-## 9. Sécurité & vie privée by design
+## 10. Sécurité & vie privée by design
 
-### 9.1 Règles de code impératives
+### 10.1 Règles de code impératives
 
 ```python
 # RÈGLE 1 : Aucun log de données sensibles
@@ -778,13 +1345,13 @@ def purge_sensitive(data: str) -> None:
 # La sérialisation JSON ne peut donc pas les exposer
 ```
 
-### 9.2 Secrets management
+### 10.2 Secrets management
 
 - Toutes les clés API sont dans `.env` (jamais commitées — `.gitignore` obligatoire).
 - En production : utiliser **HashiCorp Vault** ou **AWS Secrets Manager**.
 - Le pre-commit hook **detect-secrets** scanne chaque commit.
 
-### 9.3 Politique de rétention
+### 10.3 Politique de rétention
 
 ```
 Données traitées en mémoire uniquement
@@ -798,19 +1365,21 @@ Données traitées en mémoire uniquement
               └── Ne contient PAS : passwords, hashs, tokens, clés API
 ```
 
-### 9.4 Sécurité réseau
+### 10.4 Sécurité réseau
 
-- Toutes les requêtes HTTP via **HTTPS uniquement** (vérification SSL stricte).
+- Toutes les requêtes HTTP externes via **HTTPS uniquement** (vérification SSL stricte).
 - Support proxy SOCKS5/HTTP configurable (pour cloisonner les requêtes OSINT).
-- Rate limiting respecté scrupuleusement pour chaque API.
+- Rate limiting respecté scrupuleusement pour chaque API externe.
 - Timeout configuré sur toutes les requêtes (défaut : 30s).
 - User-Agent identifiable et honnête (pas d'usurpation).
+- **RansomLook** : communication uniquement en HTTP local (container-to-container ou localhost). L'API n'est **jamais** exposée sur une interface réseau publique (`127.0.0.1:8888` uniquement dans le `docker-compose.yml`).
+- **Tor via RansomLook** : le trafic vers les sites .onion passe par le container Tor dédié — LeakMonitor lui-même ne fait aucune connexion Tor directe.
 
 ---
 
-## 10. Structure du projet et README
+## 11. Structure du projet et README
 
-### 10.1 Arborescence
+### 11.1 Arborescence
 
 ```
 leakmonitor/
@@ -818,8 +1387,8 @@ leakmonitor/
 ├── pyproject.toml
 ├── Makefile
 ├── .env.example               # Template — JAMAIS de vraies clés ici
-├── .gitignore                 # Inclut .env, reports/, *.log
-├── docker-compose.yml
+├── .gitignore                 # Inclut .env, reports/, *.log, *.session
+├── docker-compose.yml         # LeakMonitor + RansomLook (app + redis + tor)
 ├── Dockerfile
 │
 ├── leakmonitor/               # Package principal
@@ -827,12 +1396,14 @@ leakmonitor/
 │   ├── main.py                # Point d'entrée CLI (Typer)
 │   ├── config/
 │   │   ├── settings.py        # Pydantic Settings
-│   │   └── sources.yaml       # Configuration des sources
+│   │   ├── sources.yaml       # Activation/désactivation de chaque source
+│   │   └── group_names.yaml   # Mapping noms techniques → affichables (ransomware)
 │   │
 │   ├── core/
 │   │   ├── orchestrator.py    # Chef d'orchestre des scans
 │   │   ├── sanitizer.py       # Couche de nettoyage des données
-│   │   ├── aggregator.py      # Déduplication et agrégation
+│   │   ├── aggregator.py      # Déduplication et agrégation (email + ransom)
+│   │   ├── ransom_tracker.py  # Orchestration RansomLook + alerte immédiate
 │   │   └── scheduler.py       # APScheduler
 │   │
 │   ├── clients/               # Un fichier par source
@@ -846,40 +1417,47 @@ leakmonitor/
 │   │   ├── pastebin_monitor.py
 │   │   ├── telegram_monitor.py
 │   │   ├── urlscan.py
-│   │   └── otx.py
+│   │   ├── otx.py
+│   │   └── ransomlook.py      # Client HTTP → instance Docker RansomLook
 │   │
 │   ├── resolver/
 │   │   └── email_resolver.py  # Découverte des emails du domaine
 │   │
 │   ├── models/
 │   │   ├── finding.py         # LeakFinding, AggregatedReport
+│   │   ├── ransom.py          # RansomFinding, RansomStats, RansomStatus
 │   │   └── report.py          # FinalReport, ReportMetadata
 │   │
 │   ├── report/
-│   │   ├── engine.py          # Générateur de rapports
+│   │   ├── engine.py          # Générateur de rapports (gère section ransomware)
 │   │   └── templates/
 │   │       ├── report.md.j2
 │   │       ├── report.html.j2
 │   │       └── notification.txt.j2
 │   │
 │   └── notifications/
-│       └── engine.py
+│       └── engine.py          # Inclut send_ransom_alert()
 │
 ├── tests/
 │   ├── conftest.py
 │   ├── test_sanitizer.py
 │   ├── test_aggregator.py
+│   ├── test_ransom_tracker.py # Tests du module ransom
 │   ├── test_clients/
-│   │   ├── test_hibp.py       # Avec mocks HTTP
+│   │   ├── test_hibp.py
+│   │   ├── test_ransomlook.py # Mocks de l'API RansomLook locale
 │   │   └── ...
 │   └── fixtures/
-│       └── mock_responses/    # Réponses API mockées pour les tests
+│       ├── mock_responses/    # Réponses API mockées pour les tests
+│       └── ransomlook/
+│           ├── victim_found.json    # Réponse simulée : domaine trouvé
+│           └── victim_not_found.json # Réponse simulée : domaine absent
 │
 └── reports/                   # Répertoire de sortie (gitignored)
     └── .gitkeep
 ```
 
-### 10.2 README.md (contenu complet)
+### 11.2 README.md (contenu complet)
 
 ```markdown
 # LeakMonitor
@@ -891,7 +1469,7 @@ Usage légal — surveillance défensive de votre propre domaine uniquement.
 
 - Python 3.12+
 - uv (gestionnaire de paquets) : `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Docker (optionnel, pour exécution conteneurisée)
+- Docker + Docker Compose v2 (requis pour RansomLook)
 
 ## Installation
 
@@ -900,26 +1478,53 @@ Usage légal — surveillance défensive de votre propre domaine uniquement.
 git clone https://github.com/yourorg/leakmonitor.git
 cd leakmonitor
 
-# Installer les dépendances avec uv
+# Installer les dépendances Python
 uv sync
 
 # Copier et configurer les variables d'environnement
 cp .env.example .env
-# Éditer .env avec vos clés API (voir section "Configuration des clés API" ci-dessous)
+# Éditer .env avec vos clés API (voir section "Configuration" ci-dessous)
+# En particulier : TARGET_DOMAIN et RANSOMLOOK_SEARCH_TERMS
 ```
 
-## Configuration des clés API
+## Démarrage de RansomLook (requis)
 
-Voir Section 11 de ce cahier des charges pour les instructions détaillées.
-
-## Utilisation
+RansomLook tourne dans Docker et doit être démarré avant LeakMonitor.
 
 ```bash
+# Démarrer uniquement la stack RansomLook pour le premier peuplement
+docker-compose up ransomlook-redis ransomlook-tor ransomlook-app -d
+
+# Surveiller le premier cycle de scraping (10-30 minutes)
+docker-compose logs -f ransomlook-app
+
+# Vérifier que l'API est opérationnelle
+curl http://localhost:8888/api/v1/stats
+
+# Tester la recherche sur votre domaine
+curl "http://localhost:8888/api/v1/victim?name=mondomaine.fr"
+```
+
+## Démarrage complet (LeakMonitor + RansomLook)
+
+```bash
+docker-compose up -d
+```
+
+## Utilisation (sans Docker)
+
+```bash
+# Vérifier que RansomLook est joignable
+uv run python -m leakmonitor ransomlook --health
+
 # Scan complet (toutes sources configurées)
 uv run python -m leakmonitor scan
 
 # Scan avec rapport HTML
 uv run python -m leakmonitor scan --format html
+
+# Scan uniquement RansomLook (rapide, vérification d'urgence)
+uv run python -m leakmonitor ransomlook --check
 
 # Scan d'un email spécifique
 uv run python -m leakmonitor check --email alice@mondomaine.fr
@@ -927,23 +1532,18 @@ uv run python -m leakmonitor check --email alice@mondomaine.fr
 # Activer le scheduler (tourne en arrière-plan)
 uv run python -m leakmonitor schedule --start
 
-# Vérifier l'état des sources configurées
+# Vérifier l'état de toutes les sources
 uv run python -m leakmonitor sources --status
 
 # Lancer les tests
 make test
 ```
 
-## Via Docker
-
-```bash
-docker-compose up leakmonitor
-```
-
 ## Rapport
 
 Les rapports sont générés dans `./reports/` au format JSON + Markdown.
-Aucune donnée sensible (mot de passe, hash, clé API) n'est incluse dans les rapports.
+Aucune donnée sensible (mot de passe, hash, clé API, URL .onion) n'est
+incluse dans les rapports.
 
 ## Avertissement légal
 
@@ -954,9 +1554,9 @@ une infraction au Code Pénal (Art. 323-1) et au RGPD.
 
 ---
 
-## 11. Configuration des clés API
+## 12. Configuration des clés API et services
 
-### 11.1 HaveIBeenPwned
+### 12.1 HaveIBeenPwned
 
 ```
 URL : https://haveibeenpwned.com/API/Key
@@ -973,7 +1573,7 @@ Note : Pour le Domain Search (scan complet d'un domaine), l'abonnement
        être vérifiés un par un (1500ms entre chaque requête).
 ```
 
-### 11.2 GitHub Personal Access Token
+### 12.2 GitHub Personal Access Token
 
 ```
 URL : https://github.com/settings/tokens/new
@@ -987,7 +1587,7 @@ Procédure :
 Rate limit avec token : 5000 req/h (vs 60/h sans token)
 ```
 
-### 11.3 GitLab Personal Access Token
+### 12.3 GitLab Personal Access Token
 
 ```
 URL : https://gitlab.com/-/user_settings/personal_access_tokens
@@ -997,7 +1597,7 @@ Procédure :
   3. Ajouter dans .env : GITLAB_TOKEN=glpat-votre_token_ici
 ```
 
-### 11.4 LeakCheck.io
+### 12.4 LeakCheck.io
 
 ```
 URL : https://leakcheck.io/api
@@ -1008,7 +1608,7 @@ Procédure :
   4. Ajouter dans .env : LEAKCHECK_API_KEY=votre_clé_ici
 ```
 
-### 11.5 Dehashed
+### 12.5 Dehashed
 
 ```
 URL : https://www.dehashed.com/register
@@ -1023,7 +1623,7 @@ Procédure :
   L'API Dehashed utilise Basic Auth (email:api_key en base64)
 ```
 
-### 11.6 Intelligence X (IntelX)
+### 12.6 Intelligence X (IntelX)
 
 ```
 URL : https://intelx.io/account?tab=developer
@@ -1038,7 +1638,7 @@ Procédure :
   - GET  https://2.intelx.io/intelligent/search/result?id={searchId}
 ```
 
-### 11.7 Shodan
+### 12.7 Shodan
 
 ```
 URL : https://account.shodan.io/
@@ -1050,7 +1650,7 @@ Procédure :
   5. Ajouter dans .env : SHODAN_API_KEY=votre_clé_ici
 ```
 
-### 11.8 URLScan.io
+### 12.8 URLScan.io
 
 ```
 URL : https://urlscan.io/user/signup
@@ -1063,7 +1663,7 @@ Procédure :
   Plan gratuit : 60 req/min, suffisant pour notre usage
 ```
 
-### 11.9 AlienVault OTX
+### 12.9 AlienVault OTX
 
 ```
 URL : https://otx.alienvault.com/accounts/register
@@ -1075,7 +1675,7 @@ Procédure :
   Entièrement gratuit
 ```
 
-### 11.10 Telegram API (pour monitoring canaux publics)
+### 12.10 Telegram API (pour monitoring canaux publics)
 
 ```
 URL : https://my.telegram.org/apps
@@ -1093,7 +1693,7 @@ Procédure :
          La session sera stockée chiffrée localement.
 ```
 
-### 11.11 Pastebin Pro
+### 12.11 Pastebin Pro
 
 ```
 URL : https://pastebin.com/pro
@@ -1107,69 +1707,181 @@ Procédure :
   qui surveille plusieurs paste sites sans authentification.
 ```
 
+### 12.12 RansomLook — Configuration Docker
+
+```
+Dépôt GitHub : https://github.com/RansomLook/RansomLook
+Image Docker  : ghcr.io/ransomlook/ransomlook:latest
+Pas de clé API nécessaire pour l'instance auto-hébergée.
+
+Procédure de démarrage :
+
+  1. S'assurer que Docker et Docker Compose v2 sont installés :
+       docker --version       # >= 24.x
+       docker compose version # >= 2.x
+
+  2. Le fichier docker-compose.yml fourni avec LeakMonitor inclut
+     déjà la configuration complète (app + redis + tor).
+     Aucun fichier de configuration supplémentaire n'est nécessaire.
+
+  3. Premier démarrage :
+       docker-compose up ransomlook-redis ransomlook-tor ransomlook-app -d
+
+  4. Attendre le premier cycle de scraping (10 à 30 minutes selon
+     la disponibilité des sites .onion via Tor) :
+       docker-compose logs -f ransomlook-app
+     Attendre le message : "Scraping complete — X posts indexed"
+
+  5. Vérifier l'API :
+       curl http://localhost:8888/api/v1/stats
+     Réponse attendue (exemple) :
+       {"groups": 124, "posts": 16340, "last_update": "2025-01-15T..."}
+
+  6. Ajouter dans .env :
+       RANSOMLOOK_URL=http://localhost:8888
+       RANSOMLOOK_SEARCH_TERMS=MonDomaine,Mon Domaine SA
+
+       Note : Si vous utilisez docker-compose (LeakMonitor dans Docker),
+       l'URL doit être :
+       RANSOMLOOK_URL=http://ransomlook-app:8888
+       (communication inter-container, pas localhost)
+
+  7. Commandes de maintenance :
+       # Forcer un refresh immédiat des données
+       docker-compose exec ransomlook-app python update.py
+
+       # Vérifier le nombre de groupes suivis
+       curl http://localhost:8888/api/v1/groups | python3 -c \
+         "import sys, json; g=json.load(sys.stdin); print(f'{len(g)} groupes')"
+
+       # Sauvegarder les données Redis
+       docker-compose exec ransomlook-redis redis-cli BGSAVE
+
+       # Mettre à jour l'image vers la dernière version
+       docker-compose pull ransomlook-app
+       docker-compose up -d ransomlook-app
+
+  8. (Optionnel) Instance publique ransomlook.io :
+     Si vous préférez utiliser l'instance publique plutôt que l'auto-hébergement :
+       RANSOMLOOK_URL=https://www.ransomlook.io
+     Avantages : pas de maintenance Docker, données toujours fraîches
+     Inconvénients : dépendance externe, pas de contrôle sur la disponibilité,
+                     vos termes de recherche transitent par un tiers
+```
+
 ---
 
-## 12. Plan de tests
+## 13. Plan de tests
 
-### 12.1 Tests unitaires
+### 13.1 Tests unitaires
 
 ```
 tests/
-├── test_sanitizer.py         # Vérifier que les données sensibles sont bien masquées
+├── test_sanitizer.py          # Vérifier que les données sensibles sont bien masquées
 │   ├── test_password_masked
 │   ├── test_hash_masked (MD5, SHA-1, SHA-256, bcrypt)
 │   ├── test_api_key_masked
 │   └── test_base64_masked
 │
-├── test_aggregator.py        # Déduplication et calcul de sévérité
+├── test_aggregator.py         # Déduplication et calcul de sévérité
 │   ├── test_dedup_same_breach_multiple_sources
 │   ├── test_severity_calculation
+│   ├── test_ransom_finding_elevates_global_severity
 │   └── test_empty_findings
 │
+├── test_ransom_tracker.py     # Module RansomLook
+│   ├── test_domain_found_triggers_critical
+│   ├── test_domain_not_found_returns_empty
+│   ├── test_multi_term_search_deduplicates
+│   ├── test_unhealthy_instance_handled_gracefully
+│   └── test_immediate_alert_on_finding
+│
 └── test_clients/
-    ├── test_hibp.py          # Mock des réponses HTTP avec respx
+    ├── test_hibp.py           # Mock des réponses HTTP avec respx
+    ├── test_ransomlook.py     # Mock de l'API RansomLook locale
+    │   ├── test_victim_search_found        # Fixture: victim_found.json
+    │   ├── test_victim_search_not_found    # Fixture: victim_not_found.json
+    │   ├── test_health_check_ok
+    │   ├── test_health_check_instance_down
+    │   └── test_retry_on_connection_error
     ├── test_leakcheck.py
     └── test_github.py
 ```
 
-### 12.2 Tests d'intégration
+**Fixture `tests/fixtures/ransomlook/victim_found.json` :**
+```json
+[
+  {
+    "post_title": "MonDomaine SA",
+    "group_name": "lockbit3",
+    "discovered": "2025-01-14T14:32:00Z",
+    "published": "2025-01-14T14:32:00Z",
+    "post_url": "http://lockbit3abc.onion/post/abc123",
+    "description": "500GB of internal data.",
+    "website": "mondomaine.fr",
+    "country": "France",
+    "activity": "Technology",
+    "claim_size": "500GB",
+    "added": "2025-01-14T15:00:00Z"
+  }
+]
+```
+
+**Fixture `tests/fixtures/ransomlook/victim_not_found.json` :**
+```json
+[]
+```
+
+### 13.2 Tests d'intégration
 
 ```bash
 # Tester avec de vraies clés API sur une adresse de test connue
 # HIBP propose l'adresse "test@example.com" pour les tests
 uv run pytest tests/integration/ --api-keys-required -v
+
+# Tester RansomLook en intégration (nécessite l'instance Docker active)
+uv run pytest tests/integration/test_ransomlook_live.py --ransomlook-required -v
 ```
 
-### 12.3 Tests de non-régression sécurité
+### 13.3 Tests de non-régression sécurité
 
 ```python
 # tests/test_security.py
 
 def test_no_sensitive_data_in_report():
     """Le rapport final ne doit contenir aucune donnée sensible."""
-    # Injecter un finding avec des données sensibles
-    # Vérifier que le rapport JSON ne contient aucun des patterns sensibles
     report_json = generate_report(mock_findings_with_passwords)
-    
     for pattern in SENSITIVE_PATTERNS:
         assert not re.search(pattern, json.dumps(report_json)), \
             f"Sensitive data leaked in report via pattern: {pattern}"
+
+def test_ransomlook_onion_url_not_in_report():
+    """L'URL .onion du portail ransomware ne doit pas apparaître dans le rapport."""
+    report_json = generate_report_with_ransom_finding(mock_ransom_finding)
+    assert ".onion" not in json.dumps(report_json), \
+        "URL .onion présente dans le rapport — doit être masquée"
 
 def test_sanitizer_complete_coverage():
     """Le sanitizer doit couvrir tous les formats connus."""
     # 20+ cas de test couvrant tous les formats de hash courants
 ```
 
-### 12.4 Commandes Make
+### 13.4 Commandes Make
 
 ```makefile
-.PHONY: install test lint type-check scan report clean
+.PHONY: install test lint type-check scan report clean ransomlook-up ransomlook-down ransomlook-check ransomlook-update
 
 install:
 	uv sync
 
 test:
 	uv run pytest tests/unit/ -v --cov=leakmonitor --cov-report=html
+
+test-ransomlook:
+	uv run pytest tests/test_clients/test_ransomlook.py tests/test_ransom_tracker.py -v
+
+test-integration:
+	uv run pytest tests/integration/ --api-keys-required -v
 
 lint:
 	uv run ruff check leakmonitor/ tests/
@@ -1180,6 +1892,9 @@ type-check:
 
 scan:
 	uv run python -m leakmonitor scan
+
+scan-ransom:
+	uv run python -m leakmonitor ransomlook --check
 
 report:
 	uv run python -m leakmonitor scan --format markdown,json,html
@@ -1192,36 +1907,65 @@ clean:
 sources-status:
 	uv run python -m leakmonitor sources --status
 
+# ─── Commandes RansomLook ──────────────────────────────────────
+ransomlook-up:
+	docker-compose up ransomlook-redis ransomlook-tor ransomlook-app -d
+	@echo "En attente du premier cycle de scraping..."
+	@sleep 5
+	@docker-compose logs --tail=20 ransomlook-app
+
+ransomlook-down:
+	docker-compose stop ransomlook-redis ransomlook-tor ransomlook-app
+
+ransomlook-check:
+	curl -s http://localhost:8888/api/v1/stats | python3 -m json.tool
+	@echo ""
+	@echo "Recherche du domaine cible :"
+	curl -s "http://localhost:8888/api/v1/victim?name=$(TARGET_DOMAIN)" | python3 -m json.tool
+
+ransomlook-update:
+	docker-compose pull ransomlook-app
+	docker-compose up -d ransomlook-app
+
+ransomlook-logs:
+	docker-compose logs -f ransomlook-app
+
+# ──────────────────────────────────────────────────────────────
 docker-build:
 	docker build -t leakmonitor:latest .
 
 docker-run:
-	docker-compose up --build leakmonitor
+	docker-compose up --build
 ```
 
 ---
 
-## 13. Roadmap et évolutions
+## 14. Roadmap et évolutions
 
 ### Phase 1 — MVP (4-6 semaines)
 - [ ] Infrastructure de base (config, sanitizer, models)
+- [ ] **Déploiement Docker RansomLook** (stack complète : app + redis + tor)
+- [ ] **Client RansomLookClient + RansomwareTracker** (recherche multi-termes, alerte immédiate)
+- [ ] **Modèle RansomFinding** + intégration dans l'Aggregator
 - [ ] Intégration HIBP (email par email)
 - [ ] Intégration GitHub monitoring
-- [ ] Rapport Markdown + JSON
-- [ ] Tests unitaires >80% coverage
+- [ ] Rapport Markdown + JSON (avec section ransomware en tête)
+- [ ] Tests unitaires >80% coverage (incluant test_ransomlook.py)
+
+> **Pourquoi RansomLook dès la Phase 1 ?** C'est la seule source entièrement gratuite qui couvre le scénario de risque le plus élevé (compromission massive en cours). Elle ne nécessite pas de clé API et son déploiement Docker est simple et documenté. Le rapport sans cette dimension est incomplet.
 
 ### Phase 2 — Enrichissement sources (4-6 semaines)
 - [ ] Intégration LeakCheck + Dehashed
 - [ ] Monitoring Pastebin via Pwnbin
 - [ ] Domain Email Resolver (Hunter.io + theHarvester)
-- [ ] Rapport HTML avec dashboard visuel
-- [ ] Scheduler + notifications email
+- [ ] Rapport HTML avec dashboard visuel (section ransomware mise en évidence)
+- [ ] Scheduler + notifications email (alerte ransomware immédiate configurée)
 
 ### Phase 3 — Monitoring continu (4-6 semaines)
 - [ ] Feed Monitor Telegram (canaux publics)
 - [ ] Monitoring GitHub en temps réel (webhooks ou polling)
 - [ ] Intégration IntelX (si budget)
-- [ ] Conteneurisation Docker complète
+- [ ] Conteneurisation Docker complète (LeakMonitor + RansomLook en un seul `docker-compose up`)
 - [ ] Export PDF
 
 ### Phase 4 — Hardening (2-4 semaines)
@@ -1230,6 +1974,7 @@ docker-run:
 - [ ] Chiffrement des rapports au repos (Fernet)
 - [ ] Dashboard web minimaliste (FastAPI + HTMX)
 - [ ] Documentation complète (mkdocs)
+- [ ] Alertes RansomLook via PagerDuty / OpsGenie (intégration webhook)
 
 ---
 
@@ -1242,11 +1987,13 @@ docker-run:
 | GitHub | Gratuit | ★★★☆☆ | Temps réel | **Indispensable** |
 | URLScan | Gratuit | ★★★☆☆ | Bonne | **Indispensable** |
 | OTX AlienVault | Gratuit | ★★★☆☆ | Bonne | **Indispensable** |
+| **RansomLook** | **Gratuit** (Docker) | **★★★★★** | **Quasi temps réel** | **Indispensable** |
 | LeakCheck | ~10 USD | ★★★★☆ | Bonne | Très recommandé |
 | Dehashed | ~5 USD | ★★★★☆ | Moyenne | Très recommandé |
 | IntelX | ~100 EUR | ★★★★★ | Excellente | Si budget avancé |
 | Telegram monitoring | Gratuit | ★★☆☆☆ | Temps réel | Optionnel |
-| RansomLook | Gratuit | ★★★★★ | Temps réel | Très recommandé |
+
+> **Note RansomLook** : La couverture ★★★★★ s'applique au scénario ransomware spécifiquement. Pour les fuites de credentials "classiques", RansomLook n'apporte rien — c'est HIBP et les autres qui prennent le relais. Les deux dimensions sont complémentaires et non substituables.
 
 ## Annexe B — Ressources et références
 
@@ -1257,7 +2004,10 @@ docker-run:
 - RFC 8959 (k-anonymity pour les mots de passe) : https://www.rfc-editor.org/rfc/rfc8959
 - theHarvester (OSINT email discovery) : https://github.com/laramies/theHarvester
 - Pwnbin (paste sites monitor) : https://github.com/kahunalu/pwnbin
-- RansomLook (visuel sur ransomware) : https://www.ransomlook.io/
+- **RansomLook (dépôt GitHub)** : https://github.com/RansomLook/RansomLook
+- **RansomLook (instance publique)** : https://www.ransomlook.io
+- ANSSI — Attaques par rançongiciel : https://www.ssi.gouv.fr/guide/attaques-par-ransomware-tous-concernes/
+- CISA Known Ransomware Groups : https://www.cisa.gov/stopransomware
 
 ---
 
