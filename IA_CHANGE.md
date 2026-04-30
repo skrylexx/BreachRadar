@@ -3,7 +3,7 @@
 
 #### PROMPT
 ```
-Voici l'état actuel de mon projet. Lis le README.md pour comprendre l'architecture et le ROADMAP.md pour savoir où Claude s'est arrêté. Reprends la suite en respectant le même protocole de documentation.
+Voici l'état actuel de mon projet. Lis le README.md pour comprendre l'architecture et le ROADMAP.md pour savoir où le travail s'est arrêté. Reprends la suite en respectant le même protocole de documentation.
 ```
 
 #### PROMPT ORIGINE

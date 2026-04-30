@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     dehashed_api_key: str = Field(default="", description="Dehashed API key")
     intelx_api_key: str = Field(default="", description="Intelligence X API key")
     shodan_api_key: str = Field(default="", description="Shodan API key")
+    hunter_api_key: str = Field(default="", description="Hunter.io API key pour le résolveur d'emails")
 
     # ─── Telegram ────────────────────────────────────────────────────────────
     telegram_api_id: int = Field(default=0, description="Telegram API ID")
@@ -65,6 +66,11 @@ class Settings(BaseSettings):
         default="",
         description="Email d'alerte immédiate si le domaine est détecté sur RansomLook",
     )
+    smtp_server: str = Field(default="", description="Serveur SMTP (ex: smtp.gmail.com)")
+    smtp_port: int = Field(default=587, description="Port SMTP")
+    smtp_username: str = Field(default="", description="Utilisateur SMTP")
+    smtp_password: str = Field(default="", description="Mot de passe SMTP")
+    smtp_from: str = Field(default="", description="Adresse expéditeur")
     ransomlook_alert_webhook: str = Field(
         default="",
         description="Webhook URL pour alerte immédiate RansomLook",
@@ -173,6 +179,10 @@ class Settings(BaseSettings):
     @property
     def shodan_configured(self) -> bool:
         return bool(self.shodan_api_key)
+
+    @property
+    def hunter_configured(self) -> bool:
+        return bool(self.hunter_api_key)
 
     @property
     def urlscan_configured(self) -> bool:

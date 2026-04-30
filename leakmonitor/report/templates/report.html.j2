@@ -2,141 +2,444 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Rapport LeakMonitor - {{ report.report_metadata.target_domain }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeakMonitor Dashboard - {{ report.report_metadata.target_domain }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #333; max-width: 1000px; margin: 0 auto; padding: 2rem; }
-        h1, h2, h3 { color: #111; }
-        .critical { color: #d32f2f; }
-        .high { color: #f57c00; }
-        .medium { color: #fbc02d; }
-        .low { color: #388e3c; }
-        .alert-box { border: 2px solid #d32f2f; background-color: #ffebee; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
-        .alert-box h2 { margin-top: 0; color: #b71c1c; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; margin-bottom: 2rem; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
-        th { background-color: #f5f5f5; font-weight: 600; }
-        .metadata { background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 2rem; font-size: 0.9em; }
-        .footer { margin-top: 4rem; font-size: 0.8rem; color: #666; text-align: center; border-top: 1px solid #eee; padding-top: 2rem; }
+        :root {
+            --bg-color: #0f111a;
+            --surface-color: rgba(25, 28, 41, 0.7);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8f9fa;
+            --text-secondary: #a0aabf;
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.2);
+            --critical: #ef4444;
+            --high: #f97316;
+            --medium: #eab308;
+            --low: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #a0aabf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            margin: 0.5rem 0 0 0;
+            color: var(--accent-primary);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .metadata-badge {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--surface-border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Ransomware Alert Component */
+        .alert-critical {
+            background: linear-gradient(145deg, rgba(239, 68, 68, 0.1), rgba(153, 27, 27, 0.2));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: rgba(239, 68, 68, 0.3); }
+            50% { border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 0 30px rgba(239, 68, 68, 0.25); }
+            100% { border-color: rgba(239, 68, 68, 0.3); }
+        }
+
+        .alert-critical h2 {
+            color: #fca5a5;
+            border-bottom-color: rgba(239, 68, 68, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Severity Colors */
+        .text-critical { color: var(--critical); }
+        .text-high { color: var(--high); }
+        .text-medium { color: var(--medium); }
+        .text-low { color: var(--low); }
+        .text-clean { color: var(--accent-primary); }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-critical { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-high { background: rgba(249, 115, 22, 0.1); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .badge-medium { background: rgba(234, 179, 8, 0.1); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .badge-low { background: rgba(34, 197, 94, 0.1); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+        
+        /* Lists */
+        .breach-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .breach-list li {
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .compliance-badge {
+            display: inline-flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+        }
+        
+        .compliance-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <h1>LeakMonitor</h1>
+                <p>Threat Intelligence Report • {{ report.report_metadata.target_domain }}</p>
+            </div>
+            <div class="metadata-badge">
+                {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC') }} • Scanné en {{ "%.1f"|format(report.report_metadata.scan_duration_seconds) }}s
+            </div>
+        </header>
 
-    <h1>Rapport de Renseignement sur les Menaces : {{ report.report_metadata.target_domain }}</h1>
+        {% if report.ransomware_alerts.domain_listed %}
+        <div class="card alert-critical">
+            <h2>🚨 ALERTE CRITIQUE : EXFILTRATION RANSOMWARE</h2>
+            <p style="color: #fca5a5; font-size: 1.1rem; margin-bottom: 1.5rem;"><strong>L'organisation a été détectée sur un portail d'extorsion. Une fuite massive de données est probable ou déjà en cours.</strong></p>
 
-    <div class="metadata">
-        <strong>Date :</strong> {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}<br>
-        <strong>Durée :</strong> {{ "%.2f"|format(report.report_metadata.scan_duration_seconds) }}s<br>
-        <strong>Emails :</strong> {{ report.report_metadata.total_emails_checked }}<br>
-        <strong>Sources :</strong> {{ report.report_metadata.sources_queried | join(', ') }}
-    </div>
-
-    {% if report.ransomware_alerts.domain_listed %}
-    <div class="alert-box">
-        <h2>🚨 ALERTE CRITIQUE : RANSOMWARE DÉTECTÉ</h2>
-        <p><strong>ATTENTION : Le domaine a été détecté sur un ou plusieurs portails d'extorsion de groupes ransomware. Ceci indique une exfiltration de données probable ou en cours.</strong></p>
-
-        {% for alert in report.ransomware_alerts.alerts %}
-        <h3>Groupe : {{ alert.group_display_name }}</h3>
-        <ul>
-            <li><strong>Date de découverte :</strong> {{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}</li>
-            <li><strong>Statut :</strong> {{ alert.status }}</li>
-            <li><strong>Victime :</strong> {{ alert.victim_name }}</li>
-            <li><strong>Volume :</strong> {{ alert.claim_size or 'Inconnu' }}</li>
-            <li><strong>URL Portail :</strong> {{ alert.portal_url | mask_onion }}</li>
-        </ul>
-        <p><em>{{ alert.description or 'Aucune description fournie par le groupe.' }}</em></p>
-        
-        <h4>Actions requises immédiatement :</h4>
-        <ul>
-        {% for action in alert.recommended_actions %}
-            <li>{{ action }}</li>
-        {% endfor %}
-        </ul>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <h2>Résumé Exécutif</h2>
-    <p><strong>Sévérité Globale :</strong> {{ report.get_global_severity_label() }}</p>
-
-    <ul>
-        <li>Comptes compromis : <strong>{{ report.summary.emails_compromised }}</strong></li>
-        <li>Comptes sains : <strong>{{ report.summary.emails_clean }}</strong></li>
-    </ul>
-
-    <h3>Répartition :</h3>
-    <ul>
-        <li class="critical">CRITICAL : {{ report.summary.severity_breakdown.CRITICAL }}</li>
-        <li class="high">HIGH : {{ report.summary.severity_breakdown.HIGH }}</li>
-        <li class="medium">MEDIUM : {{ report.summary.severity_breakdown.MEDIUM }}</li>
-        <li class="low">LOW : {{ report.summary.severity_breakdown.LOW }}</li>
-    </ul>
-
-    {% if report.summary.most_common_breaches %}
-    <h3>Fuites les plus fréquentes :</h3>
-    <ul>
-    {% for breach in report.summary.most_common_breaches %}
-        <li>{{ breach }}</li>
-    {% endfor %}
-    </ul>
-    {% endif %}
-
-    <h2>Résultats Détaillés</h2>
-
-    {% if report.findings %}
-        {% for email_result in report.findings %}
-        <h3>📧 {{ email_result.email }} ({{ email_result.get_severity_label() }})</h3>
-        
-        {% if email_result.recommendations %}
-            <ul>
-            {% for rec in email_result.recommendations %}
-                <li>{{ rec }}</li>
+            {% for alert in report.ransomware_alerts.alerts %}
+            <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                <h3 style="margin-top:0; color:#fff;">Threat Actor : {{ alert.group_display_name }}</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; color: var(--text-secondary);">
+                    <div><strong>Victime Listée:</strong> <span style="color:#fff">{{ alert.victim_name }}</span></div>
+                    <div><strong>Découvert le:</strong> <span style="color:#fff">{{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}</span></div>
+                    <div><strong>Statut:</strong> <span class="badge badge-critical">{{ alert.status }}</span></div>
+                    <div><strong>Volume Revendiqué:</strong> <span style="color:#fff">{{ alert.claim_size or 'Inconnu' }}</span></div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Source (Onion) :</strong> <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color:#fca5a5;">{{ alert.portal_url | mask_onion }}</code>
+                </div>
+                {% if alert.description %}
+                <p style="border-left: 3px solid #ef4444; padding-left: 1rem; font-style: italic; color: #cbd5e1;">"{{ alert.description }}"</p>
+                {% endif %}
+            </div>
             {% endfor %}
-            </ul>
+        </div>
         {% endif %}
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Nom</th>
-                    <th>Source</th>
-                    <th>Sévérité</th>
-                    <th>Données</th>
-                    <th>Mots de passe/Hashs</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for finding in email_result.findings %}
-                <tr>
-                    <td>{{ finding.breach_date or 'N/A' }}</td>
-                    <td><strong>{{ finding.breach_name }}</strong></td>
-                    <td>{{ finding.source }}</td>
-                    <td>{{ finding.severity }}</td>
-                    <td>{{ finding.data_classes | join(', ') }}</td>
-                    <td>
-                        {% if finding.has_plaintext_credential %}
-                            <strong class="critical">EN CLAIR 🚨</strong>
-                        {% elif finding.has_password or finding.has_hash %}
-                            <strong class="high">OUI ⚠️</strong>
-                        {% else %}
-                            NON
-                        {% endif %}
-                    </td>
-                </tr>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-label">Sévérité Globale</div>
+                <div class="stat-value text-{{ report.get_global_severity_label().lower() }}">{{ report.get_global_severity_label() }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Comptes Exposés</div>
+                <div class="stat-value text-high">{{ report.summary.emails_compromised }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Comptes Sécurisés</div>
+                <div class="stat-value text-clean">{{ report.summary.emails_clean }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Analysé</div>
+                <div class="stat-value" style="color: var(--text-primary)">{{ report.report_metadata.total_emails_checked }}</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+            <div class="card">
+                <h2>Répartition des Risques</h2>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--critical)">CRITICAL</span>
+                        <span class="badge badge-critical">{{ report.summary.severity_breakdown.CRITICAL }}</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--critical); height: 100%; width: {{ (report.summary.severity_breakdown.CRITICAL / (report.summary.emails_compromised or 1)) * 100 }}%;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--high)">HIGH</span>
+                        <span class="badge badge-high">{{ report.summary.severity_breakdown.HIGH }}</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--high); height: 100%; width: {{ (report.summary.severity_breakdown.HIGH / (report.summary.emails_compromised or 1)) * 100 }}%;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--medium)">MEDIUM</span>
+                        <span class="badge badge-medium">{{ report.summary.severity_breakdown.MEDIUM }}</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--medium); height: 100%; width: {{ (report.summary.severity_breakdown.MEDIUM / (report.summary.emails_compromised or 1)) * 100 }}%;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--low)">LOW</span>
+                        <span class="badge badge-low">{{ report.summary.severity_breakdown.LOW }}</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--low); height: 100%; width: {{ (report.summary.severity_breakdown.LOW / (report.summary.emails_compromised or 1)) * 100 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Top Sources de Fuites</h2>
+                {% if report.summary.most_common_breaches %}
+                <ul class="breach-list">
+                    {% for breach in report.summary.most_common_breaches %}
+                    <li>
+                        <span style="color: var(--text-primary); font-weight: 500;">{{ breach }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Aucune fuite détectée.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; font-size: 1.5rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 1rem;">Analyse Détaillée par Identité</h2>
+
+        {% if report.findings %}
+            {% for email_result in report.findings %}
+            <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--{{ email_result.get_severity_label().lower() }});">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #fff;">{{ email_result.email }}</h3>
+                    <span class="badge badge-{{ email_result.get_severity_label().lower() }}">{{ email_result.get_severity_label() }}</span>
+                </div>
+                
+                {% if email_result.recommendations %}
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 6px;">
+                    <strong style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Actions Recommandées :</strong>
+                    <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem; font-size: 0.9rem; color: #cbd5e1;">
+                    {% for rec in email_result.recommendations %}
+                        <li>{{ rec }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Incident</th>
+                                <th>Date</th>
+                                <th>Source DB</th>
+                                <th>Données Exposées</th>
+                                <th>Creds Sensibles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for finding in email_result.findings %}
+                            <tr>
+                                <td style="font-weight: 500; color: #fff;">{{ finding.breach_name }}</td>
+                                <td style="color: var(--text-secondary)">{{ finding.breach_date or 'N/A' }}</td>
+                                <td style="color: var(--text-secondary)">{{ finding.source }}</td>
+                                <td style="font-size: 0.85rem;">{{ finding.data_classes | join(', ') }}</td>
+                                <td>
+                                    {% if finding.has_plaintext_credential %}
+                                        <span class="badge badge-critical">EN CLAIR 🚨</span>
+                                    {% elif finding.has_password or finding.has_hash %}
+                                        <span class="badge badge-high">OUI ⚠️</span>
+                                    {% else %}
+                                        <span style="color: var(--text-secondary)">Non</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
-    {% else %}
-        <p>Aucun email compromis détecté lors de ce scan.</p>
-    {% endif %}
+        {% else %}
+            <div class="card" style="text-align: center; padding: 4rem 2rem;">
+                <h3 style="color: var(--low); font-size: 1.5rem; margin-bottom: 0.5rem;">Aucune compromission détectée</h3>
+                <p style="color: var(--text-secondary);">L'ensemble des identités vérifiées sont saines dans nos bases de données.</p>
+            </div>
+        {% endif %}
 
-    <div class="footer">
-        <h3>Attestation de Conformité RGPD</h3>
-        <p>Ce rapport a été généré dans le respect du principe de minimisation des données (RGPD). Toutes les données sensibles brutes ont été purgées en mémoire par la couche Sanitizer.</p>
-        <p>Mots de passe en clair stockés : <strong>NON</strong> | Hashs stockés : <strong>NON</strong> | Clés API stockées : <strong>NON</strong> | URL .onion masquées : <strong>OUI</strong></p>
+        <footer>
+            <div>Généré par <strong>LeakMonitor</strong> • Renseignement sur les Menaces OSINT</div>
+            <div class="compliance-badge">
+                <div class="compliance-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--low)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Conforme RGPD
+                </div>
+                <div class="compliance-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--low)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Zéro Stockage PII
+                </div>
+                <div class="compliance-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--low)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Onion Links Masqués
+                </div>
+            </div>
+        </footer>
     </div>
-
 </body>
 </html>

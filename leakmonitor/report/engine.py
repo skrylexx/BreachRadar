@@ -75,10 +75,13 @@ class ReportEngine:
                     file_path = self._generate_json(report, base_filename)
                     generated_files.append(file_path)
                 elif fmt == "markdown" or fmt == "md":
-                    file_path = self._generate_template(report, base_filename, "report.md.j2", "md")
+                    file_path = self._generate_template(report, f"{base_filename}.md", "report.md.j2")
                     generated_files.append(file_path)
                 elif fmt == "html":
-                    file_path = self._generate_template(report, base_filename, "report.html.j2", "html")
+                    file_path = self._generate_template(report, f"{base_filename}.html", "report.html.j2")
+                    generated_files.append(file_path)
+                elif fmt == "pdf":
+                    file_path = self._generate_pdf(report, f"{base_filename}.pdf")
                     generated_files.append(file_path)
                 else:
                     logger.warning(f"Format de rapport non supporté: {fmt}")
@@ -112,16 +115,38 @@ class ReportEngine:
             
         return file_path
 
-    def _generate_template(self, report: FinalReport, base_filename: str, template_name: str, ext: str) -> Path:
+    def _generate_template(self, report: FinalReport, filename: str, template_name: str) -> Path:
         """Génère un rapport basé sur un template Jinja2."""
         if not TEMPLATES_DIR.exists():
-            raise FileNotFoundError(f"Répertoire des templates introuvable. Impossible de générer le rapport {ext}.")
+            raise FileNotFoundError(f"Répertoire des templates introuvable. Impossible de générer le rapport.")
             
         template = self.env.get_template(template_name)
         content = template.render(report=report)
         
-        file_path = self.output_dir / f"{base_filename}.{ext}"
-        with file_path.open("w", encoding="utf-8") as f:
+        output_path = self.output_dir / filename
+        with output_path.open("w", encoding="utf-8") as f:
             f.write(content)
+        
+        logger.info(f"Rapport généré: {output_path}")
+        return output_path
+
+    def _generate_pdf(self, report: FinalReport, filename: str) -> Path:
+        """Génère un rapport PDF via WeasyPrint (en utilisant le template HTML)."""
+        output_path = self.output_dir / filename
+        
+        try:
+            from weasyprint import HTML
+        except ImportError:
+            logger.error("WeasyPrint n'est pas installé. Lancez 'uv pip install weasyprint' pour l'export PDF.")
+            # Fallback: on génère juste le HTML et on prévient
+            logger.info("Génération du HTML en fallback...")
+            return self._generate_template(report, filename.replace('.pdf', '.html'), "report.html.j2")
             
-        return file_path
+        # D'abord on rend le HTML complet
+        template = self.env.get_template("report.html.j2")
+        html_content = template.render(report=report)
+        
+        # Ensuite on utilise WeasyPrint pour générer le PDF
+        HTML(string=html_content).write_pdf(output_path)
+        logger.info(f"Rapport PDF généré: {output_path}")
+        return output_path

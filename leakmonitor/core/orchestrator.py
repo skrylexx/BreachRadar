@@ -17,6 +17,8 @@ from leakmonitor.clients.hibp import HIBPClient
 from leakmonitor.config.settings import Settings
 from leakmonitor.config.source_registry import SourceRegistry
 from leakmonitor.core.sanitizer import DataSanitizer
+from leakmonitor.clients.leakcheck import LeakCheckClient
+from leakmonitor.clients.dehashed import DehashedClient
 
 if TYPE_CHECKING:
     from leakmonitor.models.finding import LeakFinding
@@ -46,7 +48,15 @@ class ScanOrchestrator:
         if "github" in active_sources:
             clients.append(GitHubClient(token=self.settings.github_token, sanitizer=self.sanitizer))
 
-        # Ajouter ici les autres clients (LeakCheck, Dehashed, etc.)
+        if "leakcheck" in active_sources:
+            clients.append(LeakCheckClient(api_key=self.settings.leakcheck_api_key, sanitizer=self.sanitizer))
+
+        if "dehashed" in active_sources:
+            clients.append(DehashedClient(
+                dehashed_email=self.settings.dehashed_email,
+                api_key=self.settings.dehashed_api_key,
+                sanitizer=self.sanitizer
+            ))
 
         return clients
 

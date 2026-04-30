@@ -80,6 +80,8 @@ services:
     environment:
       # Communication inter-container (override la valeur locale du .env)
       - RANSOMLOOK_URL=http://ransomlook-app:8888
+    ports:
+      - "8080:8080" # Port du webhook GitHub
     volumes:
       - ./reports:/app/reports
     networks:

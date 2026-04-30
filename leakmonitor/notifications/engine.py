@@ -74,6 +74,30 @@ class NotificationEngine:
             logger.error(f"Échec de l'envoi du webhook: {e}")
 
     async def send_email(self, to_address: str, subject: str, message: str) -> None:
-        """Stub pour l'envoi d'email."""
-        logger.info(f"[STUB] Envoi d'email à {to_address} - Sujet: {subject}")
-        # L'implémentation SMTP sera ajoutée en Phase 2
+        """Envoi d'email SMTP de manière asynchrone."""
+        if not self.settings.smtp_server or not self.settings.smtp_username:
+            logger.warning("Configuration SMTP manquante, impossible d'envoyer l'email.")
+            return
+            
+        import smtplib
+        from email.message import EmailMessage
+        import asyncio
+        
+        msg = EmailMessage()
+        msg.set_content(message)
+        msg["Subject"] = subject
+        msg["From"] = self.settings.smtp_from or self.settings.smtp_username
+        msg["To"] = to_address
+
+        def _send():
+            try:
+                server = smtplib.SMTP(self.settings.smtp_server, self.settings.smtp_port, timeout=10)
+                server.starttls()
+                server.login(self.settings.smtp_username, self.settings.smtp_password)
+                server.send_message(msg)
+                server.quit()
+                logger.info(f"Alerte email envoyée avec succès à {to_address}")
+            except Exception as e:
+                logger.error(f"Échec de l'envoi d'email SMTP: {e}")
+
+        await asyncio.to_thread(_send)

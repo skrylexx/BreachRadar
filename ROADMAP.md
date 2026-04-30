@@ -9,9 +9,10 @@
 
 ```
 Phase 1 — MVP    [██████████] 100%
-Phase 2          [░░░░░░░░░░]  0%
-Phase 3          [░░░░░░░░░░]  0%
+Phase 2          [██████████] 100%
+Phase 3          [██████████] 100%
 Phase 4          [░░░░░░░░░░]  0%
+Phase 5          [░░░░░░░░░░]  0%
 ```
 
 ---
@@ -66,21 +67,26 @@ Phase 4          [░░░░░░░░░░]  0%
 - [x] tests/fixtures/ransomlook/victim_not_found.json
 
 ### Phase 2 — Enrichissement sources
-- [ ] leakmonitor/clients/leakcheck.py
-- [ ] leakmonitor/clients/dehashed.py
-- [ ] leakmonitor/clients/pastebin_monitor.py
-- [ ] Domain Email Resolver (Hunter.io + theHarvester)
-- [ ] Rapport HTML avec dashboard visuel
-- [ ] Scheduler + notifications email
+- [x] leakmonitor/clients/leakcheck.py
+- [x] leakmonitor/clients/dehashed.py
+- [x] leakmonitor/clients/pastebin_monitor.py
+- [x] Domain Email Resolver (Hunter.io + theHarvester)
+- [x] Rapport HTML avec dashboard visuel
+- [x] Scheduler + notifications email
 
 ### Phase 3 — Monitoring continu
-- [ ] leakmonitor/clients/telegram_monitor.py
-- [ ] GitHub webhook monitoring
-- [ ] leakmonitor/clients/intelx.py
-- [ ] Docker full stack (un seul `docker compose up`)
-- [ ] Export PDF
+- [x] leakmonitor/clients/telegram_monitor.py
+- [x] GitHub webhook monitoring
+- [x] leakmonitor/clients/intelx.py
+- [x] Docker full stack (un seul `docker compose up`)
+- [x] Export PDF
 
-### Phase 4 — Hardening
+### Phase 4 — Validation Globale & Tests Manuels
+- [ ] Création du guide `QUICKSTART.md` (lancement de la stack)
+- [ ] Lancement de la stack Docker unifiée
+- [ ] Vérification de bout-en-bout (Orchestrateur, Webhook, PDF)
+
+### Phase 5 — Hardening
 - [ ] Audit sécurité (bandit, semgrep)
 - [ ] Rotation automatique des clés API
 - [ ] Chiffrement des rapports (Fernet)
@@ -168,12 +174,101 @@ Phase 4          [░░░░░░░░░░]  0%
 3. **Rate Limiting** : `HIBPClient` intègre un délai explicite de 1.5 seconde avant requête et `GitHubClient` de 2.0 secondes. L'orchestrateur lance les scans sur une liste d'emails en traitant par lots sans bloquer la boucle asynchrone globale.
 4. **Email Resolver** : Une base simple en phase 1 pour tester rapidement, avant l'arrivée de theHarvester en phase 2.
 
-#### Prochaines tâches (Phase 2)
+#### Prochaines tâches (Phase 2 et début Phase 3)
+1. Implémenter le client `pastebin_monitor.py` pour clôturer l'enrichissement des sources.
+2. Rapport HTML avec dashboard visuel (améliorer `report.html.j2`).
+3. Démarrer la Phase 3 : Telegram Monitor, GitHub webhook, IntelX, Docker full stack.
 
-1. Implémenter les clients de sources payantes : `leakcheck.py`, `dehashed.py`.
-2. Résolveur avancé avec OSINT Tools (theHarvester, Hunter.io).
-3. Intégration d'un vrai scheduler (`APScheduler`) dans `leakmonitor/core/scheduler.py`.
-4. Tests complets pour l'Agrégateur et l'Orchestrateur.
+---
+
+### Itération 4 — 2026-04-30 (Gemini 3.1 Pro — Antigravity)
+
+**Objectif de l'itération** : Exécution de la Phase 2. Implémentation des clients payants, résolution d'emails avancée avec outils OSINT, et mise en place d'un véritable Scheduler avec APScheduler.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Description |
+|---|---|
+| `leakmonitor/clients/leakcheck.py` | Implémentation du client LeakCheck API v2. |
+| `leakmonitor/clients/dehashed.py` | Implémentation du client Dehashed API. |
+| `leakmonitor/core/orchestrator.py` | Intégration des clients LeakCheck et Dehashed au moment de l'initialisation. |
+| `leakmonitor/config/settings.py` | Ajout de `hunter_api_key` pour configurer le résolveur d'emails. |
+| `leakmonitor/resolver/email_resolver.py` | Intégration de Hunter.io (API) et de theHarvester (via `subprocess`). |
+| `leakmonitor/core/scheduler.py` | Implémentation de `ScanScheduler` utilisant `APScheduler` (CronTrigger). |
+| `leakmonitor/main.py` | Mise à jour de la commande `schedule` pour utiliser `ScanScheduler` de façon non bloquante. |
+| `tests/test_aggregator.py` | Création de la suite de tests (déduplication, sévérité, priorisation RansomLook). |
+| `tests/test_orchestrator.py` | Création de la suite de tests pour l'orchestrateur (tests async avec mocks). |
+
+#### Décisions techniques prises
+
+1. **Email Resolver** : Maintien du comportement non bloquant. TheHarvester est exécuté via `asyncio.create_subprocess_exec` et analysé à la volée.
+2. **Scheduler** : `APScheduler` (via `AsyncIOScheduler`) a été intégré, utilisant la syntaxe cron définie dans la configuration `.env`. L'event loop est gérée proprement dans `main.py`.
+
+#### Prochaines tâches (Phase 3)
+
+1. Démarrer la Phase 3 : Monitoring continu (Telegram, Webhook GitHub, IntelX).
+2. Construire la stack Docker complète (`docker-compose.yml` avec `entrypoint.sh`).
+3. Ajouter l'export PDF (Weasyprint).
+
+---
+
+### Itération 5 — 2026-04-30 (Gemini 3.1 Pro — Antigravity)
+
+**Objectif de l'itération** : Clôture de la Phase 2. Réalisation d'un Dashboard HTML visuel premium, création du client Pastebin OSINT, et configuration de l'envoi d'emails SMTP pour les alertes critiques.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Description |
+|---|---|
+| `leakmonitor/report/templates/report.html.j2` | Refonte complète : UI/UX Premium, Glassmorphism, Dark Mode, Grilles CSS. |
+| `leakmonitor/clients/pastebin_monitor.py` | Client OSINT via l'API publique de PsbDmp.ws. |
+| `leakmonitor/notifications/engine.py` | Implémentation de `send_email` utilisant `smtplib` en asynchrone (`asyncio.to_thread`). |
+| `leakmonitor/config/settings.py` | Ajout des variables de configuration `smtp_server`, `smtp_port`, etc. |
+
+#### Décisions techniques prises
+
+1. **Dashboard UI** : L'utilisation de Vanilla CSS avec un focus sur les micro-interactions, le mode sombre et le glassmorphism permet d'obtenir un rapport final très professionnel sans dépendre de lourds frameworks Javascript, ce qui est critique pour un rapport portable.
+2. **Pastebin Monitor** : En l'absence de l'API Scraping officielle de Pastebin (nécessitant un compte Pro "Lifetime"), l'outil s'appuie sur `psbdmp.ws` pour identifier les fuites potentielles.
+3. **SMTP asynchrone** : Afin de ne pas introduire de nouvelles dépendances, le module `smtplib` natif de Python est utilisé, exécuté de manière non-bloquante via `asyncio.to_thread`.
+
+#### Prochaines tâches (Phase 4)
+
+1. Audit sécurité (bandit, semgrep).
+2. Rotation automatique des clés API.
+3. Chiffrement des rapports (Fernet).
+4. Dashboard web (FastAPI + HTMX).
+5. Documentation mkdocs.
+6. Alertes PagerDuty / OpsGenie.
+
+---
+
+### Itération 6 — 2026-04-30 (Gemini 3.1 Pro — Antigravity)
+
+**Objectif de l'itération** : Exécution de la Phase 3. Implémentation du monitoring continu avec Telegram, IntelX, un Webhook GitHub et l'unification Docker.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Description |
+|---|---|
+| `leakmonitor/clients/telegram_monitor.py` | Client Telethon pour interroger les canaux Telegram. |
+| `leakmonitor/clients/intelx.py` | Client Intelligence X complet avec logique de polling (attente des résultats). |
+| `leakmonitor/clients/github_webhook.py` | Serveur `aiohttp` léger pour réceptionner les Webhooks GitHub (Secret Scanning). |
+| `leakmonitor/main.py` | Ajout du lancement asynchrone du serveur Webhook GitHub via la commande `schedule`. |
+| `leakmonitor/report/engine.py` | Ajout de la méthode `_generate_pdf` s'appuyant sur WeasyPrint. |
+| `docker-compose.yml` | Ouverture du port 8080 pour le Webhook. La stack est désormais totalement unifiée. |
+
+#### Décisions techniques prises
+
+1. **Telegram Monitor** : Utilisation de Telethon. Le fichier gère la nécessité d'une authentification manuelle préalable (création du fichier `.session`) avant de tenter des recherches pour éviter des erreurs silencieuses.
+2. **GitHub Webhook** : Utilisation de `aiohttp.web` (déjà dans les dépendances) pour créer un petit serveur intégré sur le port 8080. Il valide la signature HMAC (`X-Hub-Signature-256`) pour des raisons de sécurité.
+3. **Export PDF** : Repose sur `WeasyPrint` avec un fallback vers le HTML standard en cas d'absence de la dépendance (qui requiert souvent des librairies C système).
+4. **Docker Full Stack** : Le conteneur principal (`leakmonitor`) se lance désormais via `python -m leakmonitor schedule`, gérant ainsi les scans cron ET le webhook serveur en tâche de fond continue.
+
+#### Prochaines tâches (Phase 4 - Validation Globale)
+
+1. Rédiger le guide `QUICKSTART.md` détaillant la configuration `.env` et le lancement `docker-compose up`.
+2. L'utilisateur procèdera aux tests manuels de bout-en-bout pour valider la stabilité de l'outil.
+3. Les retours de tests serviront à corriger les éventuels bugs avant d'entamer la Phase 5 (Hardening).
 
 ---
 
