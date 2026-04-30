@@ -1,0 +1,98 @@
+# docker-compose.yml — LeakMonitor + RansomLook stack complète
+# ⚠️  Sécurité : RansomLook est exposé UNIQUEMENT sur 127.0.0.1:8888 (jamais 0.0.0.0)
+
+version: "3.9"
+
+services:
+
+  # ─── RansomLook — Redis (stockage des données scrapées) ─────────────────────
+  ransomlook-redis:
+    image: redis:7-alpine
+    container_name: ransomlook-redis
+    restart: unless-stopped
+    volumes:
+      - ransomlook_redis_data:/data
+    networks:
+      - ransomlook_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── RansomLook — Tor (accès aux portails .onion des groupes ransomware) ─────
+  ransomlook-tor:
+    image: dperson/torproxy:latest
+    container_name: ransomlook-tor
+    restart: unless-stopped
+    networks:
+      - ransomlook_net
+    environment:
+      - TOR_MaxCircuitDirtiness=600
+    healthcheck:
+      test: ["CMD", "curl", "--socks5", "localhost:9050", "https://check.torproject.org/api/ip"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+  # ─── RansomLook — Application principale ────────────────────────────────────
+  ransomlook-app:
+    image: ghcr.io/ransomlook/ransomlook:latest
+    container_name: ransomlook-app
+    restart: unless-stopped
+    depends_on:
+      ransomlook-redis:
+        condition: service_healthy
+      ransomlook-tor:
+        condition: service_healthy
+    ports:
+      # Exposé UNIQUEMENT en localhost — jamais sur 0.0.0.0
+      - "127.0.0.1:8888:8888"
+    networks:
+      - ransomlook_net
+    environment:
+      - REDIS_HOST=ransomlook-redis
+      - REDIS_PORT=6379
+      - TOR_PROXY=socks5://ransomlook-tor:9050
+      - REFRESH_INTERVAL=3600   # Rafraîchissement toutes les heures
+      - LOG_LEVEL=WARNING
+    volumes:
+      - ransomlook_app_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/v1/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s   # Laisser le temps au premier scraping
+
+  # ─── LeakMonitor — Application principale ───────────────────────────────────
+  leakmonitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leakmonitor
+    restart: unless-stopped
+    depends_on:
+      ransomlook-app:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Communication inter-container (override la valeur locale du .env)
+      - RANSOMLOOK_URL=http://ransomlook-app:8888
+    volumes:
+      - ./reports:/app/reports
+    networks:
+      - ransomlook_net
+
+# ─── Volumes persistants ────────────────────────────────────────────────────
+volumes:
+  ransomlook_redis_data:
+    driver: local
+  ransomlook_app_data:
+    driver: local
+
+# ─── Réseau isolé ───────────────────────────────────────────────────────────
+networks:
+  ransomlook_net:
+    driver: bridge

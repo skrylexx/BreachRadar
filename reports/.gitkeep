@@ -1,0 +1,2 @@
+# reports/.gitkeep — Ce répertoire contient les rapports générés (gitignored).
+# Ne jamais committer de rapports — ils peuvent contenir des informations sensibles.

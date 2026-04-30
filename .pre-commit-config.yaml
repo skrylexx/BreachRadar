@@ -1,0 +1,37 @@
+repos:
+  # ─── Détection de secrets ────────────────────────────────────────────────────
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        # Exclure les fichiers de test et fixtures (contiennent des faux secrets mockés)
+        exclude: >
+          (?x)^(
+            tests/fixtures/.*|
+            tests/conftest\.py|
+            SECURITY\.md
+          )$
+
+  # ─── Hooks généraux ──────────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: detect-private-key          # Clés RSA/SSH
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+        files: \.(yaml|yml)$
+      - id: check-toml
+        files: \.toml$
+
+  # ─── Linter Python (ruff) ─────────────────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
