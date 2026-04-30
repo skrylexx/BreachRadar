@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport LeakMonitor - {{ report.report_metadata.target_domain }}</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #333; max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        h1, h2, h3 { color: #111; }
+        .critical { color: #d32f2f; }
+        .high { color: #f57c00; }
+        .medium { color: #fbc02d; }
+        .low { color: #388e3c; }
+        .alert-box { border: 2px solid #d32f2f; background-color: #ffebee; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+        .alert-box h2 { margin-top: 0; color: #b71c1c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; margin-bottom: 2rem; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f5f5f5; font-weight: 600; }
+        .metadata { background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 2rem; font-size: 0.9em; }
+        .footer { margin-top: 4rem; font-size: 0.8rem; color: #666; text-align: center; border-top: 1px solid #eee; padding-top: 2rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Rapport de Renseignement sur les Menaces : {{ report.report_metadata.target_domain }}</h1>
+
+    <div class="metadata">
+        <strong>Date :</strong> {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}<br>
+        <strong>Durée :</strong> {{ "%.2f"|format(report.report_metadata.scan_duration_seconds) }}s<br>
+        <strong>Emails :</strong> {{ report.report_metadata.total_emails_checked }}<br>
+        <strong>Sources :</strong> {{ report.report_metadata.sources_queried | join(', ') }}
+    </div>
+
+    {% if report.ransomware_alerts.domain_listed %}
+    <div class="alert-box">
+        <h2>🚨 ALERTE CRITIQUE : RANSOMWARE DÉTECTÉ</h2>
+        <p><strong>ATTENTION : Le domaine a été détecté sur un ou plusieurs portails d'extorsion de groupes ransomware. Ceci indique une exfiltration de données probable ou en cours.</strong></p>
+
+        {% for alert in report.ransomware_alerts.alerts %}
+        <h3>Groupe : {{ alert.group_display_name }}</h3>
+        <ul>
+            <li><strong>Date de découverte :</strong> {{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}</li>
+            <li><strong>Statut :</strong> {{ alert.status }}</li>
+            <li><strong>Victime :</strong> {{ alert.victim_name }}</li>
+            <li><strong>Volume :</strong> {{ alert.claim_size or 'Inconnu' }}</li>
+            <li><strong>URL Portail :</strong> {{ alert.portal_url | mask_onion }}</li>
+        </ul>
+        <p><em>{{ alert.description or 'Aucune description fournie par le groupe.' }}</em></p>
+        
+        <h4>Actions requises immédiatement :</h4>
+        <ul>
+        {% for action in alert.recommended_actions %}
+            <li>{{ action }}</li>
+        {% endfor %}
+        </ul>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2>Résumé Exécutif</h2>
+    <p><strong>Sévérité Globale :</strong> {{ report.get_global_severity_label() }}</p>
+
+    <ul>
+        <li>Comptes compromis : <strong>{{ report.summary.emails_compromised }}</strong></li>
+        <li>Comptes sains : <strong>{{ report.summary.emails_clean }}</strong></li>
+    </ul>
+
+    <h3>Répartition :</h3>
+    <ul>
+        <li class="critical">CRITICAL : {{ report.summary.severity_breakdown.CRITICAL }}</li>
+        <li class="high">HIGH : {{ report.summary.severity_breakdown.HIGH }}</li>
+        <li class="medium">MEDIUM : {{ report.summary.severity_breakdown.MEDIUM }}</li>
+        <li class="low">LOW : {{ report.summary.severity_breakdown.LOW }}</li>
+    </ul>
+
+    {% if report.summary.most_common_breaches %}
+    <h3>Fuites les plus fréquentes :</h3>
+    <ul>
+    {% for breach in report.summary.most_common_breaches %}
+        <li>{{ breach }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Résultats Détaillés</h2>
+
+    {% if report.findings %}
+        {% for email_result in report.findings %}
+        <h3>📧 {{ email_result.email }} ({{ email_result.get_severity_label() }})</h3>
+        
+        {% if email_result.recommendations %}
+            <ul>
+            {% for rec in email_result.recommendations %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Nom</th>
+                    <th>Source</th>
+                    <th>Sévérité</th>
+                    <th>Données</th>
+                    <th>Mots de passe/Hashs</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for finding in email_result.findings %}
+                <tr>
+                    <td>{{ finding.breach_date or 'N/A' }}</td>
+                    <td><strong>{{ finding.breach_name }}</strong></td>
+                    <td>{{ finding.source }}</td>
+                    <td>{{ finding.severity }}</td>
+                    <td>{{ finding.data_classes | join(', ') }}</td>
+                    <td>
+                        {% if finding.has_plaintext_credential %}
+                            <strong class="critical">EN CLAIR 🚨</strong>
+                        {% elif finding.has_password or finding.has_hash %}
+                            <strong class="high">OUI ⚠️</strong>
+                        {% else %}
+                            NON
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+    {% else %}
+        <p>Aucun email compromis détecté lors de ce scan.</p>
+    {% endif %}
+
+    <div class="footer">
+        <h3>Attestation de Conformité RGPD</h3>
+        <p>Ce rapport a été généré dans le respect du principe de minimisation des données (RGPD). Toutes les données sensibles brutes ont été purgées en mémoire par la couche Sanitizer.</p>
+        <p>Mots de passe en clair stockés : <strong>NON</strong> | Hashs stockés : <strong>NON</strong> | Clés API stockées : <strong>NON</strong> | URL .onion masquées : <strong>OUI</strong></p>
+    </div>
+
+</body>
+</html>
