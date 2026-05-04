@@ -59,3 +59,9 @@ Thumbs.db
 # ─── Données locales RansomLook (volumes Docker) ─────────────────────────────
 # Ces données sont dans les volumes Docker, pas dans le repo
 ransomlook_data/
+
+# Données d'audit de sécurité
+security_audits/reports/
+
+# TEMP
+note_pour_le_05-05.txt
