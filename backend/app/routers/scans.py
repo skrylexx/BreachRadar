@@ -7,7 +7,7 @@ Endpoints : liste, détail, stats, déclenchement manuel, export rapport.
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status, BackgroundTasks
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import select, func
@@ -105,24 +105,27 @@ async def get_scan(
 async def trigger_scan(
     request: Request,
     body: ScanTriggerRequest,
+    background_tasks: BackgroundTasks,
     current_user: AdminUser,  # Admin uniquement
     db: AsyncSession = Depends(get_db),
 ) -> ScanTriggerResponse:
     """
     Déclenche un scan manuel (Admin uniquement).
-    Crée une entrée ScanResult en statut RUNNING et délègue à la CLI BreachRadar.
     """
     started_at = datetime.now(timezone.utc)
     scan = ScanResult(
-        target_domain=body.target_domain or "configured_domain",
+        target_domain=body.target_domain or settings.target_domain,
         status=ScanStatus.RUNNING,
         triggered_by=f"manual:{current_user.email}",
         started_at=started_at,
     )
     db.add(scan)
-    await db.flush()
+    await db.commit()
+    await db.refresh(scan)
 
-    # TODO: Déclencher le scan CLI via subprocess ou message queue
-    # Pour cette itération, on crée l'entrée DB uniquement
+    # Déclencher le scan en arrière-plan
+    from app.engine.logic import ScanManager
+    scan_manager = ScanManager(db)
+    background_tasks.add_task(scan_manager.run_full_scan, scan.id, body.target_domain)
 
     return ScanTriggerResponse(scan_id=scan.id, started_at=started_at)

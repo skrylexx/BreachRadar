@@ -35,7 +35,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -52,7 +52,7 @@ export default function LoginPage() {
       // MFA requis → rediriger vers la page MFA
       if (json.requires_mfa) {
         sessionStorage.setItem("mfa_challenge", json.mfa_challenge_token);
-        router.push("/auth/mfa");
+        router.push("/mfa");
         return;
       }
 
@@ -174,7 +174,7 @@ export default function LoginPage() {
           {/* Lien reset password */}
           <div className="text-center">
             <a
-              href="/auth/reset-password"
+              href="/reset-password"
               className="text-xs text-muted-foreground hover:text-radar transition-colors"
             >
               Forgot password?

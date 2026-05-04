@@ -31,7 +31,7 @@ export async function apiFetch<T = unknown>(
   // 401 → redirection vers login
   if (response.status === 401 && !skipAuth) {
     if (typeof window !== "undefined") {
-      window.location.href = "/auth/login";
+      window.location.href = "/login";
     }
     throw new Error("Unauthorized");
   }
@@ -41,7 +41,7 @@ export async function apiFetch<T = unknown>(
     const data = await response.json().catch(() => ({}));
     if (response.headers.get("X-Password-Expired") === "true") {
       if (typeof window !== "undefined") {
-        window.location.href = "/auth/reset-password?expired=true";
+        window.location.href = "/reset-password?expired=true";
       }
     }
     throw new Error(data.detail ?? "Forbidden");

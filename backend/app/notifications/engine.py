@@ -13,7 +13,7 @@ from pathlib import Path
 import httpx
 from jinja2 import Environment, FileSystemLoader
 
-from app.config.settings import Settings
+from app.core.config import Settings
 from app.models.ransom import RansomFinding
 
 logger = logging.getLogger(__name__)

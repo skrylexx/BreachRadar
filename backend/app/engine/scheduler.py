@@ -14,7 +14,7 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from app.config.settings import Settings
+from app.core.config import Settings
 
 logger = logging.getLogger(__name__)
 

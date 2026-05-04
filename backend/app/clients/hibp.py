@@ -19,7 +19,7 @@ from datetime import datetime
 import httpx
 
 from app.clients.base import BaseLeakClient
-from app.core.sanitizer import DataSanitizer
+from app.engine.sanitizer import DataSanitizer
 from app.models.finding import LeakFinding, Severity
 
 logger = logging.getLogger(__name__)

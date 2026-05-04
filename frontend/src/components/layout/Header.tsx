@@ -105,11 +105,11 @@ function LanguageSelector() {
 // ─── Menu utilisateur ─────────────────────────────────────────────────────────
 function UserMenu() {
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
-    window.location.href = "/auth/login";
+    window.location.href = "/login";
   };
 
   return (

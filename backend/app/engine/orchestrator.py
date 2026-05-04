@@ -14,9 +14,9 @@ from typing import TYPE_CHECKING
 from app.clients.base import BaseLeakClient
 from app.clients.github_monitor import GitHubClient
 from app.clients.hibp import HIBPClient
-from app.config.settings import Settings
-from app.config.source_registry import SourceRegistry
-from app.core.sanitizer import DataSanitizer
+from app.core.config import Settings
+from app.core.source_registry import SourceRegistry
+from app.engine.sanitizer import DataSanitizer
 from app.clients.leakcheck import LeakCheckClient
 from app.clients.dehashed import DehashedClient
 

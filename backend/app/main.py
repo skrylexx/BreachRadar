@@ -46,8 +46,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Démarrage du ScanScheduler en tâche de fond...")
         
         async def _scan_callback():
-            # TODO: Implémenter l'appel au scan complet via l'orchestrateur
-            pass
+            """Callback déclenché par le scheduler."""
+            from app.core.database import AsyncSessionLocal
+            from app.engine.logic import ScanManager
+            from app.models.scan import ScanResult, ScanStatus
+            from datetime import datetime, timezone
+            
+            async with AsyncSessionLocal() as db:
+                # 1. Créer l'entrée ScanResult en DB
+                scan = ScanResult(
+                    target_domain=settings.target_domain,
+                    status=ScanStatus.RUNNING,
+                    triggered_by="scheduler",
+                    started_at=datetime.now(timezone.utc),
+                )
+                db.add(scan)
+                await db.commit()
+                await db.refresh(scan)
+                
+                # 2. Lancer le scan
+                scan_manager = ScanManager(db)
+                await scan_manager.run_full_scan(scan.id)
             
         scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback)
         scheduler.start()
