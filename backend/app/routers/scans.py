@@ -125,7 +125,7 @@ async def trigger_scan(
 
     # Déclencher le scan en arrière-plan
     from app.engine.logic import ScanManager
-    scan_manager = ScanManager(db)
+    scan_manager = ScanManager()
     background_tasks.add_task(scan_manager.run_full_scan, scan.id, body.target_domain)
 
     return ScanTriggerResponse(scan_id=scan.id, started_at=started_at)

@@ -65,7 +65,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 await db.refresh(scan)
                 
                 # 2. Lancer le scan
-                scan_manager = ScanManager(db)
+                scan_manager = ScanManager()
                 await scan_manager.run_full_scan(scan.id)
             
         scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback)
