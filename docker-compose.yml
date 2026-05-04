@@ -1,7 +1,9 @@
-# docker-compose.yml — BreachRadar + RansomLook stack complète
-# ⚠️  Sécurité : RansomLook est exposé UNIQUEMENT sur 127.0.0.1:8888 (jamais 0.0.0.0)
-
-version: "3.9"
+# docker-compose.yml — BreachRadar + RansomLook + WebUI stack
+# ⚠️  Sécurité : RansomLook exposé UNIQUEMENT sur 127.0.0.1:8888 (jamais 0.0.0.0)
+#
+# Usage :
+#   Stack CLI uniquement : docker compose up -d
+#   Stack CLI + WebUI    : docker compose --profile ui up -d
 
 services:
 
@@ -65,7 +67,7 @@ services:
       retries: 5
       start_period: 60s   # Laisser le temps au premier scraping
 
-  # ─── BreachRadar — Application principale ───────────────────────────────────
+  # ─── BreachRadar — Application principale (CLI) ──────────────────────────────
   breachradar:
     build:
       context: .
@@ -81,11 +83,118 @@ services:
       # Communication inter-container (override la valeur locale du .env)
       - RANSOMLOOK_URL=http://ransomlook-app:8888
     ports:
-      - "8080:8080" # Port du webhook GitHub
+      - "127.0.0.1:8080:8080" # Port du webhook GitHub (localhost uniquement)
     volumes:
       - ./reports:/app/reports
     networks:
       - ransomlook_net
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ─── WebUI Stack (profil "ui") ──────────────────────────────────────────────
+  # Démarrer avec : docker compose --profile ui up -d
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # ─── WebUI — PostgreSQL 16 ──────────────────────────────────────────────────
+  breachradar-postgres:
+    image: postgres:16-alpine
+    container_name: breachradar-postgres
+    profiles: ["ui"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${UI_DB_NAME:-breachradar_ui}
+      POSTGRES_USER: ${UI_DB_USER:-br_ui}
+      POSTGRES_PASSWORD: ${UI_DB_PASSWORD:?UI_DB_PASSWORD required for WebUI}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - ui_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${UI_DB_USER:-br_ui} -d ${UI_DB_NAME:-breachradar_ui}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── WebUI — Redis (sessions JWT + rate limiting) ────────────────────────────
+  breachradar-ui-redis:
+    image: redis:7-alpine
+    container_name: breachradar-ui-redis
+    profiles: ["ui"]
+    restart: unless-stopped
+    command: redis-server --requirepass ${UI_REDIS_PASSWORD:?UI_REDIS_PASSWORD required}
+    volumes:
+      - ui_redis_data:/data
+    networks:
+      - ui_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${UI_REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── WebUI — Backend FastAPI ─────────────────────────────────────────────────
+  breachradar-api:
+    build:
+      context: ./webui/backend
+      dockerfile: Dockerfile
+    container_name: breachradar-api
+    profiles: ["ui"]
+    restart: unless-stopped
+    depends_on:
+      breachradar-postgres:
+        condition: service_healthy
+      breachradar-ui-redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"  # API interne uniquement
+    environment:
+      # Base de données
+      - DATABASE_URL=postgresql+asyncpg://${UI_DB_USER:-br_ui}:${UI_DB_PASSWORD}@breachradar-postgres:5432/${UI_DB_NAME:-breachradar_ui}
+      # Redis
+      - REDIS_URL=redis://:${UI_REDIS_PASSWORD}@breachradar-ui-redis:6379/0
+      # JWT
+      - JWT_SECRET_KEY=${UI_JWT_SECRET:?UI_JWT_SECRET required}
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+      # Admin initial (créé au 1er démarrage)
+      - INITIAL_ADMIN_EMAIL=${UI_ADMIN_EMAIL:?UI_ADMIN_EMAIL required}
+      - INITIAL_ADMIN_PASSWORD=${UI_ADMIN_PASSWORD:?UI_ADMIN_PASSWORD required}
+      # CORS — le frontend Next.js
+      - CORS_ORIGINS=http://localhost:3000
+      # Environment
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    networks:
+      - ui_net
+      - ransomlook_net  # Pour accéder aux rapports BreachRadar existants
+    volumes:
+      - ./reports:/app/reports:ro  # Lecture seule des rapports CLI
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── WebUI — Frontend Next.js ────────────────────────────────────────────────
+  breachradar-ui:
+    build:
+      context: ./webui/frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    container_name: breachradar-ui
+    profiles: ["ui"]
+    restart: unless-stopped
+    depends_on:
+      breachradar-api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - ui_net
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://breachradar-api:8000}
+      - NODE_ENV=production
 
 # ─── Volumes persistants ────────────────────────────────────────────────────
 volumes:
@@ -93,8 +202,14 @@ volumes:
     driver: local
   ransomlook_app_data:
     driver: local
+  pg_data:
+    driver: local
+  ui_redis_data:
+    driver: local
 
-# ─── Réseau isolé ───────────────────────────────────────────────────────────
+# ─── Réseaux isolés ─────────────────────────────────────────────────────────
 networks:
   ransomlook_net:
+    driver: bridge
+  ui_net:
     driver: bridge

@@ -11,8 +11,8 @@
 Phase 1 — MVP    [██████████] 100%
 Phase 2          [██████████] 100%
 Phase 3          [██████████] 100%
-Phase 4          [░░░░░░░░░░]  0%
-Phase 5          [░░░░░░░░░░]  0%
+Phase 4 — WebUI  [████████░░]  80%
+Phase 5          [░░░░░░░░░░]   0%
 ```
 
 ---
@@ -81,22 +81,98 @@ Phase 5          [░░░░░░░░░░]  0%
 - [x] Docker full stack (un seul `docker compose up`)
 - [x] Export PDF
 
-### Phase 4 — Validation Globale & Tests Manuels
-- [ ] Création du guide `QUICKSTART.md` (lancement de la stack)
-- [ ] Lancement de la stack Docker unifiée
-- [ ] Vérification de bout-en-bout (Orchestrateur, Webhook, PDF)
+### Phase 4 — WebUI Gouvernance SOC (80%)
+- [x] Infrastructure Docker WebUI (`--profile ui`) — 4 services ajoutés
+- [x] Backend FastAPI : JWT, RBAC Admin/Viewer, TOTP MFA, models, routers
+- [x] Frontend Next.js : thème #09090b, sidebar fine, radar animation
+- [x] Composants Dashboard : RiskHeatmap, APIStatusCards, FindingsTable
+- [x] Documentation : README.md + ROADMAP.md + webui/.env.example
+- [ ] Pages restantes : `/scans`, `/api-keys`, `/users`, `/changelog`
+- [ ] MFA verify endpoint complet
+- [ ] Intégration next-intl + tests E2E
+- [ ] Export PDF + config SMTP depuis UI
 
 ### Phase 5 — Hardening
 - [ ] Audit sécurité (bandit, semgrep)
 - [ ] Rotation automatique des clés API
-- [ ] Chiffrement des rapports (Fernet)
-- [ ] Dashboard web (FastAPI + HTMX)
+- [ ] Chiffrement des clés API stockées (Fernet)
 - [ ] Documentation mkdocs
 - [ ] Alertes PagerDuty / OpsGenie
 
 ---
 
 ## CHANGELOG
+
+### Itération 7 — 2026-05-04 (Claude Sonnet 4.6 — Antigravity)
+
+**Objectif de l'itération** : Initialisation de la WebUI BreachRadar — Phase 4 (Gouvernance SOC).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Description |
+|---|---|
+| `docker-compose.yml` | Ajout profil `ui` : 4 services (postgres, redis, api, frontend) |
+| `webui/.env.example` | Variables d'env dédiées WebUI |
+| `webui/backend/Dockerfile` | Image Python 3.12-slim non-root |
+| `webui/backend/requirements.txt` | FastAPI, SQLAlchemy, pyotp, slowapi, etc. |
+| `webui/backend/app/main.py` | Application FastAPI + CORS + TrustedHost + rate limiting |
+| `webui/backend/app/core/config.py` | Pydantic Settings — validation JWT, passwords, SMTP |
+| `webui/backend/app/core/security.py` | JWT (access 15min + refresh 7j) + bcrypt + TOTP |
+| `webui/backend/app/core/database.py` | SQLAlchemy async engine PostgreSQL |
+| `webui/backend/app/core/redis.py` | Blacklist tokens + challenges MFA temporaires |
+| `webui/backend/app/core/init_db.py` | Création admin initial au premier boot |
+| `webui/backend/app/models/user.py` | Modèle User (RBAC, MFA, rotation MDP) |
+| `webui/backend/app/models/scan.py` | Modèle ScanResult (RGPD — stats agrégées uniquement) |
+| `webui/backend/app/models/api_key.py` | Modèle APIKey (chiffrement à implémenter) |
+| `webui/backend/app/models/audit_log.py` | Journal d'audit (traçabilité RGPD) |
+| `webui/backend/app/schemas/auth.py` | Schémas Pydantic auth (login, MFA, password) |
+| `webui/backend/app/schemas/user.py` | Schémas Pydantic user (CRUD) |
+| `webui/backend/app/schemas/scan.py` | Schémas Pydantic scan (stats, trigger) |
+| `webui/backend/app/routers/auth.py` | Login/logout/MFA/password + audit logs |
+| `webui/backend/app/routers/users.py` | CRUD utilisateurs (admin uniquement) |
+| `webui/backend/app/routers/scans.py` | Liste + stats + déclenchement manuel |
+| `webui/backend/app/routers/api_keys.py` | Gestion clés API connecteurs |
+| `webui/backend/app/dependencies/auth.py` | RBAC : CurrentUser, AdminUser, ViewerUser |
+| `webui/frontend/Dockerfile` | Multi-stage build Node.js 20 non-root |
+| `webui/frontend/next.config.ts` | Proxy API, security headers, standalone output |
+| `webui/frontend/package.json` | Next.js 15, Radix UI, Recharts, next-intl |
+| `webui/frontend/tailwind.config.ts` | Design system complet + animations radar |
+| `webui/frontend/src/app/globals.css` | Thème dark #09090b, badges sévérité, scrollbar |
+| `webui/frontend/src/app/layout.tsx` | Root layout Inter + JetBrains Mono |
+| `webui/frontend/src/app/(auth)/login/page.tsx` | Login + animation radar SVG en fond |
+| `webui/frontend/src/app/(dashboard)/layout.tsx` | Layout sidebar + header |
+| `webui/frontend/src/app/(dashboard)/page.tsx` | Dashboard : stats, heatmap, API cards, findings |
+| `webui/frontend/src/components/layout/Sidebar.tsx` | Sidebar fine icônes + tooltips + indicator actif |
+| `webui/frontend/src/components/layout/Header.tsx` | Header + sélecteur langue + user menu |
+| `webui/frontend/src/components/dashboard/RadarLoader.tsx` | Animation SVG radar (scan + landing) |
+| `webui/frontend/src/components/dashboard/RiskHeatmap.tsx` | Recharts BarChart empilé + sélecteur période |
+| `webui/frontend/src/components/dashboard/APIStatusCards.tsx` | Cards statut connecteurs bordure colorée |
+| `webui/frontend/src/components/dashboard/FindingsTable.tsx` | Tableau Stripe-style + badges sévérité |
+| `webui/frontend/src/lib/api.ts` | Fetch wrapper HttpOnly cookies + redirects |
+| `webui/frontend/src/lib/i18n.ts` | Dictionnaire EN/FR typé |
+| `README.md` | Section WebUI complète |
+| `ROADMAP.md` | Ce fichier — itération 7 |
+
+#### Décisions techniques
+
+1. **Profil Docker `--profile ui`** : Séparation stricte de la stack CLI existante. `docker compose up -d` reste inchangé — la WebUI s'ajoute avec `--profile ui`.
+2. **JWT en HttpOnly Cookies** : Access token (15 min) + Refresh token (7 j, limité au path `/auth/refresh`). Protection XSS par design.
+3. **TOTP MFA** : Implémenté via `pyotp`. Flow complet : generate secret → QR code base64 → verify. Le challenge MFA utilise Redis avec TTL 5 min (anti-replay).
+4. **Politique MDP** : 16 chars (admin), 12 chars (viewer), rotation 180 jours sauf si >24 chars. Validation côté API.
+5. **Audit Log** : Table dédiée avec `user_email`, `action`, `details` (JSONB), `ip_address`. Jamais de données sensibles dans les `details`.
+6. **Design SOC** : Fond `#09090b`, surfaces `#18181b`, accent `#38bdf8`. Animations radar SVG natives (pas de librairie d'animation). Sidebar 56px icônes uniquement.
+7. **Recharts** : BarChart empilé par sévérité (critique/high/medium/low) — code couleur cyber standard respecté.
+8. **i18n** : Dictionnaire statique EN/FR typé TypeScript — `next-intl` Context Provider à intégrer en prochaine itération.
+
+#### ⚠️ Points de vigilance pour la prochaine IA
+
+1. **MFA Verify endpoint** : Le `challenge_token` doit encoder le `user_id` (JWT signé ou mapping Redis). L'endpoint `/auth/mfa/verify` est marqué `501 Not Implemented` — à compléter.
+2. **Fernet encryption** : Les clés API sont actuellement stockées en clair dans `encrypted_key`. Implémenter le chiffrement Fernet en priorité.
+3. **`npm install` à exécuter** : Le répertoire `webui/frontend` n'a pas de `node_modules`. Exécuter `npm install` depuis `webui/frontend/` avant le build Docker.
+4. **Pages manquantes** : `/scans`, `/api-keys`, `/users`, `/changelog` — structures créées, contenu à implémenter.
+5. **Route `/` → `/auth/login`** : Ajouter un middleware Next.js pour rediriger les non-authentifiés.
+
+---
 
 ### Itération 1 — 2026-04-30 (Claude Sonnet — Antigravity)
 

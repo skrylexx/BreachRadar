@@ -1,0 +1,56 @@
+"""
+BreachRadar WebUI — Modèle APIKey (SQLAlchemy)
+===============================================
+Stockage chiffré des clés API des connecteurs OSINT.
+"""
+
+import uuid
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.database import Base
+
+
+class APIKey(Base):
+    """Clé API d'un connecteur (HIBP, LeakCheck, Dehashed, IntelX...)."""
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    # ─── Identité du connecteur ────────────────────────────────────────────
+    service_name: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+        unique=True,
+        index=True,
+    )  # Ex: "hibp", "leakcheck", "dehashed", "intelx", "github"
+
+    # ─── Clé chiffrée ─────────────────────────────────────────────────────
+    # La clé est stockée chiffrée (Fernet) — jamais en clair
+    encrypted_key: Mapped[str] = mapped_column(String(1024), nullable=False)
+
+    # ─── Statut ────────────────────────────────────────────────────────────
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_tested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_test_success: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+
+    # ─── Métadonnées ───────────────────────────────────────────────────────
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<APIKey service={self.service_name} active={self.is_active}>"

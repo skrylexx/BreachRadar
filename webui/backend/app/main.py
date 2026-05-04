@@ -1,0 +1,98 @@
+"""
+BreachRadar WebUI — FastAPI Application Entry Point
+====================================================
+Point d'entrée principal. Configure le middleware, les routes et le cycle de vie.
+"""
+
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
+
+from app.core.config import settings
+from app.core.database import engine, Base
+from app.core.redis import redis_client
+from app.routers import auth, users, scans, api_keys, health
+from app.core.init_db import initialize_database
+
+
+# ─── Rate Limiter global ─────────────────────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
+
+# ─── Cycle de vie (startup / shutdown) ───────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Initialisation et nettoyage des ressources."""
+    # Startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # Initialiser l'administrateur par défaut si la DB est vide
+    await initialize_database()
+
+    yield
+
+    # Shutdown
+    await redis_client.aclose()
+    await engine.dispose()
+
+
+# ─── Application FastAPI ──────────────────────────────────────────────────────
+app = FastAPI(
+    title="BreachRadar WebUI API",
+    description="API backend de la WebUI BreachRadar — Gouvernance SOC",
+    version="1.0.0",
+    docs_url="/docs" if settings.environment != "production" else None,
+    redoc_url="/redoc" if settings.environment != "production" else None,
+    lifespan=lifespan,
+)
+
+# ─── Middleware ───────────────────────────────────────────────────────────────
+
+# CORS — autoriser uniquement les origines configurées
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,  # Requis pour HttpOnly Cookies
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+# Trusted Host — protection contre les Host header attacks
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.allowed_hosts,
+)
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
+
+# ─── Gestionnaire d'erreurs global ───────────────────────────────────────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Évite les fuites de stack traces en production."""
+    if settings.environment == "production":
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"},
+        )
+    raise exc
+
+
+# ─── Routeurs ────────────────────────────────────────────────────────────────
+app.include_router(health.router, tags=["Health"])
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(scans.router, prefix="/scans", tags=["Scans"])
+app.include_router(api_keys.router, prefix="/api-keys", tags=["API Keys"])

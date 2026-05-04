@@ -264,6 +264,92 @@ breachradar/
 
 ---
 
+## WebUI — Interface de Gouvernance SOC
+
+> La WebUI est un service **séparé** de la stack CLI. Elle est activée via le profil Docker `ui`.
+
+### Stack WebUI
+
+| Couche | Technologie |
+|---|---|
+| Frontend | Next.js 15 + Shadcn/UI + Tailwind CSS |
+| Backend | FastAPI (Python 3.12) |
+| Base de données | PostgreSQL 16 |
+| Cache / Sessions | Redis 7 |
+| Authentification | JWT HttpOnly Cookies |
+| MFA | TOTP RFC 6238 (Google Auth, Authy, Microsoft Auth) |
+
+### Démarrage de la WebUI
+
+```bash
+# 1. Copier et configurer les variables d'environnement WebUI
+cp webui/.env.example .env
+# Éditer .env : UI_DB_PASSWORD, UI_REDIS_PASSWORD, UI_JWT_SECRET,
+#               UI_ADMIN_EMAIL, UI_ADMIN_PASSWORD
+
+# 2. Démarrer TOUTE la stack (CLI + WebUI)
+docker compose --profile ui up -d
+
+# 3. Accéder à l'interface
+# Frontend : http://localhost:3000
+# API docs  : http://localhost:8000/docs (dev uniquement)
+```
+
+### Lancement séparé
+
+```bash
+# Stack CLI uniquement (comportement original)
+docker compose up -d
+
+# WebUI uniquement
+docker compose --profile ui up breachradar-postgres breachradar-ui-redis breachradar-api breachradar-ui -d
+```
+
+### Arborescence WebUI
+
+```
+webui/
+├── .env.example              # Variables d'env dédiées WebUI
+├── backend/                  # FastAPI
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── app/
+│       ├── main.py
+│       ├── core/             # config, security, database, redis
+│       ├── models/           # user, scan, api_key, audit_log
+│       ├── schemas/          # auth, user, scan
+│       ├── routers/          # auth, users, scans, api_keys, health
+│       └── dependencies/     # RBAC (get_current_user, require_admin)
+└── frontend/                 # Next.js 15
+    ├── Dockerfile
+    ├── next.config.ts
+    ├── tailwind.config.ts
+    └── src/
+        ├── app/
+        │   ├── layout.tsx        # Root (Inter + JetBrains Mono)
+        │   ├── globals.css       # Thème dark #09090b
+        │   ├── (auth)/login/     # Page connexion
+        │   └── (dashboard)/      # Layout sidebar + toutes les pages
+        ├── components/
+        │   ├── layout/           # Sidebar + Header
+        │   └── dashboard/        # RadarLoader, RiskHeatmap, APIStatusCards, FindingsTable
+        └── lib/                  # api.ts, i18n.ts (EN/FR)
+```
+
+### RBAC
+
+| Action | Admin | Viewer |
+|---|---|---|
+| Voir le dashboard | ✅ | ✅ |
+| Voir les rapports | ✅ | ✅ |
+| Exporter en PDF | ✅ | ✅ |
+| Déclencher un scan | ✅ | ❌ |
+| Gérer les clés API | ✅ | ❌ |
+| Gérer les utilisateurs | ✅ | ❌ |
+| Configurer SMTP | ✅ | ❌ |
+
+---
+
 ## Sécurité — Garanties
 
 - ❌ Aucun mot de passe, hash ou credential stocké
