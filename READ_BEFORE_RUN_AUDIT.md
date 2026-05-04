@@ -8,9 +8,12 @@
 
 ## 0. Ordre d'Exécution Obligatoire
 
+> ℹ️ Cet ordre est spécifique aux sessions d'**audit sécurité**.
+> Pour l'ordre de lecture global (développement, refactoring, etc.), se référer à `AGENT.md` section 0.
+
 ```
-1. READ_BEFORE_RUN.md     ← tu es ici
-2. AUDIT_INSTRUCTIONS.md  ← périmètre, livrables, règles
+1. READ_BEFORE_RUN.md     ← tu es ici (vérification et mise à jour avant audit)
+2. AUDIT_INSTRUCTIONS.md  ← périmètre, livrables, règles d'audit
 3. TECH_STACK.md          ← spécifications techniques complètes
 ```
 
@@ -141,11 +144,11 @@ Si l'orchestration évolue (passage de Docker Compose à Kubernetes, ajout d'un 
 Chaque rapport d'audit produit doit être sauvegardé selon la convention suivante :
 
 ```
-security_audits/reports/
+audit_reports/
 └── YYYY-MM-DD_<sha-court>_audit-report.md
 ```
 
-Exemple : `security_audits/reports/2026-05-04_a3f9c12_audit-report.md`
+Exemple : `audit_reports/2026-05-04_a3f9c12_audit-report.md`
 
 Le rapport doit inclure en en-tête :
 
@@ -165,6 +168,6 @@ Avant de clore la session d'audit, vérifier les points suivants :
 - [ ] `TECH_STACK.md` reflète l'état actuel du dépôt (pas de dépendance manquante, pas de service non documenté)
 - [ ] `AUDIT_INSTRUCTIONS.md` couvre tous les fichiers et composants actifs du dépôt
 - [ ] Le champ `Dernier commit audité` dans `TECH_STACK.md` est à jour
-- [ ] Le rapport d'audit est archivé dans `security_audits/reports/` avec la convention de nommage 
+- [ ] Le rapport d'audit est archivé dans `audit_reports/` avec la convention de nommage
 - [ ] Les failles résolues depuis le dernier audit ont été retirées ou marquées `[RÉSOLU]` dans `AUDIT_INSTRUCTIONS.md`
 - [ ] Aucune information sensible (clé API, mot de passe, token) n'apparaît en clair dans les fichiers de documentation
