@@ -25,7 +25,7 @@ Ce projet manipule des **clés API à coût réel** (certaines > 100 €/mois) e
 ❌ JAMAIS de clé API dans un rapport généré
 
 ✅ Uniquement dans .env (gitignored)
-✅ En production : vault (HashiCorp, AWS Secrets Manager, etc.)
+✅ Chiffrement en base de données via Fernet pour les clés configurées depuis la WebUI
 ✅ Une clé = un usage = un projet
 ```
 
@@ -241,9 +241,6 @@ export HIBP_API_KEY="votre_clé"   # Temporaire, pas dans l'historique
 # ENCORE MIEUX : utiliser direnv (charge .env automatiquement)
 # https://direnv.net/
 # .envrc (gitignored) → direnv allow
-
-# JAMAIS : mettre une clé dans la commande directement
-uv run python -m breachradar scan --api-key=sk-xxx  # NON
 ```
 
 ### 5.3 Permissions des fichiers sensibles
@@ -270,10 +267,10 @@ find . -name ".env" -perm /044 -ls
 uv add --dev bandit
 
 # Scan complet du code source
-uv run bandit -r breachradar/ -ll -f txt
+cd backend && uv run bandit -r app/ -ll -f txt
 
 # Rapport détaillé en HTML
-uv run bandit -r breachradar/ -f html -o security_report.html
+cd backend && uv run bandit -r app/ -f html -o security_report.html
 
 # Codes à surveiller particulièrement :
 # B105, B106, B107 → hardcoded passwords
@@ -298,7 +295,7 @@ safety check -r /tmp/req.txt
 
 ```bash
 # Tests unitaires de non-régression sécurité
-uv run pytest tests/test_security.py -v
+cd backend && uv run pytest tests/test_security.py -v
 
 # Résultats attendus :
 # PASSED  test_leak_finding_has_no_sensitive_fields
@@ -310,19 +307,19 @@ uv run pytest tests/test_security.py -v
 # PASSED  test_empty_scan_returns_no_severity
 
 # Tests sanitizer complets
-uv run pytest tests/test_sanitizer.py -v --tb=short
+cd backend && uv run pytest tests/test_sanitizer.py -v --tb=short
 
 # Couverture complète
-uv run pytest tests/ -v --cov=breachradar --cov-report=term-missing
+cd backend && uv run pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
 ### 6.4 Vérification manuelle du sanitizer
 
 ```python
 # Script de vérification rapide (à lancer avant chaque release)
-# Sauvegarder comme scripts/verify_sanitizer.py
+# Sauvegarder comme backend/scripts/verify_sanitizer.py
 
-from breachradar.core.sanitizer import DataSanitizer
+from app.engine.sanitizer import DataSanitizer
 
 sanitizer = DataSanitizer()
 
@@ -353,7 +350,7 @@ print(f"\n{'✅ Tous les tests passent.' if all_ok else '❌ DES TESTS ÉCHOUENT
 
 ```bash
 # Lancer la vérification
-uv run python scripts/verify_sanitizer.py
+cd backend && uv run python scripts/verify_sanitizer.py
 ```
 
 ---
@@ -393,7 +390,7 @@ Planifier la rotation selon le coût/risque du service :
 | URLScan | Annuel | Dashboard URLScan |
 | OTX | Annuel | Settings → API Key |
 
-> Après chaque rotation : mettre à jour `.env`, relancer `uv run python -m breachradar sources --status` pour confirmer que tout fonctionne.
+> Après chaque rotation : mettre à jour `.env` ou l'interface d'administration WebUI, et vérifier le tableau de bord des connecteurs API.
 
 ---
 

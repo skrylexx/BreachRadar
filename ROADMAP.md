@@ -11,7 +11,7 @@
 Phase 1 — MVP    [██████████] 100%
 Phase 2          [██████████] 100%
 Phase 3          [██████████] 100%
-Phase 4 — WebUI  [████████░░]  80%
+Phase 4 — WebUI  [██████████] 100%
 Phase 5          [░░░░░░░░░░]   0%
 ```
 
@@ -81,12 +81,13 @@ Phase 5          [░░░░░░░░░░]   0%
 - [x] Docker full stack (un seul `docker compose up`)
 - [x] Export PDF
 
-### Phase 4 — WebUI Gouvernance SOC (80%)
+### Phase 4 — WebUI Gouvernance SOC (100%)
 - [x] Infrastructure Docker WebUI (`--profile ui`) — 4 services ajoutés
 - [x] Backend FastAPI : JWT, RBAC Admin/Viewer, TOTP MFA, models, routers
 - [x] Frontend Next.js : thème #09090b, sidebar fine, radar animation
 - [x] Composants Dashboard : RiskHeatmap, APIStatusCards, FindingsTable
 - [x] Documentation : README.md + ROADMAP.md + webui/.env.example
+- [x] Migration totale vers WebUI (Suppression du CLI)
 - [ ] Pages restantes : `/scans`, `/api-keys`, `/users`, `/changelog`
 - [ ] MFA verify endpoint complet
 - [ ] Intégration next-intl + tests E2E
@@ -102,6 +103,24 @@ Phase 5          [░░░░░░░░░░]   0%
 ---
 
 ## CHANGELOG
+
+### Itération 8 — 2026-05-04 (Gemini 3.1 Pro — Antigravity)
+
+**Objectif de l'itération** : Migration totale de l'architecture "CLI + WebUI" vers "WebUI 100%". Suppression du mode CLI Typer.
+
+#### Fichiers créés/modifiés
+- Restructuration totale de l'arborescence : `webui/backend` -> `backend`, `webui/frontend` -> `frontend`.
+- Déplacement de `breachradar/` au sein de `backend/app/engine/`, `clients/`, `report/`, `notifications/`, `resolver/`.
+- Suppression de `breachradar/main.py`.
+- Mise à jour majeure du `docker-compose.yml` (suppression profil `ui`, la WebUI démarre par défaut).
+- `backend/pyproject.toml` : fusion de `requirements.txt` et `pyproject.toml` via `uv`.
+- `.env.example` : unifié et centralisé.
+- `backend/app/main.py` : intégration d'APScheduler dans le cycle de vie FastAPI (`lifespan`).
+- Refonte totale du `README.md` et `QUICKSTART.md` pour refléter l'utilisation exclusive de l'interface Web.
+
+#### Décisions techniques
+- L'orchestrateur, le scheduler et la réception des webhooks GitHub (précédemment sur `aiohttp`) font désormais intégralement partie de l'application FastAPI centrale.
+- Simplification du déploiement : tout démarre avec un unique `docker compose up -d`.
 
 ### Itération 7 — 2026-05-04 (Claude Sonnet 4.6 — Antigravity)
 

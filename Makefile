@@ -1,66 +1,41 @@
-# Makefile — BreachRadar
+# Makefile — BreachRadar WebUI
 # Commandes standardisées pour développement, tests et déploiement
 # Usage : make <target>
 
-.PHONY: install test test-ransomlook test-integration lint type-check \
-        scan scan-ransom report clean sources-status \
-        ransomlook-up ransomlook-down ransomlook-check ransomlook-update ransomlook-logs \
-        docker-build docker-run help
+.PHONY: install install-backend install-frontend test test-security lint type-check \
+        clean ransomlook-up ransomlook-down ransomlook-check ransomlook-update \
+        docker-build docker-run docker-down help
 
 # ─── Variables ───────────────────────────────────────────────────────────────
 TARGET_DOMAIN ?= $(shell grep TARGET_DOMAIN .env 2>/dev/null | cut -d= -f2)
-PYTHON = uv run python
-PYTEST = uv run pytest
 
 # ─── Installation ────────────────────────────────────────────────────────────
-install:
-	uv sync
+install: install-backend install-frontend
 
-install-dev:
-	uv sync --extra dev
+install-backend:
+	cd backend && uv sync --extra dev
 
-# ─── Tests ───────────────────────────────────────────────────────────────────
+install-frontend:
+	cd frontend && npm install
+
+# ─── Tests (Backend) ─────────────────────────────────────────────────────────
 test:
-	$(PYTEST) tests/unit/ -v --cov=breachradar --cov-report=html --cov-report=term-missing
-
-test-ransomlook:
-	$(PYTEST) tests/test_clients/test_ransomlook.py tests/test_ransom_tracker.py -v
+	cd backend && uv run pytest tests/ -v
 
 test-security:
-	$(PYTEST) tests/test_security.py -v
+	cd backend && uv run pytest tests/test_security.py -v
 
-test-integration:
-	$(PYTEST) tests/integration/ --api-keys-required -v
-
-# ─── Qualité de code ─────────────────────────────────────────────────────────
+# ─── Qualité de code (Backend) ───────────────────────────────────────────────
 lint:
-	uv run ruff check breachradar/ tests/
-	uv run ruff format --check breachradar/ tests/
+	cd backend && uv run ruff check app/ tests/
+	cd backend && uv run ruff format --check app/ tests/
 
 lint-fix:
-	uv run ruff check --fix breachradar/ tests/
-	uv run ruff format breachradar/ tests/
+	cd backend && uv run ruff check --fix app/ tests/
+	cd backend && uv run ruff format app/ tests/
 
 type-check:
-	uv run mypy breachradar/
-
-# ─── Scans ───────────────────────────────────────────────────────────────────
-scan:
-	$(PYTHON) -m breachradar scan
-
-scan-ransom:
-	$(PYTHON) -m breachradar ransomlook --check
-
-scan-email:
-	@read -p "Email à vérifier : " email; \
-	$(PYTHON) -m breachradar check --email $$email
-
-# ─── Rapports ────────────────────────────────────────────────────────────────
-report:
-	$(PYTHON) -m breachradar scan --format markdown,json,html
-
-sources-status:
-	$(PYTHON) -m breachradar sources --status
+	cd backend && uv run mypy app/
 
 # ─── Nettoyage ───────────────────────────────────────────────────────────────
 clean:
@@ -94,61 +69,30 @@ ransomlook-update:
 	docker compose up -d ransomlook-app
 	@echo "✅ Image RansomLook mise à jour"
 
-ransomlook-logs:
-	docker compose logs -f ransomlook-app
-
-ransomlook-groups:
-	@echo "─── Groupes ransomware suivis ─────────────────────"
-	@curl -s http://localhost:8888/api/v1/groups | python3 -c \
-		"import sys, json; g=json.load(sys.stdin); print(f'{len(g)} groupes actifs')"
-
-ransomlook-backup:
-	@echo "─── Sauvegarde Redis RansomLook ───────────────────"
-	docker compose exec ransomlook-redis redis-cli BGSAVE
-	@echo "✅ Sauvegarde déclenchée"
-
-# ─── Docker — BreachRadar ────────────────────────────────────────────────────
+# ─── Docker — BreachRadar WebUI ──────────────────────────────────────────────
 docker-build:
-	docker build -t breachradar:latest .
+	docker compose build
 
 docker-run:
-	docker compose up --build
+	docker compose up -d
 
 docker-down:
 	docker compose down
 
 # ─── Aide ────────────────────────────────────────────────────────────────────
 help:
-	@echo "BreachRadar — Commandes disponibles"
+	@echo "BreachRadar WebUI — Commandes disponibles"
 	@echo ""
 	@echo "  Installation :"
-	@echo "    install           Installer les dépendances"
-	@echo "    install-dev       Installer les dépendances + outils de dev"
+	@echo "    install           Installer backend (uv) et frontend (npm)"
 	@echo ""
-	@echo "  Tests :"
-	@echo "    test              Tests unitaires (avec couverture)"
-	@echo "    test-ransomlook   Tests spécifiques RansomLook"
-	@echo "    test-security     Tests de non-régression sécurité"
-	@echo "    test-integration  Tests d'intégration (nécessite clés API)"
-	@echo ""
-	@echo "  Qualité :"
+	@echo "  Tests & Qualité :"
+	@echo "    test              Tests backend unitaires & intégration"
 	@echo "    lint              Vérification ruff"
-	@echo "    lint-fix          Correction automatique ruff"
 	@echo "    type-check        Vérification mypy"
 	@echo ""
-	@echo "  Scans :"
-	@echo "    scan              Scan complet"
-	@echo "    scan-ransom       Scan RansomLook uniquement (urgence)"
-	@echo "    report            Rapport complet (JSON + MD + HTML)"
-	@echo ""
-	@echo "  RansomLook :"
-	@echo "    ransomlook-up     Démarrer Docker RansomLook"
-	@echo "    ransomlook-down   Arrêter Docker RansomLook"
-	@echo "    ransomlook-check  Vérifier état + rechercher le domaine"
-	@echo "    ransomlook-update Mettre à jour l'image"
-	@echo "    ransomlook-logs   Afficher les logs en temps réel"
-	@echo ""
 	@echo "  Docker :"
-	@echo "    docker-build      Builder l'image BreachRadar"
+	@echo "    docker-build      Builder les images WebUI"
 	@echo "    docker-run        Démarrer la stack complète"
-	@echo "    clean             Nettoyer caches et rapports"
+	@echo "    docker-down       Arrêter la stack complète"
+	@echo "    clean             Nettoyer caches"

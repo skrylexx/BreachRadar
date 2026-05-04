@@ -67,38 +67,17 @@ services:
       retries: 5
       start_period: 60s   # Laisser le temps au premier scraping
 
-  # ─── BreachRadar — Application principale (CLI) ──────────────────────────────
-  breachradar:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: breachradar
-    restart: unless-stopped
-    depends_on:
-      ransomlook-app:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      # Communication inter-container (override la valeur locale du .env)
-      - RANSOMLOOK_URL=http://ransomlook-app:8888
-    ports:
-      - "127.0.0.1:8080:8080" # Port du webhook GitHub (localhost uniquement)
-    volumes:
-      - ./reports:/app/reports
-    networks:
-      - ransomlook_net
+
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # ─── WebUI Stack (profil "ui") ──────────────────────────────────────────────
-  # Démarrer avec : docker compose --profile ui up -d
+  # ─── BreachRadar WebUI ──────────────────────────────────────────────────────
+  # Démarrer la stack complète avec : docker compose up -d
   # ═══════════════════════════════════════════════════════════════════════════
 
   # ─── WebUI — PostgreSQL 16 ──────────────────────────────────────────────────
   breachradar-postgres:
     image: postgres:16-alpine
     container_name: breachradar-postgres
-    profiles: ["ui"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${UI_DB_NAME:-breachradar_ui}
@@ -118,7 +97,6 @@ services:
   breachradar-ui-redis:
     image: redis:7-alpine
     container_name: breachradar-ui-redis
-    profiles: ["ui"]
     restart: unless-stopped
     command: redis-server --requirepass ${UI_REDIS_PASSWORD:?UI_REDIS_PASSWORD required}
     volumes:
@@ -134,10 +112,9 @@ services:
   # ─── WebUI — Backend FastAPI ─────────────────────────────────────────────────
   breachradar-api:
     build:
-      context: ./webui/backend
+      context: ./backend
       dockerfile: Dockerfile
     container_name: breachradar-api
-    profiles: ["ui"]
     restart: unless-stopped
     depends_on:
       breachradar-postgres:
@@ -163,11 +140,13 @@ services:
       - CORS_ORIGINS=http://localhost:3000
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-production}
+      # Communication avec RansomLook
+      - RANSOMLOOK_URL=http://ransomlook-app:8888
     networks:
       - ui_net
-      - ransomlook_net  # Pour accéder aux rapports BreachRadar existants
+      - ransomlook_net  # Pour accéder à RansomLook
     volumes:
-      - ./reports:/app/reports:ro  # Lecture seule des rapports CLI
+      - ./reports:/app/reports
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 15s
@@ -178,12 +157,11 @@ services:
   # ─── WebUI — Frontend Next.js ────────────────────────────────────────────────
   breachradar-ui:
     build:
-      context: ./webui/frontend
+      context: ./frontend
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: breachradar-ui
-    profiles: ["ui"]
     restart: unless-stopped
     depends_on:
       breachradar-api:
