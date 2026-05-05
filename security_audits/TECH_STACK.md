@@ -7,25 +7,25 @@ Dépôt : https://github.com/skrylexx/BreachRadar
 1. ARCHITECTURE GÉNÉRALE
 ────────────────────────────────────────────
 BreachRadar est une plateforme de veille cyber (Dark Web, ransomware, fuites de
-données) composée de deux couches distinctes :
-
-  A) Moteur BreachRadar (CLI)  — scan de domaine + agrégation de sources OSINT
-  B) WebUI                     — interface de gouvernance SOC
+données) composée d'une couche principale WebUI (FastAPI + Next.js) qui
+orchestrent le moteur BreachRadar.
 
 L'ensemble est orchestré via Docker Compose avec des réseaux isolés :
   - ransomlook_net  → réseau interne pour RansomLook + Tor + Redis
   - ui_net          → réseau interne pour la stack WebUI (FastAPI + PostgreSQL + Redis + Next.js)
 
 Services Docker :
-  - ransomlook-redis    : redis:7-alpine         (réseau ransomlook_net)
-  - ransomlook-tor      : dperson/torproxy:latest (réseau ransomlook_net)
-  - ransomlook-app      : travishunting/ransomlook:latest — port 127.0.0.1:8888 uniquement
-  - breachradar-postgres: postgres:16-alpine      (réseau ui_net)
-  - breachradar-ui-redis: redis:7-alpine + auth   (réseau ui_net)
-  - breachradar-api     : build local backend/    — port 127.0.0.1:8000 uniquement
-  - breachradar-ui      : build local frontend/   — port 127.0.0.1:3000 uniquement
+  - ransomlook-redis    : redis:7-alpine           (réseau ransomlook_net)
+  - ransomlook-tor      : dperson/torproxy:latest  (réseau ransomlook_net)
+  - ransomlook-app      : travishunting/ransomlook:latest — port 127.0.0.1:${RANSOMLOOK_PORT:-8888} uniquement
+  - breachradar-postgres: postgres:16-alpine       (réseau ui_net)
+  - breachradar-ui-redis: redis:7-alpine + auth    (réseau ui_net)
+  - breachradar-api     : build local backend/     — port 127.0.0.1:${API_PORT:-8000} uniquement
+  - breachradar-ui      : build local frontend/    — port 127.0.0.1:${UI_PORT:-3000} uniquement
 
-Tous les ports sont liés à 127.0.0.1 (jamais 0.0.0.0).
+Tous les ports sont liés à 127.0.0.1 (jamais 0.0.0.0) par défaut. Les ports et
+hosts peuvent être surchargés via la section NETWORK de .env.example
+(UI_HOST/UI_PORT/API_HOST/API_PORT/RANSOMLOOK_HOST/RANSOMLOOK_PORT).
 
 ────────────────────────────────────────────
 2. BACKEND — FastAPI
@@ -46,7 +46,7 @@ Dépendances principales :
   - Alembic 1.14                             → migrations (NON lancé auto au démarrage)
   - redis[hiredis] 5.2 + slowapi 0.1.9      → rate limiting (200 req/min par IP)
   - python-jose[cryptography] 3.3.0          → JWT (HS256)
-  - passlib[bcrypt] 1.7.4                    → hash mots de passe
+  - passlib[bcrypt] 1.7.4 + bcrypt 4.0.1     → hash mots de passe (bcrypt, limite 72 octets)
   - pyotp 2.9.0 + qrcode[pil] 8.0           → TOTP/MFA (RFC 6238, fenêtre ±1)
   - pydantic 2.10.3 + pydantic-settings 2.6  → validation des entrées
   - email-validator 2.2.0
@@ -103,11 +103,12 @@ Gestion des erreurs :
 
 Auth & Autorisation :
   - JWT access token : 15 min (HS256), refresh token : 7 jours
-  - RBAC : au moins 2 rôles (admin / viewer) avec politique de mot de passe différenciée
+  - RBAC : 2 rôles (admin / viewer) avec politique de mot de passe différenciée
   - MFA TOTP optionnel (pyotp, RFC 6238)
   - Politique de rotation des mots de passe (exemption si len >= 24)
   - admin initial créé au premier démarrage depuis variables d'env
-    (INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_PASSWORD)
+    (INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_PASSWORD, avec fallback sur UI_ADMIN_*)
+  - Validation explicite : INITIAL_ADMIN_PASSWORD >= 16 caractères et <= 72 octets
 
 Migrations DB :
   - Alembic présent MAIS Base.metadata.create_all() est utilisé au startup
@@ -182,6 +183,7 @@ Frontend Dockerfile :
 Docker Compose :
   - Secrets injectés via variables d'environnement (pas de Docker Secrets natifs)
   - UI_DB_PASSWORD, UI_REDIS_PASSWORD, UI_JWT_SECRET : requis avec :?error
+  - Ports liés à 127.0.0.1 par défaut (UI_HOST/UI_PORT/API_HOST/API_PORT/RANSOMLOOK_HOST/RANSOMLOOK_PORT)
   - ransomlook-tor : image dperson/torproxy:latest (tag latest, pas de digest fixé)
   - ransomlook-app : travishunting/ransomlook:latest (tag latest, pas de digest fixé)
   - Volume ./reports monté en bind mount dans breachradar-api
@@ -201,7 +203,8 @@ Secrets gérés :
   - UI_DB_PASSWORD     → PostgreSQL
   - UI_REDIS_PASSWORD  → Redis (passé aussi dans la commande redis-server ⚠)
   - UI_JWT_SECRET      → signature JWT HS256
-  - UI_ADMIN_EMAIL / UI_ADMIN_PASSWORD → admin initial
+  - UI_ADMIN_EMAIL / UI_ADMIN_PASSWORD → admin initial WebUI
+  - INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD → admin initial backend
   - SMTP_PASSWORD      → serveur mail
   - HIBP_API_KEY, GITHUB_TOKEN, GITLAB_TOKEN, URLSCAN_API_KEY, OTX_API_KEY
   - LEAKCHECK_API_KEY, DEHASHED_EMAIL/API_KEY, INTELX_API_KEY,
@@ -223,7 +226,7 @@ Sources externes interrogées par le moteur :
   - URLScan.io
   - AlienVault OTX
   - LeakCheck, Dehashed, IntelX, Shodan, Hunter.io
-  - RansomLook (via proxy Tor interne, portails .onion)
+  - RansomLook (via proxy Tor interne ou API SaaS)
   - Telegram (via Telethon)
   - Flux RSS/Atom (feedparser)
 
@@ -258,7 +261,7 @@ Sources externes interrogées par le moteur :
   frontend/Dockerfile                — build frontend
   frontend/next.config.ts            — headers sécurité, proxy, CSP
   docker-compose.yml                 — orchestration, réseaux, secrets
-  .env.example                       — modèle de configuration
+  .env.example                       — modèle de configuration (section NETWORK)
 
 =============================================================================
 FIN DU CONTEXTE TECHNIQUE
@@ -267,6 +270,6 @@ FIN DU CONTEXTE TECHNIQUE
 =============================================================================
 MÉTADONNÉES D'AUDIT
 ─────────────────────────────────────────────
-Dernier commit audité : 08508ac
-Date de mise à jour   : 2026-05-04
+Dernier commit audité : 6d43102
+Date de mise à jour   : 2026-05-05
 =============================================================================
