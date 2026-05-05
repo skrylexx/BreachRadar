@@ -5,11 +5,14 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   // ─── Variables d'environnement ─────────────────────────────────────────────
-  // Force Next.js à exposer ces variables au bundle client, même si le .env
-  // est lu depuis la racine du repo plutôt que depuis frontend/.
-  // Cela résout le problème de NEXT_PUBLIC_TARGET_DOMAIN non trouvé quand
-  // Next.js est lancé depuis D:\BreachRadar\frontend avec le .env parent.
+  // Next.js lit UNIQUEMENT le .env du répertoire de démarrage (frontend/).
+  // Pour que TARGET_DOMAIN (défini dans le .env racine du repo) soit accessible
+  // au Server Component layout.tsx, on le propage ici explicitement depuis
+  // le process.env du process Node (Docker les injecte, dotenv-cli les précharge).
   env: {
+    // Variable sans préfixe — accessible UNIQUEMENT côté serveur
+    TARGET_DOMAIN: process.env.TARGET_DOMAIN ?? "",
+    // Variable NEXT_PUBLIC — accessible client ET serveur (build-time)
     NEXT_PUBLIC_TARGET_DOMAIN: process.env.NEXT_PUBLIC_TARGET_DOMAIN ?? "",
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
   },

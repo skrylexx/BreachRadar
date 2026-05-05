@@ -7,8 +7,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Lecture côté SERVEUR — process.env a toujours accès aux variables
-  // du process Node, quelle que soit la position du .env
+  /**
+   * Lecture côté SERVEUR (Server Component) — process.env a toujours
+   * accès aux variables injectées par Docker / dotenv au démarrage.
+   *
+   * Priorité :
+   *   1. TARGET_DOMAIN              (variable sans préfixe, serveur uniquement)
+   *   2. NEXT_PUBLIC_TARGET_DOMAIN  (fallback si définie avec préfixe)
+   *
+   * La valeur est passée en prop à DomainBanner (Client Component)
+   * — on évite ainsi tout appel à process.env côté client.
+   */
   const domain =
     process.env.TARGET_DOMAIN ||
     process.env.NEXT_PUBLIC_TARGET_DOMAIN ||
