@@ -6,7 +6,7 @@ Fusionne la config de la WebUI et l'ancienne config du CLI.
 """
 
 from functools import lru_cache
-from typing import List
+from typing import List, Literal
 
 from pydantic import EmailStr, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -82,9 +82,21 @@ class Settings(BaseSettings):
     telegram_api_hash: str = Field(default="", description="Telegram API hash")
 
     # ─── RansomLook ──────────────────────────────────────────────────────────
-    ransomlook_url: str = Field(
-        default="http://localhost:8888",
+    ransomlook_mode: Literal["local", "saas"] = Field(
+        default="local",
+        description="Mode d'utilisation de RansomLook : instance Docker locale ou API SaaS",
+    )
+    ransomlook_local_url: str = Field(
+        default="http://ransomlook-app:8888",
         description="URL de l'instance RansomLook Docker locale",
+    )
+    ransomlook_saas_api_url: str = Field(
+        default="https://www.ransomlook.io/api",
+        description="URL de l'API SaaS RansomLook (hébergée)",
+    )
+    ransomlook_saas_api_key: str = Field(
+        default="",
+        description="Clé d'API pour l'instance SaaS RansomLook (header Authorization)",
     )
     ransomlook_search_terms: list[str] = Field(
         default_factory=list,

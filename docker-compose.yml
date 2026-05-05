@@ -141,10 +141,16 @@ services:
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-production}
       # Communication avec RansomLook
-      - RANSOMLOOK_URL=http://ransomlook-app:8888
+      - RANSOMLOOK_MODE=${RANSOMLOOK_MODE:-local}
+      - RANSOMLOOK_LOCAL_URL=${RANSOMLOOK_LOCAL_URL:-http://ransomlook-app:8888}
+      - RANSOMLOOK_SAAS_API_URL=${RANSOMLOOK_SAAS_API_URL:-https://www.ransomlook.io/api}
+      - RANSOMLOOK_SAAS_API_KEY=${RANSOMLOOK_SAAS_API_KEY:-}
+      - RANSOMLOOK_SEARCH_TERMS=${RANSOMLOOK_SEARCH_TERMS:-}
+      - RANSOMLOOK_ALERT_EMAIL=${RANSOMLOOK_ALERT_EMAIL:-}
+      - RANSOMLOOK_ALERT_WEBHOOK=${RANSOMLOOK_ALERT_WEBHOOK:-}
     networks:
       - ui_net
-      - ransomlook_net  # Pour accéder à RansomLook
+      - ransomlook_net  # Pour accéder à RansomLook local si mode=local
     volumes:
       - ./reports:/app/reports
     healthcheck:
