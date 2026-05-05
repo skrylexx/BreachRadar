@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { DomainBanner } from "@/components/layout/DomainBanner";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 /**
  * Layout du dashboard authentifié.
- * Structure : Sidebar fixe fine (icônes) + Header + zone de contenu principale.
+ * Structure : Sidebar fixe fine (icônes) + Header + DomainBanner + zone de contenu principale.
  */
 export default function DashboardLayout({
   children,
@@ -23,6 +24,9 @@ export default function DashboardLayout({
       {/* ─── Zone principale ────────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header />
+
+        {/* Bannière domaine cible */}
+        <DomainBanner />
 
         {/* Contenu scrollable */}
         <main

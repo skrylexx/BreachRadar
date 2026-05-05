@@ -8,13 +8,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard,
   ScanSearch,
   KeyRound,
   Users,
   ScrollText,
-  Shield,
 } from "lucide-react";
 
 // ─── Navigation items ─────────────────────────────────────────────────────────
@@ -67,9 +67,13 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center justify-center mb-6">
         <div className="relative group" title="BreachRadar">
-          <Shield
-            className="w-7 h-7 text-radar animate-glow-pulse"
-            strokeWidth={1.5}
+          <Image
+            src="/logo_nobg.png"
+            alt="BreachRadar"
+            width={32}
+            height={32}
+            className="w-8 h-8 object-contain"
+            priority
           />
           {/* Tooltip */}
           <span className="absolute left-12 top-1/2 -translate-y-1/2
