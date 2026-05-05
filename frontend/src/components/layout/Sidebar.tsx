@@ -4,6 +4,9 @@
  * Sidebar — BreachRadar WebUI
  * Design : fine barre latérale gauche, icônes uniquement, tooltip au survol.
  * Largeur : 56px (w-14) — maximise l'espace de données.
+ *
+ * Logo servi depuis frontend/public/images/logo_nobg.png
+ * (dossier public/ = racine statique Next.js, src="/images/logo_nobg.png")
  */
 
 import Link from "next/link";
@@ -64,11 +67,11 @@ export function Sidebar() {
                  py-4 z-20"
       aria-label="Main navigation"
     >
-      {/* Logo */}
+      {/* Logo — servi depuis frontend/public/images/logo_nobg.png */}
       <div className="flex items-center justify-center mb-6">
         <div className="relative group" title="BreachRadar">
           <Image
-            src="/logo_nobg.png"
+            src="/images/logo_nobg.png"
             alt="BreachRadar"
             width={32}
             height={32}
@@ -134,7 +137,7 @@ export function Sidebar() {
       {/* Version en bas */}
       <div className="flex items-center justify-center mt-auto">
         <span
-          className="text-[10px] font-data text-muted-foreground/40 rotate-0"
+          className="text-[10px] font-data text-muted-foreground/40"
           title="BreachRadar v1.0"
         >
           v1.0
