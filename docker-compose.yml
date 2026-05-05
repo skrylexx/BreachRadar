@@ -137,7 +137,7 @@ services:
       - INITIAL_ADMIN_EMAIL=${UI_ADMIN_EMAIL:?UI_ADMIN_EMAIL required}
       - INITIAL_ADMIN_PASSWORD=${UI_ADMIN_PASSWORD:?UI_ADMIN_PASSWORD required}
       # CORS — le frontend Next.js
-      - CORS_ORIGINS=http://localhost:3000
+      - CORS_ORIGINS=["http://localhost:3000"]
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-production}
       # Communication avec RansomLook
