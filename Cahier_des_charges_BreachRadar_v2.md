@@ -71,25 +71,45 @@ Stack actuelle à formaliser :
     - soit instance auto-hébergée en Docker sur réseau interne, sans API key,
     - soit utilisation de l’API SaaS `https://www.ransomlook.io/api` (clé d’API dans le header `Authorization`).
 
-- **Authentification & sécurité Web**
-  - Authentification : **JWT via cookies HttpOnly**.
-  - MFA : TOTP (RFC 6238), compatible Google Authenticator, Authy, Microsoft Authenticator.
-  - CSRF protection sur les formulaires sensibles.
-  - Rate limiting sur login, relance de scan, export de rapport.
-  - Audit trail des actions admin (création user, ajout/retrait de clé API, modification config, relance scan).
+### 4.2 Modes RansomLook (local / SaaS)
 
-### 4.2 Architecture Docker
+Deux modes d’intégration RansomLook sont supportés par la plateforme :
+
+- **Mode local (par défaut)**
+  - La stack Docker RansomLook (`ransomlook-redis`, `ransomlook-tor`, `ransomlook-app`) est déployée avec BreachRadar.
+  - L’API est exposée en interne uniquement (`http://ransomlook-app:8888` sur le réseau Docker, et `127.0.0.1:8888` côté host).
+  - Aucun header d’authentification n’est requis.
+  - Variables principales :
+    - `RANSOMLOOK_MODE=local`
+    - `RANSOMLOOK_LOCAL_URL=http://ransomlook-app:8888`
+
+- **Mode SaaS**
+  - Aucun conteneur RansomLook n’est lancé.
+  - L’API hébergée est appelée via `https://www.ransomlook.io/api`.
+  - Une clé d’API est fournie dans le compte utilisateur RansomLook et injectée dans l’environnement.
+  - Le client HTTP ajoute automatiquement le header `Authorization: <RANSOMLOOK_SAAS_API_KEY>`.
+  - Variables principales :
+    - `RANSOMLOOK_MODE=saas`
+    - `RANSOMLOOK_SAAS_API_URL=https://www.ransomlook.io/api`
+    - `RANSOMLOOK_SAAS_API_KEY=<clé fournie par RansomLook>`
+
+Dans les deux cas, les termes de recherche utilisés pour interroger RansomLook sont construits à partir de :
+- `TARGET_DOMAIN`,
+- une éventuelle racine de domaine (ex. `mondomaine` pour `mondomaine.fr`),
+- `RANSOMLOOK_SEARCH_TERMS` (liste CSV de noms commerciaux, filiales, etc.).
+
+### 4.3 Architecture Docker
 
 - `frontend` : Next.js (port 3000).
 - `backend` : FastAPI + moteur asynchrone (port interne, ex. 8000).
 - `db` : Postgres.
 - `redis` : cache, ratelimiting.
-- `ransomlook-*` : stack RansomLook (redis/tor/app) si auto-hébergé, reliée au backend par un réseau Docker interne.
+- `ransomlook-*` : stack RansomLook (redis/tor/app) si **mode local**.
 - `mail` : SMTP externe ou service de mail selon configuration.
 
 Les conteneurs sont orchestrés par un **docker-compose unique** qui expose uniquement :
 - le frontend sur `http://localhost:3000`,
-- éventuellement l’API backend en interne pour la CLI.
+- l’API backend sur `127.0.0.1:8000`.
 
 RansomLook ne doit **jamais** être exposé en 0.0.0.0 ; uniquement sur le réseau interne Docker ou sur `127.0.0.1`.
 
@@ -203,7 +223,7 @@ Sections :
 
 - **Clés API & intégrations** :
   - formulaire pour configurer : TARGET_DOMAIN, HIBP_API_KEY, GITHUB_TOKEN, URLSCAN_API_KEY, OTX_API_KEY, LEAKCHECK_API_KEY, DEHASHED_API_KEY, etc.,
-  - paramètres RansomLook (URL locale vs SaaS + API key si SaaS),
+  - paramètres RansomLook (mode local vs SaaS + API key si SaaS),
   - indicateur visuel si la clé est présente (bool), sans jamais la montrer en clair,
   - bouton “Tester cette source” (ping de santé).
 
