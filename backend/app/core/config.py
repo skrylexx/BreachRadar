@@ -7,6 +7,7 @@ Fusionne la config de la WebUI et l'ancienne config du CLI.
 
 from functools import lru_cache
 from typing import List, Literal
+import os
 
 from pydantic import EmailStr, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -155,11 +156,35 @@ class Settings(BaseSettings):
             raise ValueError("JWT_SECRET_KEY must be at least 32 characters")
         return v
 
+    @field_validator("initial_admin_email", mode="before")
+    @classmethod
+    def fallback_initial_admin_email(cls, v: str | None) -> str:
+        """Permet d'utiliser UI_ADMIN_EMAIL si INITIAL_ADMIN_EMAIL n'est pas défini."""
+        if v:
+            return v
+        env_val = os.getenv("UI_ADMIN_EMAIL")
+        if env_val:
+            return env_val
+        raise ValueError("INITIAL_ADMIN_EMAIL must be set (or UI_ADMIN_EMAIL)")
+
+    @field_validator("initial_admin_password", mode="before")
+    @classmethod
+    def fallback_initial_admin_password(cls, v: str | None) -> str:
+        """Permet d'utiliser UI_ADMIN_PASSWORD si INITIAL_ADMIN_PASSWORD n'est pas défini."""
+        if v:
+            return v
+        env_val = os.getenv("UI_ADMIN_PASSWORD")
+        if env_val:
+            return env_val
+        raise ValueError("INITIAL_ADMIN_PASSWORD must be set (or UI_ADMIN_PASSWORD)")
+
     @field_validator("initial_admin_password")
     @classmethod
     def validate_admin_password(cls, v: str) -> str:
         if len(v) < 16:
             raise ValueError("INITIAL_ADMIN_PASSWORD must be at least 16 characters")
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("INITIAL_ADMIN_PASSWORD must not exceed 72 bytes (bcrypt limit)")
         return v
 
     @field_validator("target_domain")
