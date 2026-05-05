@@ -24,6 +24,7 @@ WORKDIR /app
 
 # Copier et installer les dépendances Python
 COPY pyproject.toml ./
+COPY README.md ./
 RUN uv pip install --system .
 
 # Copier le code source
