@@ -7,13 +7,18 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+# Si un package-lock.json est présent, on utilise npm ci (reproductible)
+# Sinon, on fallback sur npm install pour éviter d'échouer au build
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # ─── Étape 2 : Build de l'application ────────────────────────────────────────
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# S'assurer que le dossier public existe (même vide) pour la copie dans le runner
+RUN mkdir -p public
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL

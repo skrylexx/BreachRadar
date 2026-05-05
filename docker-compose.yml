@@ -49,7 +49,7 @@ services:
         condition: service_healthy
     ports:
       # Exposé UNIQUEMENT en localhost — jamais sur 0.0.0.0
-      - "127.0.0.1:8888:8888"
+      - "${RANSOMLOOK_HOST:-127.0.0.1}:${RANSOMLOOK_PORT:-8888}:8888"
     networks:
       - ransomlook_net
     environment:
@@ -122,7 +122,7 @@ services:
       breachradar-ui-redis:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8000:8000"  # API interne uniquement
+      - "${API_HOST:-127.0.0.1}:${API_PORT:-8000}:8000"  # API interne uniquement
     environment:
       # Base de données
       - DATABASE_URL=postgresql+asyncpg://${UI_DB_USER:-br_ui}:${UI_DB_PASSWORD}@breachradar-postgres:5432/${UI_DB_NAME:-breachradar_ui}
@@ -137,14 +137,20 @@ services:
       - INITIAL_ADMIN_EMAIL=${UI_ADMIN_EMAIL:?UI_ADMIN_EMAIL required}
       - INITIAL_ADMIN_PASSWORD=${UI_ADMIN_PASSWORD:?UI_ADMIN_PASSWORD required}
       # CORS — le frontend Next.js
-      - CORS_ORIGINS=http://localhost:3000
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000"]}
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-production}
       # Communication avec RansomLook
-      - RANSOMLOOK_URL=http://ransomlook-app:8888
+      - RANSOMLOOK_MODE=${RANSOMLOOK_MODE:-local}
+      - RANSOMLOOK_LOCAL_URL=${RANSOMLOOK_LOCAL_URL:-http://ransomlook-app:8888}
+      - RANSOMLOOK_SAAS_API_URL=${RANSOMLOOK_SAAS_API_URL:-https://www.ransomlook.io/api}
+      - RANSOMLOOK_SAAS_API_KEY=${RANSOMLOOK_SAAS_API_KEY:-}
+      - RANSOMLOOK_SEARCH_TERMS=${RANSOMLOOK_SEARCH_TERMS:-[]}
+      - RANSOMLOOK_ALERT_EMAIL=${RANSOMLOOK_ALERT_EMAIL:-}
+      - RANSOMLOOK_ALERT_WEBHOOK=${RANSOMLOOK_ALERT_WEBHOOK:-}
     networks:
       - ui_net
-      - ransomlook_net  # Pour accéder à RansomLook
+      - ransomlook_net  # Pour accéder à RansomLook local si mode=local
     volumes:
       - ./reports:/app/reports
     healthcheck:
@@ -167,7 +173,7 @@ services:
       breachradar-api:
         condition: service_healthy
     ports:
-      - "127.0.0.1:3000:3000"
+      - "${UI_HOST:-127.0.0.1}:${UI_PORT:-3000}:3000"
     networks:
       - ui_net
     environment:

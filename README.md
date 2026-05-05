@@ -20,7 +20,7 @@ BreachRadar détecte si des données appartenant à un domaine (`@mondomaine.fr`
 | Dimension | Description | Sources |
 |---|---|---|
 | **Backward-looking** | Fuites passées dans des breaches connues | HIBP, LeakCheck, Dehashed, IntelX |
-| **Forward-looking** | Early Warning ransomware — domaine listé avant publication | **RansomLook** (gratuit, Docker) |
+| **Forward-looking** | Early Warning ransomware — domaine listé avant publication | **RansomLook** (gratuit, Docker ou SaaS) |
 
 > ⚠️ **RansomLook** est la seule source capable de détecter une compromission massive *en cours*, avant que les données ne soient publiées. Fenêtre de réaction typique : 5 à 30 jours.
 
@@ -77,7 +77,14 @@ docker compose up -d
 # Ouvrez votre navigateur sur http://localhost:3000
 ```
 
-> **Note sur RansomLook** : Au premier démarrage, RansomLook (inclus dans la stack) a besoin de 10 à 30 minutes pour accomplir son scraping initial via Tor. Vous pouvez consulter les logs avec `docker compose logs -f ransomlook-app`.
+> **Note sur RansomLook** :
+> - Par défaut, la stack démarre en **mode local** : RansomLook est déployé en Docker et accessible uniquement en interne (`http://ransomlook-app:8888`).
+> - Pour utiliser l’API hébergée RansomLook (**mode SaaS**), définissez dans `.env` :
+>   - `RANSOMLOOK_MODE=saas`
+>   - `RANSOMLOOK_SAAS_API_URL=https://www.ransomlook.io/api`
+>   - `RANSOMLOOK_SAAS_API_KEY=<clé obtenue depuis votre compte RansomLook>`
+>   puis relancez `docker compose up -d`.
+> - L’API Backend ajoute automatiquement le header `Authorization` lorsque `RANSOMLOOK_MODE=saas`.
 
 ---
 
@@ -94,6 +101,20 @@ Voir [`.env.example`](.env.example) pour la liste complète.
 | `OTX_API_KEY` | otx.alienvault.com | Gratuit | **Indispensable** |
 | `LEAKCHECK_API_KEY` | leakcheck.io | ~10 USD/mois | Très recommandé |
 | `DEHASHED_API_KEY` | dehashed.com | ~5 USD/mois | Très recommandé |
+
+Pour RansomLook :
+
+- **Mode local** (par défaut) :
+  - `RANSOMLOOK_MODE=local`
+  - `RANSOMLOOK_LOCAL_URL=http://ransomlook-app:8888`
+- **Mode SaaS** :
+  - `RANSOMLOOK_MODE=saas`
+  - `RANSOMLOOK_SAAS_API_URL=https://www.ransomlook.io/api`
+  - `RANSOMLOOK_SAAS_API_KEY=<clé API obtenue dans votre compte RansomLook>`
+
+Les termes de recherche peuvent être enrichis via :
+
+- `RANSOMLOOK_SEARCH_TERMS` : liste de noms commerciaux / filiales, séparés par des virgules.
 
 ---
 

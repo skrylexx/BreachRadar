@@ -1,13 +1,14 @@
 """
 breachradar/clients/ransomlook.py
 
-Client HTTP pour l'instance Docker RansomLook locale.
+Client HTTP pour l'instance RansomLook (locale ou SaaS).
 
-RansomLook agrège les publications des portails d'extorsion ransomware
-(sites "Name & Shame") et expose une API REST locale.
+- En mode "local", on interroge l'instance Docker (HTTP interne, pas d'API key)
+- En mode "saas", on interroge https://www.ransomlook.io/api avec un header
+  Authorization: <API_KEY>
 
 Particularités de ce client :
-- Pas de rate limit strict (requêtes vers localhost)
+- Pas de rate limit strict (requêtes locales ou SaaS raisonnables)
 - Recherche multi-termes avec déduplication
 - Alerte CRITIQUE immédiate à la détection (sans attendre la fin du scan)
 - Les données sont PUBLIQUES (publiées par les groupes ransomware)
@@ -29,13 +30,14 @@ import yaml
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.clients.base import BaseLeakClient
+from app.core.config import settings
 from app.models.finding import LeakFinding
 from app.models.ransom import RansomFinding, RansomStats, RansomStatus
 
 logger = logging.getLogger(__name__)
 
 # Chargement du mapping des noms de groupes depuis group_names.yaml
-_GROUP_NAMES_PATH = Path(__file__).parent.parent / "config" / "group_names.yaml"
+_GROUP_NAMES_PATH = Path(__file__).parent.parent / "core" / "group_names.yaml"
 
 
 def _load_group_names() -> dict[str, str]:
@@ -53,8 +55,7 @@ GROUP_DISPLAY_NAMES: dict[str, str] = _load_group_names()
 
 
 class RansomLookClient(BaseLeakClient):
-    """
-    Client pour l'instance Docker RansomLook.
+    """Client pour l'API RansomLook (locale ou SaaS).
 
     Ce client est DISTINCT des autres BaseLeakClient car :
     1. Il retourne des RansomFinding (pas des LeakFinding)
@@ -67,45 +68,50 @@ class RansomLookClient(BaseLeakClient):
     """
 
     name = "ransomlook"
-    rate_limit_delay = 0.5  # Délai minimal entre requêtes locales
+    rate_limit_delay = 0.5  # Délai minimal entre requêtes
 
-    def __init__(self, base_url: str, search_terms: list[str] | None = None) -> None:
-        """
-        Args:
-            base_url: URL de l'instance RansomLook (ex: http://localhost:8888)
-            search_terms: Termes de recherche supplémentaires (noms commerciaux, etc.)
-        """
+    def __init__(self) -> None:
         super().__init__()
-        self.base_url = base_url.rstrip("/")
-        self.search_terms = search_terms or []
-        self.timeout = httpx.Timeout(30.0)
+
+        self.mode = settings.ransomlook_mode
+
+        if self.mode == "local":
+            self.base_url = settings.ransomlook_local_url.rstrip("/")
+            self.headers: dict[str, str] = {}
+        else:  # saas
+            self.base_url = settings.ransomlook_saas_api_url.rstrip("/")
+            if not settings.ransomlook_saas_api_key:
+                raise RuntimeError(
+                    "RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas"
+                )
+            self.headers = {
+                "Authorization": settings.ransomlook_saas_api_key,
+            }
+
+        self.search_terms = settings.all_ransomlook_terms
+        self.timeout = httpx.Timeout(settings.request_timeout_seconds)
+
+        logger.info(
+            "RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url
+        )
 
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
     )
     async def _get(self, path: str, params: dict | None = None) -> dict | list:
-        """
-        Requête GET vers l'API RansomLook avec retry automatique.
-
-        Raises:
-            httpx.HTTPError: En cas d'erreur HTTP non récupérable
-        """
+        """Requête GET vers l'API RansomLook avec retry automatique."""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(
                 f"{self.base_url}{path}",
                 params=params,
+                headers=self.headers,
             )
             response.raise_for_status()
             return response.json()
 
     async def check_health(self) -> RansomStats:
-        """
-        Vérifie que l'instance RansomLook est opérationnelle.
-
-        Returns:
-            RansomStats avec is_healthy=False si l'instance est inaccessible.
-        """
+        """Vérifie que l'instance RansomLook est opérationnelle."""
         try:
             data = await self._get("/api/v1/stats")
             return RansomStats(
@@ -116,7 +122,12 @@ class RansomLookClient(BaseLeakClient):
                 is_healthy=True,
             )
         except Exception as e:
-            logger.error(f"Instance RansomLook non joignable ({self.base_url}) : {e}")
+            logger.error(
+                "Instance RansomLook non joignable (%s, mode=%s) : %s",
+                self.base_url,
+                self.mode,
+                e,
+            )
             return RansomStats(
                 groups_tracked=0,
                 total_posts=0,
@@ -126,23 +137,15 @@ class RansomLookClient(BaseLeakClient):
             )
 
     async def check_domain(self, domain: str) -> list[RansomFinding]:
-        """
-        Recherche le domaine ET tous les termes configurés dans les settings.
-        Déduplique les résultats par (group_name, victim_name, published_at).
+        """Recherche le domaine ET tous les termes configurés dans les settings.
 
+        Déduplique les résultats par (group_name, victim_name, published_at).
         ⚠️  Si des résultats sont trouvés, une alerte CRITIQUE doit être
         déclenchée par le RansomwareTracker IMMÉDIATEMENT.
-
-        Args:
-            domain: Domaine cible (ex: "mondomaine.fr")
-
-        Returns:
-            Liste de RansomFinding (vide = domaine non compromis ✅)
         """
         findings: list[RansomFinding] = []
         seen: set[tuple[str, str, str | None]] = set()
 
-        # Rechercher sur le domaine + tous les termes configurés
         all_terms = list({domain, *self.search_terms})
 
         for term in all_terms:
@@ -152,12 +155,11 @@ class RansomLookClient(BaseLeakClient):
 
                 if not isinstance(results, list):
                     logger.warning(
-                        f"RansomLook: réponse inattendue pour '{term}' : {type(results)}"
+                        "RansomLook: réponse inattendue pour '%s' : %s", term, type(results)
                     )
                     continue
 
                 for item in results:
-                    # Déduplication par (groupe, victime, date publication)
                     dedup_key = (
                         str(item.get("group_name", "")),
                         str(item.get("post_title", "")),
@@ -165,8 +167,9 @@ class RansomLookClient(BaseLeakClient):
                     )
                     if dedup_key in seen:
                         logger.debug(
-                            f"RansomLook: doublon ignoré pour terme '{term}' "
-                            f"(groupe={dedup_key[0]})"
+                            "RansomLook: doublon ignoré pour terme '%s' (groupe=%s)",
+                            term,
+                            dedup_key[0],
                         )
                         continue
                     seen.add(dedup_key)
@@ -174,52 +177,34 @@ class RansomLookClient(BaseLeakClient):
                     finding = self._parse_victim_item(item, term)
                     if finding:
                         findings.append(finding)
-                        # Log CRITIQUE — sans exposer de données sensibles
                         logger.critical(
-                            f"🚨 RANSOMWARE ALERT : domaine '{domain}' détecté sur "
-                            f"portail {finding.group_display_name} "
-                            f"(terme matché: '{term}', victime: '{finding.victim_name}')"
+                            "🚨 RANSOMWARE ALERT : domaine '%s' détecté sur portail %s "
+                            "(terme matché: '%s', victime: '%s')",
+                            domain,
+                            finding.group_display_name,
+                            term,
+                            finding.victim_name,
                         )
 
             except Exception as e:
-                logger.error(f"Erreur RansomLook pour terme '{term}' : {e}")
+                logger.error("Erreur RansomLook pour terme '%s' : %s", term, e)
 
         return findings
 
     async def check_email(self, email: str) -> list[LeakFinding]:
-        """
-        Non applicable pour RansomLook (opère au niveau domaine/organisation).
-        Retourne toujours une liste vide.
-        """
+        """Non applicable pour RansomLook (niveau domaine/organisation)."""
         return []
 
     async def get_recent_victims(self, days: int = 7) -> list[dict]:
-        """
-        Retourne les victimes récentes pour enrichissement de contexte du rapport.
-
-        Args:
-            days: Nombre de jours à considérer (défaut: 7)
-
-        Returns:
-            Liste de victimes récentes (toutes organisations confondues)
-        """
+        """Retourne les victimes récentes pour enrichissement de contexte."""
         try:
             return await self._get("/api/v1/recent", params={"days": days})
         except Exception as e:
-            logger.error(f"Erreur récupération victimes récentes RansomLook : {e}")
+            logger.error("Erreur récupération victimes récentes RansomLook : %s", e)
             return []
 
     def _parse_victim_item(self, item: dict, search_term: str) -> RansomFinding | None:
-        """
-        Parse un item de l'API RansomLook vers un RansomFinding Pydantic.
-
-        Args:
-            item: Dictionnaire brut de l'API
-            search_term: Terme de recherche qui a produit ce résultat
-
-        Returns:
-            RansomFinding ou None si l'item est invalide
-        """
+        """Parse un item de l'API RansomLook vers un RansomFinding Pydantic."""
         try:
             group_name = item.get("group_name", "unknown")
             group_display = GROUP_DISPLAY_NAMES.get(
@@ -227,17 +212,16 @@ class RansomLookClient(BaseLeakClient):
                 group_name.replace("_", " ").replace("-", " ").title(),
             )
 
-            # Déterminer le statut (RansomLook ne le fournit pas toujours explicitement)
             status = RansomStatus.UNKNOWN
             if item.get("published"):
                 status = RansomStatus.PUBLISHED
             elif item.get("discovered") or item.get("added"):
                 status = RansomStatus.LISTED
 
-            # Date de découverte : préférer "added" puis "discovered"
             discovered_at = item.get("added") or item.get("discovered")
             if not discovered_at:
                 from datetime import datetime
+
                 discovered_at = datetime.utcnow().isoformat()
 
             return RansomFinding(
@@ -252,10 +236,9 @@ class RansomLookClient(BaseLeakClient):
                 activity=item.get("activity"),
                 claim_size=item.get("claim_size"),
                 status=status,
-                # L'URL .onion est stockée mais masquée dans les rapports finaux
                 portal_url=item.get("post_url"),
                 search_term_matched=search_term,
             )
         except Exception as e:
-            logger.error(f"Erreur parsing item RansomLook : {e} — item={item!r}")
+            logger.error("Erreur parsing item RansomLook : %s — item=%r", e, item)
             return None

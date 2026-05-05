@@ -16,6 +16,20 @@ Ce guide vous accompagne pas à pas pour configurer l'environnement et lancer l'
    - `UI_JWT_SECRET` : Clé de chiffrement JWT (générer avec `openssl rand -hex 32`).
    - `UI_ADMIN_EMAIL` & `UI_ADMIN_PASSWORD` : Identifiants du premier compte Admin.
 
+3. **Choisissez le mode RansomLook** :
+
+   - **Mode local (par défaut)** :
+     - Laissez `RANSOMLOOK_MODE=local`.
+     - Vérifiez que `RANSOMLOOK_LOCAL_URL=http://ransomlook-app:8888`.
+   - **Mode SaaS (API hébergée)** :
+     - Modifiez dans `.env` :
+       - `RANSOMLOOK_MODE=saas`
+       - `RANSOMLOOK_SAAS_API_URL=https://www.ransomlook.io/api`
+       - `RANSOMLOOK_SAAS_API_KEY=<clé API obtenue dans votre compte RansomLook>`
+
+   Les termes de recherche peuvent être enrichis avec :
+   - `RANSOMLOOK_SEARCH_TERMS` : liste de noms commerciaux / filiales, séparés par des virgules.
+
 ## Étape 2 : Lancement de la Stack Docker unifiée
 
 Nous avons unifié l'intégralité de l'infrastructure WebUI, l'API Backend et les composants OSINT dans le `docker-compose.yml`.
@@ -29,7 +43,7 @@ Nous avons unifié l'intégralité de l'infrastructure WebUI, l'API Backend et l
    ```bash
    docker compose ps
    ```
-   Vous devriez voir `breachradar-postgres`, `breachradar-ui-redis`, `breachradar-api`, `breachradar-ui`, ainsi que la stack `ransomlook` avec le statut `Up`.
+   Vous devriez voir `breachradar-postgres`, `breachradar-ui-redis`, `breachradar-api`, `breachradar-ui`, ainsi que la stack `ransomlook` avec le statut `Up` en mode local (ou uniquement les services BreachRadar si vous êtes en mode SaaS).
 
 ## Étape 3 : Accès à la plateforme
 
@@ -55,7 +69,7 @@ RansomLook est scruté en continu par l'orchestrateur. Surveillez les logs si be
 # Logs du backend FastAPI (Orchestrateur)
 docker compose logs -f breachradar-api
 
-# Logs du scraper RansomLook
+# Logs du scraper RansomLook (mode local uniquement)
 docker compose logs -f ransomlook-app
 ```
 
