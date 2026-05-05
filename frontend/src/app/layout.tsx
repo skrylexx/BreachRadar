@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-// ─── Fonts ─────────────────────────────────────────────────────────────────
+// ─── Fonts ────────────────────────────────────────────────────────────────────────
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -17,24 +17,34 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
+const domain = process.env.TARGET_DOMAIN || process.env.NEXT_PUBLIC_TARGET_DOMAIN || "BreachRadar";
+
 export const metadata: Metadata = {
   title: {
-    default: "BreachRadar — SOC Governance Dashboard",
+    default: `BreachRadar — ${domain}`,
     template: "%s | BreachRadar",
   },
   description:
     "BreachRadar — Defensive OSINT platform for data breach monitoring, ransomware early warning and SOC governance.",
   keywords: ["breach monitoring", "data leak", "OSINT", "SOC", "cybersecurity", "ransomware"],
   robots: {
-    index: false, // Outil interne — ne pas indexer
+    index: false,
     follow: false,
   },
   icons: {
-    icon: "/favicon.ico",
+    // Favicon onglet navigateur — logo PNG avec fond transparent
+    icon: [
+      { url: "/logo_only.png", type: "image/png" },
+    ],
+    // Icône Apple (iOS home screen)
+    apple: [
+      { url: "/logo_only.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/logo_only.png",
   },
 };
 
-// ─── Root Layout ─────────────────────────────────────────────────────────────
+// ─── Root Layout ────────────────────────────────────────────────────────────
 export default function RootLayout({
   children,
 }: {

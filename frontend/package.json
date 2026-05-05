@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "dev": "dotenv -e ../.env -- next dev --turbopack",
+    "build": "dotenv -e ../.env -- next build",
+    "start": "dotenv -e ../.env -- next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
   },
@@ -53,6 +53,7 @@
     "postcss": "^8",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "15.1.3"
+    "eslint-config-next": "15.1.3",
+    "dotenv-cli": "^7.4.2"
   }
 }
