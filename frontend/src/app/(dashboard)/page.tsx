@@ -5,6 +5,7 @@
  */
 
 import { APIStatusCards } from "@/components/dashboard/APIStatusCards";
+import type { ConnectorStatus } from "@/components/dashboard/APIStatusCards";
 import { RiskHeatmap } from "@/components/dashboard/RiskHeatmap";
 import { FindingsTable } from "@/components/dashboard/FindingsTable";
 import { RadarLoader } from "@/components/dashboard/RadarLoader";
@@ -19,15 +20,7 @@ export const metadata: Metadata = {
 // Pas de cache — données temps réel à chaque requête
 export const revalidate = 0;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface ConnectorStatus {
-  service_name: string;
-  service_label: string;
-  configured: boolean;
-  is_active: boolean;
-  last_test_success: boolean | null;
-}
-
+// ─── Types ────────────────────────────────────────────────────────────────────────────────
 interface DashboardStats {
   scans_7d: number;
   critical_count: number;
@@ -35,7 +28,7 @@ interface DashboardStats {
   last_scan_at: string | null;
 }
 
-// ─── Helpers fetch ────────────────────────────────────────────────────────────
+// ─── Helpers fetch ─────────────────────────────────────────────────────────────────────
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://breachradar-api:8000";
 
 async function fetchJSON<T>(path: string): Promise<T | null> {
@@ -51,7 +44,7 @@ async function fetchJSON<T>(path: string): Promise<T | null> {
   }
 }
 
-// ─── Formatage "X ago" ────────────────────────────────────────────────────────
+// ─── Formatage "X ago" ────────────────────────────────────────────────────────────────────
 function timeAgo(iso: string | null): string {
   if (!iso) return "Never";
   const diff = Date.now() - new Date(iso).getTime();
@@ -63,7 +56,7 @@ function timeAgo(iso: string | null): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Page ────────────────────────────────────────────────────────────────────────────────
 export default async function DashboardPage() {
   // Appels parallèles vers le backend
   const [stats, connectors, findings, chartData] = await Promise.all([
@@ -73,7 +66,12 @@ export default async function DashboardPage() {
     fetchJSON<any[]>("/api/v1/dashboard/chart?period=7d"),
   ]);
 
-  // ─── Cards de statistiques rapides ─────────────────────────────────────────
+  // Au moins un connecteur actif ? → afficher le CTA "Premier scan"
+  const hasActiveConnector =
+    Array.isArray(connectors) &&
+    connectors.some((c) => c.is_active && c.configured);
+
+  // ─── Cards de statistiques rapides ───────────────────────────────────────────────
   const quickStats = [
     {
       id: "stat-total-scans",
@@ -112,7 +110,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 animate-fade-in">
 
-      {/* ─── Rangée 1 : Stats rapides ─────────────────────────────────────── */}
+      {/* ─── Rangée 1 : Stats rapides ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {quickStats.map((stat) => {
           const Icon = stat.icon;
@@ -132,7 +130,7 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* ─── Rangée 2 : Graphique + Statut connecteurs ───────────────────── */}
+      {/* ─── Rangée 2 : Graphique + Statut connecteurs ──────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2">
           <RiskHeatmap data={chartData ?? []} />
@@ -142,10 +140,13 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ─── Rangée 3 : Tableau des dernières trouvailles ─────────────────── */}
-      <FindingsTable findings={findings ?? []} />
+      {/* ─── Rangée 3 : Tableau des dernières trouvailles ─────────────────────────── */}
+      <FindingsTable
+        findings={findings ?? []}
+        hasActiveConnector={hasActiveConnector}
+      />
 
-      {/* ─── Indicateur radar discret ─────────────────────────────────────── */}
+      {/* ─── Indicateur radar discret ──────────────────────────────────────────────── */}
       <div className="fixed bottom-6 right-6 opacity-20 hover:opacity-60 transition-opacity duration-300">
         <RadarLoader size={48} label="" />
       </div>

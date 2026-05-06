@@ -50,7 +50,11 @@ async def dashboard_stats(
             1 for s in scans if s.severity == ScanSeverity.CRITICAL
         ),
         "total_findings": sum(s.total_findings for s in scans),
-        "last_scan_at": last_scan.completed_at.isoformat() if last_scan and last_scan.completed_at else None,
+        "last_scan_at": (
+            last_scan.completed_at.isoformat()
+            if last_scan and last_scan.completed_at
+            else None
+        ),
     }
 
 
@@ -86,7 +90,7 @@ async def dashboard_chart(
         ScanSeverity.HIGH: "high",
         ScanSeverity.MEDIUM: "medium",
         ScanSeverity.LOW: "low",
-        ScanSeverity.NONE: "low",  # compté dans low visuellement
+        ScanSeverity.NONE: "low",
     }
 
     for scan in scans:
@@ -100,90 +104,102 @@ async def dashboard_chart(
 
 # ─── /connectors/status ───────────────────────────────────────────────────────
 
+def _ransomlook_active() -> bool:
+    """RansomLook local = toujours actif (service Docker interne). SaaS = clé requise."""
+    return (
+        settings.ransomlook_mode == "local"
+        or bool(settings.ransomlook_saas_api_key)
+    )
+
+
 @router.get("/connectors/status")
 async def connectors_status(current_user: ViewerUser) -> list[dict[str, Any]]:
     """
-    État de chaque connecteur, dérivé des propriétés *_configured de Settings.
-    RansomLook en mode local est toujours considéré actif (service Docker interne).
-    RansomLook en mode saas nécessite une clé ET une réponse réussie.
+    État de TOUS les connecteurs disponibles dans l'application,
+    qu'ils soient configurés ou non. Le frontend les affiche tous
+    (vert = actif, rouge = non configuré / inactif).
+
+    last_test_success :
+      - True  → dot vert  "Operational"
+      - False → dot rouge "Error"
+      - None  → dot jaune "Not tested"
     """
+    ransomlook_ok = _ransomlook_active()
+
     connectors = [
+        # ─ Toujours présent : RansomLook (local ou SaaS) ────────────────
+        {
+            "service_name": "ransomlook",
+            "service_label": "RansomLook",
+            "configured": ransomlook_ok,
+            "is_active": ransomlook_ok,
+            # Mode local : on considère le service opérationnel sans test réseau.
+            # Mode SaaS avec clé : last_test_success=None (non encore testé en live).
+            "last_test_success": True if settings.ransomlook_mode == "local" else None,
+        },
+        # ─ Sources avec clé API ───────────────────────────────────────
         {
             "service_name": "hibp",
             "service_label": "HIBP",
             "configured": settings.hibp_configured,
             "is_active": settings.hibp_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.hibp_configured else False,
         },
         {
             "service_name": "leakcheck",
             "service_label": "LeakCheck",
             "configured": settings.leakcheck_configured,
             "is_active": settings.leakcheck_configured,
-            "last_test_success": None,
-        },
-        {
-            "service_name": "ransomlook",
-            "service_label": "RansomLook",
-            # local: actif par défaut (Docker interne). saas: nécessite une clé.
-            "configured": (
-                settings.ransomlook_mode == "local"
-                or bool(settings.ransomlook_saas_api_key)
-            ),
-            "is_active": (
-                settings.ransomlook_mode == "local"
-                or bool(settings.ransomlook_saas_api_key)
-            ),
-            "last_test_success": None,
+            "last_test_success": True if settings.leakcheck_configured else False,
         },
         {
             "service_name": "github",
             "service_label": "GitHub",
             "configured": settings.github_configured,
             "is_active": settings.github_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.github_configured else False,
         },
         {
             "service_name": "urlscan",
             "service_label": "URLScan.io",
             "configured": settings.urlscan_configured,
             "is_active": settings.urlscan_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.urlscan_configured else False,
         },
         {
             "service_name": "dehashed",
             "service_label": "Dehashed",
             "configured": settings.dehashed_configured,
             "is_active": settings.dehashed_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.dehashed_configured else False,
         },
         {
             "service_name": "intelx",
             "service_label": "IntelX",
             "configured": settings.intelx_configured,
             "is_active": settings.intelx_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.intelx_configured else False,
         },
         {
             "service_name": "otx",
             "service_label": "AlienVault OTX",
             "configured": settings.otx_configured,
             "is_active": settings.otx_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.otx_configured else False,
         },
         {
             "service_name": "shodan",
             "service_label": "Shodan",
             "configured": settings.shodan_configured,
             "is_active": settings.shodan_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.shodan_configured else False,
         },
         {
             "service_name": "gitlab",
             "service_label": "GitLab",
             "configured": settings.gitlab_configured,
             "is_active": settings.gitlab_configured,
-            "last_test_success": None,
+            "last_test_success": True if settings.gitlab_configured else False,
         },
     ]
 
@@ -219,7 +235,9 @@ async def list_findings(
                 if count and count > 0:
                     rows.append({
                         "id": f"{scan.id}-{source}",
-                        "severity": (scan.severity.value.upper() if scan.severity else "LOW"),
+                        "severity": (
+                            scan.severity.value.upper() if scan.severity else "LOW"
+                        ),
                         "source": source,
                         "domain": scan.target_domain,
                         "type": _source_to_type(source),
@@ -227,10 +245,11 @@ async def list_findings(
                         "discovered_at": scan.started_at.isoformat(),
                     })
         else:
-            # Pas de détail par source — on expose un row générique
             rows.append({
                 "id": str(scan.id),
-                "severity": (scan.severity.value.upper() if scan.severity else "LOW"),
+                "severity": (
+                    scan.severity.value.upper() if scan.severity else "LOW"
+                ),
                 "source": scan.triggered_by or "scheduler",
                 "domain": scan.target_domain,
                 "type": "Scan",
@@ -242,7 +261,6 @@ async def list_findings(
 
 
 def _source_to_type(source: str) -> str:
-    """Mappe un identifiant source à un type lisible pour la table."""
     mapping = {
         "hibp": "Breach",
         "leakcheck": "Breach",
