@@ -20,6 +20,7 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.core.redis import redis_client
 from app.routers import auth, users, scans, api_keys, health, webhooks
+from app.routers.dashboard import router as dashboard_router
 from app.core.init_db import initialize_database
 from app.engine.scheduler import ScanScheduler
 
@@ -132,3 +133,4 @@ app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(scans.router, prefix="/scans", tags=["Scans"])
 app.include_router(api_keys.router, prefix="/api-keys", tags=["API Keys"])
 app.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
+app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"])
