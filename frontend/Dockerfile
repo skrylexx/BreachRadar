@@ -22,6 +22,14 @@ RUN mkdir -p public
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Domaine cible — transmis depuis le .env racine via docker-compose (build args)
+ARG TARGET_DOMAIN=""
+ENV TARGET_DOMAIN=$TARGET_DOMAIN
+
+ARG NEXT_PUBLIC_TARGET_DOMAIN=""
+ENV NEXT_PUBLIC_TARGET_DOMAIN=$NEXT_PUBLIC_TARGET_DOMAIN
+
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
