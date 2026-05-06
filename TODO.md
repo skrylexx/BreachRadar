@@ -354,8 +354,7 @@ Basées sur les filtres CPE/keyword de NVD et les écosystèmes OSV :
 ## PHASE 10 — Paramètres de l'instance (`/admin/settings`)
 
 > Page de configuration globale de l'instance BreachRadar, accessible uniquement aux admins.
-> Centralise les préférences qui ne relèvent pas des clés API ni des utilisateurs.
-> Ajoutée dans la sous-navigation admin : Utilisateurs / Clés API / SMTP / Scheduling / Audit / **Paramètres**
+> Organisée en onglets : **Général** · **Clés API** · **Surveillance CVE** · **Sources custom** · **Notifications** · **Avancé**
 
 - [ ] **10.1 — Section "Surveillance CVE"**
   - Liste des catégories disponibles (voir tableau Phase 9) avec un toggle `<Switch />` par catégorie
@@ -385,6 +384,92 @@ Basées sur les filtres CPE/keyword de NVD et les écosystèmes OSV :
   - Toggle "Inclure les CVE sans score CVSS" (par défaut : désactivé)
   - Bouton "Vider le cache CVE" → `DELETE /api/cve/cache` → confirmation modale + toast
 
+- [ ] **10.5 — Onglet "Clés API"** (`/admin/settings` → onglet *Clés API*)
+
+  > Permet à l'admin de saisir ou remplacer des clés d'API sans redéployer la stack.
+  > Ces clés sont stockées **en base de données** (chiffrées au repos) et injectées dans `settings` au runtime.
+  > Elles **ne survivent pas** à une suppression du volume Docker (comportement identique à une valeur absente du `.env`).
+  > Les valeurs du `.env` restent prioritaires : si une clé est présente dans le `.env` ET en base, c'est la valeur `.env` qui est utilisée.
+
+  **Règles de sécurité strictes (UI) :**
+  - ❌ Aucune clé n'est jamais affichée en clair, ni dans un champ, ni dans un retour API
+  - L'API ne renvoie qu'un booléen `is_set: true/false` + la date de dernière modification — jamais la valeur
+  - Un champ de saisie est **toujours vide** à l'ouverture : taper dedans = remplacer la clé existante
+  - Un bouton "Supprimer" efface la valeur en base (ne touche pas au `.env`)
+
+  **Sources couvertes :**
+
+  | Source | Variable correspondante | Gratuit / Payant |
+  |---|---|---|
+  | HaveIBeenPwned | `HIBP_API_KEY` | Gratuit (clé requise) |
+  | GitHub | `GITHUB_TOKEN` | Gratuit |
+  | GitLab | `GITLAB_TOKEN` | Gratuit |
+  | URLScan.io | `URLSCAN_API_KEY` | Gratuit |
+  | AlienVault OTX | `OTX_API_KEY` | Gratuit |
+  | LeakCheck.io | `LEAKCHECK_API_KEY` | Payant |
+  | Dehashed (email) | `DEHASHED_EMAIL` | Payant |
+  | Dehashed (clé) | `DEHASHED_API_KEY` | Payant |
+  | Intelligence X | `INTELX_API_KEY` | Payant |
+  | Shodan | `SHODAN_API_KEY` | Payant |
+  | Hunter.io | `HUNTER_API_KEY` | Payant |
+  | RansomLook SaaS | `RANSOMLOOK_SAAS_API_KEY` | Selon plan |
+  | NVD (NIST) | `CVE_NVD_API_KEY` | Gratuit (optionnel) |
+
+  **Tâches frontend :**
+  - [ ] Grille de cartes par source : nom, icône, statut `is_set` (badge ✅ / ⬜), date MAJ
+  - [ ] Chaque carte a deux actions : **"Définir / Remplacer"** (ouvre un `<Dialog>` avec un `<Input type="password" />` + bouton Enregistrer) et **"Supprimer"** (confirmation modale)
+  - [ ] Le champ de saisie est toujours vide à l'ouverture du dialog — placeholder : `Nouvelle valeur…`
+  - [ ] Bouton "Tester" sur les sources qui supportent un health-check → `POST /api/settings/api-keys/{source}/test` → toast résultat
+  - [ ] Avertissement visible : *"Ces clés sont stockées en base de données chiffrée. Elles seront perdues si le volume Docker est supprimé. Pour une persistance garantie, renseignez-les dans votre `.env`."*
+
+  **Backend nécessaire :**
+  - Modèle `ApiKeySetting` en base : `source` (enum), `encrypted_value` (chiffré avec Fernet/AES), `updated_at`
+  - `GET /api/settings/api-keys` → liste `[{ source, is_set, updated_at }]` — jamais la valeur
+  - `PUT /api/settings/api-keys/{source}` → body `{ value: "..." }` — chiffre et stocke
+  - `DELETE /api/settings/api-keys/{source}` → supprime l'entrée en base
+  - `POST /api/settings/api-keys/{source}/test` → health-check de la source → `{ ok: bool, message: str }`
+  - Au démarrage du backend : fusionner `.env` (prioritaire) + valeurs déchiffrées de la base dans `settings`
+
+- [ ] **10.6 — Onglet "Sources custom"** (`/admin/settings` → onglet *Sources custom*)
+
+  > Permet à l'admin d'ajouter des flux RSS/Atom tiers non inclus de base dans BreachRadar.
+  > Exemple : flux CERT-FR (`https://www.cert.ssi.gouv.fr/avis/feed/`), BSI, ENISA, ANSSI, flux internes…
+  > Les items de ces flux sont normalisés dans le même schéma que les alertes CVE natives et apparaissent dans `/alerts/cve`.
+
+  **Comportement :**
+  - L'admin entre une URL de flux RSS/Atom + un nom affiché + une catégorie (ex : `CERT-FR`, `Agences gouvernementales`, libre)
+  - Le backend poll ce flux au même intervalle que les sources natives (configurable dans l'onglet *Avancé*)
+  - Les items sont parsés avec `feedparser` (Python) et normalisés : `title`, `description`, `link`, `published`, `severity` (défaut : `INFO` si non détectable), `source_name`, `source_type: custom`
+  - Ces items apparaissent dans le tableau `/alerts/cve` avec un badge "Source custom" distinctif
+
+  **Flux RSS publics suggérés (pré-remplis en placeholder dans l'UI) :**
+
+  | Organisme | URL du flux |
+  |---|---|
+  | CERT-FR — Avis | `https://www.cert.ssi.gouv.fr/avis/feed/` |
+  | CERT-FR — Alertes | `https://www.cert.ssi.gouv.fr/alerte/feed/` |
+  | CERT-FR — Actualités | `https://www.cert.ssi.gouv.fr/actualite/feed/` |
+  | ENISA | `https://www.enisa.europa.eu/publications/rss` |
+  | US-CERT (CISA Advisories) | `https://www.cisa.gov/uscert/ncas/alerts.xml` |
+
+  **Tâches frontend :**
+  - [ ] Tableau des sources custom existantes : nom, URL (tronquée), catégorie, statut dernier poll (`<StatusDot />`), nb items récupérés, date dernière synchro
+  - [ ] Bouton "Ajouter une source" → `<Dialog>` avec : champ Nom, champ URL (validation format URL), sélecteur Catégorie (liste libre + suggestions), toggle Activer immédiatement
+  - [ ] Actions par ligne : **Activer/Désactiver** (toggle), **Modifier**, **Supprimer** (confirmation modale), **Forcer un poll** → toast résultat
+  - [ ] Bouton "Tester l'URL" dans le dialog d'ajout → `POST /api/settings/custom-sources/test` avec l'URL → vérifie que le flux est accessible et parsable, retourne un aperçu des 3 premiers items → affichés dans le dialog avant confirmation
+  - [ ] Avertissement si l'URL est en HTTP (non HTTPS) : badge ⚠️ "Flux non sécurisé"
+  - [ ] `<EmptyState />` si aucune source custom : message "Aucune source personnalisée" + CTA "Ajouter"
+
+  **Backend nécessaire :**
+  - Modèle `CustomFeedSource` en base : `id`, `name`, `url`, `category`, `enabled`, `last_polled_at`, `last_item_count`, `created_at`
+  - `GET /api/settings/custom-sources` → liste des sources
+  - `POST /api/settings/custom-sources` → créer une source
+  - `PUT /api/settings/custom-sources/{id}` → modifier (name, url, category, enabled)
+  - `DELETE /api/settings/custom-sources/{id}` → supprimer
+  - `POST /api/settings/custom-sources/test` → body `{ url }` → tente de fetcher + parser le flux, retourne `{ ok, title, item_count, preview: [...3 items] }`
+  - `POST /api/settings/custom-sources/{id}/poll` → force un re-poll immédiat de la source
+  - Le scheduler existant intègre les sources custom `enabled=true` dans son cycle de polling
+
 ---
 
 ## PHASE 11 — Qualité & Tests (compléments Phases 9 & 10)
@@ -393,6 +478,9 @@ Basées sur les filtres CPE/keyword de NVD et les écosystèmes OSV :
 - [ ] **11.2** — Vérifier le comportement si toutes les catégories CVE sont désactivées → `<EmptyState />` avec CTA vers `/admin/settings`
 - [ ] **11.3** — Vérifier le fallback si une source CVE est down (NVD / OSV / CVEFeed) → `<StatusDot status="error" />` + message explicite, les autres sources continuent de fonctionner
 - [ ] **11.4** — Tester le rate-limit NVD sans clé : s'assurer que le backend gère le 429 et affiche un avertissement dans le statut de la source
+- [ ] **11.5** — Tester la saisie d'une clé API via l'onglet *Clés API* : vérifier qu'elle est bien prise en compte au runtime sans redémarrage, et perdue après suppression du volume
+- [ ] **11.6** — Tester l'ajout d'une source custom (ex : CERT-FR) : vérifier que les items apparaissent dans `/alerts/cve` avec le badge "Source custom"
+- [ ] **11.7** — Tester le bouton "Tester l'URL" avec une URL invalide, une URL HTTP, et une URL valide
 
 ---
 
