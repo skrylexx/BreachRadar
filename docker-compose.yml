@@ -178,6 +178,7 @@ services:
       - ui_net
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://breachradar-api:8000}
+      - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN}
       - NODE_ENV=production
 
 # ─── Volumes persistants ────────────────────────────────────────────────────
