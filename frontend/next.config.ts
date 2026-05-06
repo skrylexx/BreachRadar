@@ -6,14 +6,11 @@ const nextConfig: NextConfig = {
 
   // ─── Variables d'environnement ─────────────────────────────────────────────
   // Next.js lit UNIQUEMENT le .env du répertoire de démarrage (frontend/).
-  // Pour que TARGET_DOMAIN (défini dans le .env racine du repo) soit accessible
-  // au Server Component layout.tsx, on le propage ici explicitement depuis
-  // le process.env du process Node (Docker les injecte, dotenv-cli les précharge).
+  // TARGET_DOMAIN est défini dans le .env racine du repo et transmis au build
+  // via docker-compose build args → Dockerfile ARG → ENV → ici.
   env: {
     // Variable sans préfixe — accessible UNIQUEMENT côté serveur
     TARGET_DOMAIN: process.env.TARGET_DOMAIN ?? "",
-    // Variable NEXT_PUBLIC — accessible client ET serveur (build-time)
-    NEXT_PUBLIC_TARGET_DOMAIN: process.env.NEXT_PUBLIC_TARGET_DOMAIN ?? "",
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
   },
 
