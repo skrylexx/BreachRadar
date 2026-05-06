@@ -25,9 +25,10 @@
 | `/admin/smtp` | — | ❌ Inexistant |
 | `/admin/scheduling` | — | ❌ Inexistant |
 | `/admin/audit` | — | ❌ Inexistant |
+| `/admin/settings` | — | ❌ Inexistant |
+| `/alerts/cve` | — | ❌ Inexistant |
 | `/changelog` | — | ❌ Inexistant |
 | `/profile` | — | ❌ Inexistant |
-| `/cve-rss` | - | ❌ Inexistant |
 
 ---
 
@@ -194,7 +195,7 @@
 > Toutes ces pages : visible uniquement si `role === "admin"`. Redirect 403 sinon.
 
 - [ ] **5.1 — Layout admin**
-  - Sous-navigation admin : Utilisateurs / Clés API / SMTP / Scheduling / Audit
+  - Sous-navigation admin : Utilisateurs / Clés API / SMTP / Scheduling / Audit / **Paramètres**
   - `<AdminGuard />` wrappant toutes les pages `/admin`
 
 - [ ] **5.2 — Gestion utilisateurs** (`/admin/users`)
@@ -262,6 +263,139 @@
 
 ---
 
+## PHASE 9 — Alertes CVE / Veille vulnérabilités (`/alerts/cve`)
+
+> Page de surveillance des nouvelles CVE et exploits, alimentée par des sources publiques gratuites.
+> Les catégories de surveillance sont configurables par l'admin depuis `/admin/settings` (voir Phase 10).
+
+### Sources gratuites retenues (sans abonnement payant)
+
+| Source | Type | Clé API | URL de base | Filtres disponibles |
+|---|---|---|---|---|
+| **NVD API 2.0** (NIST) | REST JSON | Optionnelle (rate-limit plus élevé avec clé) | `https://services.nvd.nist.gov/rest/json/cves/2.0` | `keywordSearch`, `cvssV3Severity`, `pubStartDate`, `pubEndDate`, `cpeName` |
+| **OSV.dev** (Google) | REST JSON | Aucune | `https://api.osv.dev/v1/query` | Écosystème (npm, PyPI, Go, Maven, RubyGems, NuGet, etc.), package, version |
+| **GitHub Advisory Database** | Atom RSS | Aucune | `https://github.com/advisories.atom?query=type%3Areviewed` | Paramètre `query` : écosystème, sévérité, type |
+| **CVEFeed.io RSS** | RSS XML | Aucune | `https://cvefeed.io/rssfeed/severity/high.xml` | Severity : `high`, `critical`, `medium` ; aussi `/latest.xml` |
+
+> ⚠️ **NVD sans clé** : limité à 5 requêtes / 30 secondes. **Avec clé** : 50 requêtes / 30 secondes.
+> Si `CVE_NVD_API_KEY` est renseignée dans le `.env`, le backend l'utilisera automatiquement.
+> Ajouter dans `.env.example` : `CVE_NVD_API_KEY=` (optionnel, laisser vide = mode public)
+
+### Catégories de surveillance disponibles
+
+Basées sur les filtres CPE/keyword de NVD et les écosystèmes OSV :
+
+| Catégorie affichée | Source principale | Filtre appliqué |
+|---|---|---|
+| **Windows** | NVD | `keywordSearch=Microsoft Windows` |
+| **Linux Kernel** | NVD | `keywordSearch=Linux Kernel` |
+| **macOS / iOS** | NVD | `keywordSearch=Apple macOS` ou `Apple iOS` |
+| **Open Source (npm)** | OSV.dev | `ecosystem=npm` |
+| **Open Source (PyPI)** | OSV.dev | `ecosystem=PyPI` |
+| **Open Source (Go)** | OSV.dev | `ecosystem=Go` |
+| **Open Source (Maven/Java)** | OSV.dev | `ecosystem=Maven` |
+| **Open Source (RubyGems)** | OSV.dev | `ecosystem=RubyGems` |
+| **Open Source (NuGet/.NET)** | OSV.dev | `ecosystem=NuGet` |
+| **GitHub Advisories** | GitHub Atom | Tous types, filtre `reviewed` |
+| **CVE Critiques (toutes)** | CVEFeed.io RSS | `/rssfeed/severity/critical.xml` |
+| **CVE Hautes (toutes)** | CVEFeed.io RSS | `/rssfeed/severity/high.xml` |
+
+> L'admin peut activer/désactiver chaque catégorie depuis `/admin/settings`.
+> Le backend agrège les résultats de toutes les catégories actives et les expose via `/api/cve/alerts`.
+
+### Backend nécessaire
+
+- `GET /api/cve/alerts` — retourne la liste agrégée des CVE récentes selon les catégories actives
+  - Paramètres : `severity`, `category`, `limit`, `offset`, `since`
+  - Le backend interroge NVD / OSV / GitHub Advisories / CVEFeed selon la config
+- `GET /api/cve/settings` — retourne les catégories actives sauvegardées
+- `PUT /api/cve/settings` — sauvegarde les catégories sélectionnées par l'admin
+- `GET /api/cve/status` — statut de chaque source (dernière mise à jour, nb CVE récupérées)
+
+### Tâches frontend
+
+- [ ] **9.1 — Page `/alerts/cve`**
+  - `<PageHeader title="Veille CVE & Exploits" breadcrumb />` avec lien vers `/admin/settings` (Admin only)
+  - Bloc statut sources : carte par source (NVD / OSV / GitHub Advisories / CVEFeed) avec `<StatusDot />` + date dernière synchro + nb CVE récupérées — appel `GET /api/cve/status`
+  - Filtre catégorie : `<Select multiple />` listant uniquement les catégories activées dans les settings
+  - Filtre sévérité : CRITICAL / HIGH / MEDIUM / LOW (multi-select avec badges colorés)
+  - `<TimeFilter />` standard (7j / 1 mois / 6 mois / 12 mois / Tout)
+
+- [ ] **9.2 — Tableau des CVE**
+  - Appel `GET /api/cve/alerts` avec les filtres actifs
+  - Colonnes :
+    - **CVE ID** (lien externe vers `https://nvd.nist.gov/vuln/detail/{CVE_ID}`, `target="_blank"`)
+    - **Titre / Description** (tronquée à 120 chars + tooltip complet)
+    - **Sévérité** (`<SeverityBadge />` : CRITICAL / HIGH / MEDIUM / LOW)
+    - **Score CVSS** (format `JetBrains Mono`, coloré selon sévérité)
+    - **Catégorie** (badge : Windows / Linux / npm / etc.)
+    - **Source** (NVD / OSV / GitHub / CVEFeed)
+    - **Date de publication** (format `YYYY-MM-DD`)
+  - Tri par date DESC par défaut, tri cliquable sur chaque colonne
+  - Pagination côté serveur (25 par page)
+  - Bouton "Rafraîchir" → force un re-fetch des sources (Admin only)
+
+- [ ] **9.3 — Graphique d'évolution**
+  - `<FindingsChart />` adapté : courbe ou barres empilées par sévérité sur la période sélectionnée
+  - Axe X = temps, axe Y = nb CVE publiées
+  - Légende : CRITICAL (rouge), HIGH (orange), MEDIUM (jaune), LOW (bleu)
+
+- [ ] **9.4 — Widget "Top CVE critiques du jour"**
+  - Bloc latéral ou bandeau en haut de page
+  - Liste des 5 dernières CVE CRITICAL publiées (toutes catégories confondues)
+  - Rafraîchissement automatique toutes les 15 min côté client (polling ou SSE si dispo)
+
+- [ ] **9.5 — Lien dashboard**
+  - Le dashboard (`/`) doit afficher un badge "X nouvelles CVE critiques" avec CTA → `/alerts/cve`
+  - Appel `GET /api/cve/alerts?severity=CRITICAL&since=24h&limit=1` pour avoir le count
+
+---
+
+## PHASE 10 — Paramètres de l'instance (`/admin/settings`)
+
+> Page de configuration globale de l'instance BreachRadar, accessible uniquement aux admins.
+> Centralise les préférences qui ne relèvent pas des clés API ni des utilisateurs.
+> Ajoutée dans la sous-navigation admin : Utilisateurs / Clés API / SMTP / Scheduling / Audit / **Paramètres**
+
+- [ ] **10.1 — Section "Surveillance CVE"**
+  - Liste des catégories disponibles (voir tableau Phase 9) avec un toggle `<Switch />` par catégorie
+  - Regroupement visuel par source : **NVD**, **OSV.dev**, **GitHub Advisories**, **CVEFeed.io**
+  - Bouton "Sauvegarder" → `PUT /api/cve/settings` → toast succès/erreur
+  - Indicateur : "X catégorie(s) active(s)"
+  - Champ optionnel `CVE_NVD_API_KEY` : permet de saisir la clé NVD pour lever le rate-limit
+    - Masqué par défaut (type `password`), bouton œil pour révéler
+    - Indicateur ✅ / ⬜ selon présence de la clé
+    - Sauvegardé via `PUT /api/settings/nvd-key` (jamais renvoyé en clair dans les GET)
+
+- [ ] **10.2 — Section "Général"**
+  - Champ `TARGET_DOMAIN` : affichage et édition du domaine cible de l'instance
+    - Sauvegardé via `PUT /api/settings/domain`
+    - Indication : "Utilisé dans les rapports et la bannière de l'interface"
+  - Sélecteur langue par défaut de l'interface (FR / EN)
+  - Toggle "Mode maintenance" : affiche une bannière d'avertissement à tous les utilisateurs
+
+- [ ] **10.3 — Section "Notifications"**
+  - Toggle activation des alertes email CVE critiques (requiert SMTP configuré)
+  - Seuil d'alerte : sélecteur sévérité minimale (CRITICAL only / HIGH+ / MEDIUM+)
+  - Champ destinataires : liste d'emails séparés par des virgules
+  - Bouton "Envoyer un test" → email de test avec une CVE fictive → toast résultat
+
+- [ ] **10.4 — Section "Avancé"** (optionnel, collapsible)
+  - Champ intervalle de polling CVE (en minutes, défaut : 60)
+  - Toggle "Inclure les CVE sans score CVSS" (par défaut : désactivé)
+  - Bouton "Vider le cache CVE" → `DELETE /api/cve/cache` → confirmation modale + toast
+
+---
+
+## PHASE 11 — Qualité & Tests (compléments Phases 9 & 10)
+
+- [ ] **11.1** — Tests smoke sur `/alerts/cve` et `/admin/settings`
+- [ ] **11.2** — Vérifier le comportement si toutes les catégories CVE sont désactivées → `<EmptyState />` avec CTA vers `/admin/settings`
+- [ ] **11.3** — Vérifier le fallback si une source CVE est down (NVD / OSV / CVEFeed) → `<StatusDot status="error" />` + message explicite, les autres sources continuent de fonctionner
+- [ ] **11.4** — Tester le rate-limit NVD sans clé : s'assurer que le backend gère le 429 et affiche un avertissement dans le statut de la source
+
+---
+
 ## Ordre de développement recommandé
 
 ```
@@ -270,11 +404,12 @@ Phase 0 (fondations) → Phase 7.1 + 7.3 (auth branchée) → Phase 1 (dashboard
 → Phase 4 (RansomLook alertes)
 → Phase 2.3 à 2.7 (autres outils)
 → Phase 3 (rapports)
-→ Phase 5 (admin)
+→ Phase 5 (admin) + Phase 10 (settings) en parallèle
+→ Phase 9 (CVE RSS) — dépend de Phase 10 pour les catégories actives
 → Phase 6 + 7.2 + 7.4 (finitions)
-→ Phase 8 (qualité)
+→ Phase 8 + 11 (qualité)
 ```
 
 ---
 
-*Dernière mise à jour : 2026-05-05*
+*Dernière mise à jour : 2026-05-06*
