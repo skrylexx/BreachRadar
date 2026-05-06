@@ -2,7 +2,8 @@
 
 /**
  * FindingsTable — Tableau des dernières trouvailles
- * Design Stripe-style : aéré, badges de sévérité colorés, JetBrains Mono pour les données.
+ * Reçoit les données du Server Component parent (page.tsx).
+ * Affiche un empty state si findings est vide.
  */
 
 import { ExternalLink, Shield } from "lucide-react";
@@ -14,50 +15,10 @@ interface Finding {
   source: string;
   domain: string;
   severity: Severity;
-  type: string;       // "breach" | "ransomware" | "paste" | "github"
+  type: string;
   count: number;
   discovered_at: string;
 }
-
-// Données de démonstration
-const DEMO_FINDINGS: Finding[] = [
-  {
-    id: "1",
-    source: "RansomLook",
-    domain: "example.com",
-    severity: "critical",
-    type: "ransomware",
-    count: 1,
-    discovered_at: "2026-05-04T09:00:00Z",
-  },
-  {
-    id: "2",
-    source: "HIBP",
-    domain: "example.com",
-    severity: "high",
-    type: "breach",
-    count: 3,
-    discovered_at: "2026-05-03T14:22:00Z",
-  },
-  {
-    id: "3",
-    source: "LeakCheck",
-    domain: "example.com",
-    severity: "medium",
-    type: "breach",
-    count: 12,
-    discovered_at: "2026-05-02T08:45:00Z",
-  },
-  {
-    id: "4",
-    source: "GitHub",
-    domain: "example.com",
-    severity: "low",
-    type: "github",
-    count: 2,
-    discovered_at: "2026-05-01T16:30:00Z",
-  },
-];
 
 // ─── Badge de sévérité ────────────────────────────────────────────────────────
 function SeverityBadge({ severity }: { severity: Severity }) {
@@ -68,7 +29,6 @@ function SeverityBadge({ severity }: { severity: Severity }) {
     low:      "badge-low",
     none:     "badge-none",
   };
-
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold
                       font-data uppercase tracking-wide ${classes[severity]}`}>
@@ -87,8 +47,22 @@ function SourceBadge({ source }: { source: string }) {
   );
 }
 
+// ─── Empty state ──────────────────────────────────────────────────────────────
+function EmptyFindings() {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+      <Shield className="w-10 h-10 text-muted-foreground/30 mb-4" strokeWidth={1} />
+      <p className="text-sm font-medium text-foreground mb-1">No findings yet</p>
+      <p className="text-xs text-muted-foreground max-w-xs">
+        Findings will appear here once the backend has completed its first scan
+        and data sources are configured.
+      </p>
+    </div>
+  );
+}
+
 // ─── Composant ────────────────────────────────────────────────────────────────
-export function FindingsTable({ findings = DEMO_FINDINGS }: { findings?: Finding[] }) {
+export function FindingsTable({ findings = [] }: { findings?: Finding[] }) {
   const formatDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleDateString("en-GB", {
@@ -110,54 +84,58 @@ export function FindingsTable({ findings = DEMO_FINDINGS }: { findings?: Finding
         </span>
       </div>
 
-      {/* Tableau */}
-      <div className="overflow-x-auto">
-        <table className="w-full" aria-label="Findings table">
-          <thead>
-            <tr className="border-b border-border/30">
-              {["Severity", "Source", "Domain", "Type", "Count", "Discovered"].map((col) => (
-                <th
-                  key={col}
-                  scope="col"
-                  className="px-4 py-2.5 text-left text-xs font-medium
-                             text-muted-foreground uppercase tracking-wider"
-                >
-                  {col}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {findings.map((finding, idx) => (
-              <tr
-                key={finding.id}
-                className={`border-b border-border/20 last:border-0
-                            hover:bg-accent/30 transition-colors duration-100
-                            ${idx % 2 === 0 ? "" : "bg-secondary/20"}`}
-              >
-                <td className="px-4 py-3">
-                  <SeverityBadge severity={finding.severity} />
-                </td>
-                <td className="px-4 py-3">
-                  <SourceBadge source={finding.source} />
-                </td>
-                <td className="px-4 py-3 font-data text-xs text-foreground">
-                  {finding.domain}
-                </td>
-                <td className="px-4 py-3 text-xs text-muted-foreground capitalize">
-                  {finding.type}
-                </td>
-                <td className="px-4 py-3 font-data text-xs text-foreground font-semibold">
-                  {finding.count}
-                </td>
-                <td className="px-4 py-3 font-data text-xs text-muted-foreground whitespace-nowrap">
-                  {formatDate(finding.discovered_at)}
-                </td>
+      {/* Empty state ou tableau */}
+      {findings.length === 0 ? (
+        <EmptyFindings />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full" aria-label="Findings table">
+            <thead>
+              <tr className="border-b border-border/30">
+                {["Severity", "Source", "Domain", "Type", "Count", "Discovered"].map((col) => (
+                  <th
+                    key={col}
+                    scope="col"
+                    className="px-4 py-2.5 text-left text-xs font-medium
+                               text-muted-foreground uppercase tracking-wider"
+                  >
+                    {col}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {findings.map((finding, idx) => (
+                <tr
+                  key={finding.id}
+                  className={`border-b border-border/20 last:border-0
+                              hover:bg-accent/30 transition-colors duration-100
+                              ${idx % 2 === 0 ? "" : "bg-secondary/20"}`}
+                >
+                  <td className="px-4 py-3">
+                    <SeverityBadge severity={finding.severity} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <SourceBadge source={finding.source} />
+                  </td>
+                  <td className="px-4 py-3 font-data text-xs text-foreground">
+                    {finding.domain}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground capitalize">
+                    {finding.type}
+                  </td>
+                  <td className="px-4 py-3 font-data text-xs text-foreground font-semibold">
+                    {finding.count}
+                  </td>
+                  <td className="px-4 py-3 font-data text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDate(finding.discovered_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
