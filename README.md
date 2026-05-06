@@ -94,7 +94,7 @@ Voir [`.env.example`](.env.example) pour la liste complète.
 
 | Clé | Source | Coût | Priorité |
 |---|---|---|---|
-| `TARGET_DOMAIN` | Le domaine que vous surveillez | Gratuit | **Obligatoire** |
+| `TARGET_DOMAIN` | Le domaine que vous surveillez | *NA* | **Obligatoire** |
 | `HIBP_API_KEY` | haveibeenpwned.com/API/Key | ~3,50 USD/mois | **Indispensable** |
 | `GITHUB_TOKEN` | github.com/settings/tokens | Gratuit | **Indispensable** |
 | `URLSCAN_API_KEY` | urlscan.io | Gratuit | **Indispensable** |
