@@ -54,8 +54,8 @@ class Settings(BaseSettings):
     password_rotation_exemption_length: int = 24
 
     # ─── Rate limiting ────────────────────────────────────────────────────────
-    rate_limit_login: str = "10/minute"        
-    rate_limit_scan_trigger: str = "5/minute"  
+    rate_limit_login: str = "10/minute"
+    rate_limit_scan_trigger: str = "5/minute"
 
     # ─── Moteur BreachRadar : Domaine cible ──────────────────────────────────
     target_domain: str = Field(
@@ -146,6 +146,16 @@ class Settings(BaseSettings):
     hibp_rate_limit_ms: int = Field(
         default=1500,
         description="Délai entre requêtes HIBP en millisecondes (respecter le rate limit)",
+    )
+
+    # ─── Veille CVE (NVD API 2.0) ────────────────────────────────────────────
+    cve_nvd_api_key: str = Field(
+        default="",
+        description=(
+            "Clé API optionnelle pour le NVD (NIST). "
+            "Sans clé : 5 req/30s. Avec clé : 50 req/30s. "
+            "https://nvd.nist.gov/developers/request-an-api-key"
+        ),
     )
 
     # ─── Validators ──────────────────────────────────────────────────────────
@@ -279,6 +289,11 @@ class Settings(BaseSettings):
     @property
     def ransomlook_alert_configured(self) -> bool:
         return bool(self.ransomlook_alert_email or self.ransomlook_alert_webhook)
+
+    @property
+    def nvd_configured(self) -> bool:
+        """True si une clé NVD est présente (rate-limit étendu : 50 req/30s)."""
+        return bool(self.cve_nvd_api_key)
 
     def get_configured_sources(self) -> list[str]:
         available = ["ransomlook", "rss"]
