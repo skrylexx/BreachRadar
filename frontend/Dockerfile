@@ -7,9 +7,8 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-# Si un package-lock.json est présent, on utilise npm ci (reproductible)
-# Sinon, on fallback sur npm install pour éviter d'échouer au build
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# npm install recrée le lock si besoin (dotenv-cli peut ne pas être dans le lock)
+RUN npm install
 
 # ─── Étape 2 : Build de l'application ────────────────────────────────────────
 FROM base AS builder
@@ -29,7 +28,9 @@ ENV TARGET_DOMAIN=$TARGET_DOMAIN
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+# Appel direct à next build : contourne dotenv-cli (inutile en Docker,
+# les variables sont déjà injectées via ARG/ENV ci-dessus)
+RUN ./node_modules/.bin/next build
 
 # ─── Étape 3 : Runner de production ──────────────────────────────────────────
 FROM base AS runner
