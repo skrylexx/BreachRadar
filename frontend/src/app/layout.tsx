@@ -17,7 +17,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
-const domain = process.env.TARGET_DOMAIN || process.env.NEXT_PUBLIC_TARGET_DOMAIN || "BreachRadar";
+const domain =
+  process.env.TARGET_DOMAIN ||
+  process.env.NEXT_PUBLIC_TARGET_DOMAIN ||
+  "BreachRadar";
 
 export const metadata: Metadata = {
   title: {
@@ -32,11 +35,13 @@ export const metadata: Metadata = {
     follow: false,
   },
   icons: {
-    // Favicon onglet navigateur — logo PNG avec fond transparent
+    // ── Favicon ────────────────────────────────────────────────────────────
+    // Le fichier doit être présent dans frontend/public/logo_only.png
+    // (copié depuis images/logo_only.png à la racine du repo).
+    // Next.js ne sert que les fichiers du dossier public/ de son propre contexte.
     icon: [
-      { url: "/logo_only.png", type: "image/png" },
+      { url: "/logo_only.png", type: "image/png", sizes: "any" },
     ],
-    // Icône Apple (iOS home screen)
     apple: [
       { url: "/logo_only.png", sizes: "180x180", type: "image/png" },
     ],

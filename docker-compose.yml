@@ -166,7 +166,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        # ── Variables injectées AU BUILD (résolues par next.config.ts) ──
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        - TARGET_DOMAIN=${TARGET_DOMAIN:-}
+        - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-}
     container_name: breachradar-ui
     restart: unless-stopped
     depends_on:
@@ -177,8 +180,12 @@ services:
     networks:
       - ui_net
     environment:
+      # ── Variables disponibles au RUNTIME (Server Components, rewrites) ──
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://breachradar-api:8000}
-      - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN}
+      # TARGET_DOMAIN est lu côté serveur par le Server Component (dashboard/layout.tsx)
+      # Il DOIT être présent ici en plus du build arg pour être accessible au runtime.
+      - TARGET_DOMAIN=${TARGET_DOMAIN:-}
+      - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-}
       - NODE_ENV=production
 
 # ─── Volumes persistants ────────────────────────────────────────────────────
