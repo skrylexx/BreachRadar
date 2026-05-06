@@ -26,6 +26,8 @@
 | `/admin/scheduling` | — | ❌ Inexistant |
 | `/admin/audit` | — | ❌ Inexistant |
 | `/changelog` | — | ❌ Inexistant |
+| `/profile` | — | ❌ Inexistant |
+| `/cve-rss` | - | ❌ Inexistant |
 
 ---
 
