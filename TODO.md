@@ -19,7 +19,7 @@
 | `/tools/leakcheck` | `(dashboard)/tools/leakcheck/page.tsx` | ✅ Présent |
 | `/tools/urlscan` | `(dashboard)/tools/urlscan/page.tsx` | ✅ Présent |
 | `/reports` | `(dashboard)/reports/page.tsx` | ✅ Présent |
-| `/alerts/ransomware` | — | ❌ Inexistant |
+| `/alerts/ransomware` | `(dashboard)/alerts/ransomware/page.tsx` | ✅ Présent |
 | `/admin/users` | — | ❌ Inexistant |
 | `/admin/api-keys` | — | ❌ Inexistant |
 | `/admin/smtp` | — | ❌ Inexistant |
@@ -171,21 +171,21 @@
 
 ## PHASE 4 — Alertes Ransomware (`/alerts/ransomware`)
 
-- [ ] **4.1 — Bloc état instance RansomLook**
+- [x] **4.1 — Bloc état instance RansomLook**
   - URL utilisée (local ou SaaS), nb groupes suivis, nb posts, dernière mise à jour
   - Appel API `/api/ransomlook/status`
 
-- [ ] **4.2 — Liste des alertes**
+- [x] **4.2 — Liste des alertes**
   - Appel API `/api/ransomlook/alerts`
   - Colonnes : groupe, victime, pays, secteur, claim_size, statut, date découverte, date publication
   - **Jamais d'URL .onion** dans l'interface — indicateur texte uniquement
   - Badges sévérité colorés
 
-- [ ] **4.3 — Filtres**
+- [x] **4.3 — Filtres**
   - Filtrer par : groupe, pays, secteur, statut (LISTED / PUBLISHED)
   - Filtre temporel standard
 
-- [ ] **4.4 — Lien rapport**
+- [x] **4.4 — Lien rapport**
   - Chaque alerte peut pointer vers le rapport de scan qui la contient
 
 ---

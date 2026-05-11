@@ -148,6 +148,7 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 | `frontend/src/app/(dashboard)/tools/urlscan/*` | Création | Page outil URLScan (Server + Client) |
 | `frontend/src/app/(dashboard)/reports/page.tsx` | Création | Page Rapports (Server) |
 | `frontend/src/app/(dashboard)/reports/client.tsx` | Création | Page Rapports (Client) avec modal de génération et actions d'export PDF/JSON |
+| `frontend/src/app/(dashboard)/alerts/ransomware/*` | Création | Page Alertes Ransomware détaillée (Server + Client) |
 | `frontend/src/components/ui/badge.tsx` + 14 autres | Création | Composants Shadcn/UI installés : badge, table, tabs, select, dialog, skeleton, tooltip, switch, form, input, label, separator, dropdown-menu, alert, progress |
 | `frontend/src/app/(dashboard)/page.tsx` | Modification | Câblage complet de la page avec l'API Backend via `searchParams` pour les filtres temporels |
 
@@ -189,9 +190,15 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 - [x] Phase 3.3 — Export JSON / CSV
 - [x] Phase 3.4 — Génération de rapport global
 
-#### ⏳ Prochaine session — Phase 4 (Alertes Ransomware)
-- [ ] Phase 4.1 — Bloc état instance RansomLook
-- [ ] Phase 4.2 — Liste des alertes
+#### ✅ Phase 4 — Alertes Ransomware
+- [x] Phase 4.1 — Bloc état instance RansomLook
+- [x] Phase 4.2 — Liste des alertes
+- [x] Phase 4.3 — Filtres
+- [x] Phase 4.4 — Lien rapport
+
+#### ⏳ Prochaine session — Phase 5 (Administration)
+- [ ] Phase 5.1 — Layout admin
+- [ ] Phase 5.2 — Gestion utilisateurs
 
 ---
 
