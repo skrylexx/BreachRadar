@@ -136,6 +136,8 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 | `frontend/src/components/layout/Header.tsx` | Modification | Intégration de next-intl et ajout du sélecteur de langue dynamique (FR/EN) |
 | `frontend/src/components/dashboard/RansomwareAlertBlock.tsx` | Création | Bloc d'alerte Ransomware dynamique |
 | `frontend/src/components/dashboard/CVEAlertsBlock.tsx` | Création | Bloc des dernières alertes CVE et exploits |
+| `frontend/src/components/dashboard/ScansTableBlock.tsx` | Création | Tableau des derniers scans |
+| `frontend/src/components/dashboard/QuickAccessBlock.tsx` | Création | Bloc d'accès rapide aux outils |
 | `frontend/src/components/ui/badge.tsx` + 14 autres | Création | Composants Shadcn/UI installés : badge, table, tabs, select, dialog, skeleton, tooltip, switch, form, input, label, separator, dropdown-menu, alert, progress |
 | `frontend/src/app/(dashboard)/page.tsx` | Modification | Câblage complet de la page avec l'API Backend via `searchParams` pour les filtres temporels |
 

@@ -11,6 +11,8 @@ import { FindingsTable } from "@/components/dashboard/FindingsTable";
 import { RadarLoader } from "@/components/dashboard/RadarLoader";
 import { RansomwareAlertBlock } from "@/components/dashboard/RansomwareAlertBlock";
 import { CVEAlertsBlock } from "@/components/dashboard/CVEAlertsBlock";
+import { ScansTableBlock } from "@/components/dashboard/ScansTableBlock";
+import { QuickAccessBlock } from "@/components/dashboard/QuickAccessBlock";
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -67,14 +69,17 @@ export default async function DashboardPage({
   const { period = "7d" } = await searchParams;
 
   // Appels parallèles vers le backend
-  const [stats, connectors, findings, chartData, ransomwareAlerts, cveAlerts] = await Promise.all([
+  const [stats, connectors, findings, chartData, ransomwareAlerts, cveAlerts, scansRes] = await Promise.all([
     fetchJSON<DashboardStats>("/api/v1/dashboard/stats"),
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
     fetchJSON<any[]>("/api/v1/findings?limit=10&sort=discovered_at:desc"),
     fetchJSON<any[]>(`/api/v1/dashboard/chart?period=${period}`),
     fetchJSON<any[]>("/api/v1/ransomlook/alerts?status=LISTED&limit=1"),
     fetchJSON<any[]>("/api/v1/cve/alerts?limit=5"),
+    fetchJSON<any>("/api/v1/scans?limit=10"),
   ]);
+
+  const recentScans = scansRes?.items || [];
 
   // Au moins un connecteur actif ? → afficher le CTA "Premier scan"
   const hasActiveConnector =
@@ -165,6 +170,16 @@ export default async function DashboardPage({
         findings={findings ?? []}
         hasActiveConnector={hasActiveConnector}
       />
+
+      {/* ─── Rangée 6 : Scans & Accès Rapide ──────────────────────────────────────── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className="xl:col-span-2">
+          <ScansTableBlock scans={recentScans} />
+        </div>
+        <div>
+          <QuickAccessBlock />
+        </div>
+      </div>
 
       {/* ─── Indicateur radar discret ──────────────────────────────────────────────── */}
       <div className="fixed bottom-6 right-6 opacity-20 hover:opacity-60 transition-opacity duration-300">

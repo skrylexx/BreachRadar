@@ -98,13 +98,13 @@
   - Résumé : groupe, date, taille revendiquée, statut
   - CTA → `/alerts/ransomware`
 
-- [ ] **1.4 — Tableau des derniers scans**
+- [x] **1.4 — Tableau des derniers scans**
   - Appel API `/api/scans?limit=10`
   - Colonnes : date, durée, nb findings, sévérité globale
   - Timestamps format `YYYY-MM-DD HH:mm` (sans secondes)
   - Lien vers le détail du scan
 
-- [ ] **1.5 — Accès rapide**
+- [x] **1.5 — Accès rapide**
   - Liens vers chaque page outil
   - Lien vers la page Rapports
 
