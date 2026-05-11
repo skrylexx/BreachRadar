@@ -18,7 +18,7 @@
 | `/tools/ransomlook` | `(dashboard)/tools/ransomlook/page.tsx` | ✅ Présent |
 | `/tools/leakcheck` | `(dashboard)/tools/leakcheck/page.tsx` | ✅ Présent |
 | `/tools/urlscan` | `(dashboard)/tools/urlscan/page.tsx` | ✅ Présent |
-| `/reports` | — | ❌ Inexistant |
+| `/reports` | `(dashboard)/reports/page.tsx` | ✅ Présent |
 | `/alerts/ransomware` | — | ❌ Inexistant |
 | `/admin/users` | — | ❌ Inexistant |
 | `/admin/api-keys` | — | ❌ Inexistant |
@@ -149,20 +149,20 @@
 
 ## PHASE 3 — Page Rapports (`/reports`)
 
-- [ ] **3.1 — Liste des rapports**
+- [x] **3.1 — Liste des rapports**
   - Appel API `/api/reports`
   - Colonnes : date, domaine, sévérité globale, nb emails compromis, alerte ransomware (bool)
   - Pagination côté serveur
   - Filtres : période, sévérité, type (hebdo / manuel)
 
-- [ ] **3.2 — Export PDF**
+- [x] **3.2 — Export PDF**
   - Bouton "Exporter PDF" par rapport → `GET /api/reports/{id}/export?format=pdf`
   - Téléchargement direct du fichier
 
-- [ ] **3.3 — Export JSON / CSV** (optionnel)
+- [x] **3.3 — Export JSON / CSV** (optionnel)
   - Même logique, format alternatif
 
-- [ ] **3.4 — Génération de rapport global**
+- [x] **3.4 — Génération de rapport global**
   - Modal : sélecteur de période (date début / date fin)
   - Appel `POST /api/reports/generate` avec la période
   - Feedback spinner + toast succès/erreur
