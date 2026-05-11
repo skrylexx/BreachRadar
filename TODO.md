@@ -13,11 +13,11 @@
 | `/` (dashboard) | `(dashboard)/page.tsx` | ✅ Partiel (mock data) |
 | `/login` | `(auth)/login/page.tsx` | ✅ Présent |
 | `/scans` | `(dashboard)/scans/page.tsx` | ✅ Présent |
-| `/tools/hibp` | — | ❌ Inexistant |
-| `/tools/github` | — | ❌ Inexistant |
-| `/tools/ransomlook` | — | ❌ Inexistant |
-| `/tools/leakcheck` | — | ❌ Inexistant |
-| `/tools/urlscan` | — | ❌ Inexistant |
+| `/tools/hibp` | `(dashboard)/tools/hibp/page.tsx` | ✅ Présent |
+| `/tools/github` | `(dashboard)/tools/github/page.tsx` | ✅ Présent |
+| `/tools/ransomlook` | `(dashboard)/tools/ransomlook/page.tsx` | ✅ Présent |
+| `/tools/leakcheck` | `(dashboard)/tools/leakcheck/page.tsx` | ✅ Présent |
+| `/tools/urlscan` | `(dashboard)/tools/urlscan/page.tsx` | ✅ Présent |
 | `/reports` | — | ❌ Inexistant |
 | `/alerts/ransomware` | — | ❌ Inexistant |
 | `/admin/users` | — | ❌ Inexistant |
@@ -114,29 +114,29 @@
 
 > Une page par source OSINT. Toutes suivent le même layout : TimeFilter + Chart + DataTable.
 
-- [ ] **2.1 — Layout partagé `ToolPageLayout`**
+- [x] **2.1 — Layout partagé `ToolPageLayout`**
   - Composant wrapper réutilisable avec : `<PageHeader />`, `<TimeFilter />`, `<FindingsChart />`, `<DataTable />`, bouton "Relancer un scan" (Admin only)
 
-- [ ] **2.2 — Page HIBP & Breaches** (`/tools/hibp`)
+- [x] **2.2 — Page HIBP & Breaches** (`/tools/hibp`)
   - Graphique d'évolution des fuites emails détectées par HIBP
   - Tableau : date, email (masqué ou tronqué RGPD), nom de la fuite, sévérité
   - Bouton relance scan (Admin)
 
-- [ ] **2.3 — Page GitHub & GitLab** (`/tools/github`)
+- [x] **2.3 — Page GitHub & GitLab** (`/tools/github`)
   - Graphique d'évolution des expositions de secrets/code
   - Tableau : date, repo, type (secret / credential / token), sévérité, lien (masqué)
   - Bouton relance scan (Admin)
 
-- [ ] **2.4 — Page RansomLook** (`/tools/ransomlook`)
+- [x] **2.4 — Page RansomLook** (`/tools/ransomlook`)
   - Graphique d'alertes détectées dans le temps
   - Tableau : groupe ransomware, victime, date découverte, statut (LISTED/PUBLISHED)
   - Lien CTA vers `/alerts/ransomware` pour le détail
 
-- [ ] **2.5 — Page LeakCheck** (`/tools/leakcheck`)
+- [x] **2.5 — Page LeakCheck** (`/tools/leakcheck`)
   - Graphique d'évolution fuites LeakCheck
   - Tableau findings avec sévérité
 
-- [ ] **2.6 — Page URLScan** (`/tools/urlscan`)
+- [x] **2.6 — Page URLScan** (`/tools/urlscan`)
   - Graphique résultats URLScan dans le temps
   - Tableau : date, URL analysée (masquée), score de risque, sévérité
 

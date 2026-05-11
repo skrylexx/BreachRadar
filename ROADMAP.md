@@ -140,6 +140,12 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 | `frontend/src/components/dashboard/QuickAccessBlock.tsx` | Création | Bloc d'accès rapide aux outils |
 | `frontend/src/app/(dashboard)/scans/page.tsx` | Création | Page des scans avec historique et bouton de lancement |
 | `frontend/src/app/(dashboard)/scans/client.tsx` | Création | Client des scans avec DataTable |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Création | Layout réutilisable pour toutes les pages outils |
+| `frontend/src/app/(dashboard)/tools/hibp/*` | Création | Page outil HIBP (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/github/*` | Création | Page outil GitHub (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/ransomlook/*` | Création | Page outil RansomLook (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/leakcheck/*` | Création | Page outil LeakCheck (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/urlscan/*` | Création | Page outil URLScan (Server + Client) |
 | `frontend/src/components/ui/badge.tsx` + 14 autres | Création | Composants Shadcn/UI installés : badge, table, tabs, select, dialog, skeleton, tooltip, switch, form, input, label, separator, dropdown-menu, alert, progress |
 | `frontend/src/app/(dashboard)/page.tsx` | Modification | Câblage complet de la page avec l'API Backend via `searchParams` pour les filtres temporels |
 
@@ -171,9 +177,13 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 #### ✅ Phase 2 — Liste et Scans
 - [x] Page `/scans` — Liste paginée de l'historique des scans avec possibilité de relancer un scan via l'API.
 
-#### ⏳ Prochaine session — Phase 2 (Pages Outils)
-- [ ] Phase 2.1 — Layout partagé `ToolPageLayout`
-- [ ] Phase 2.2 à 2.7 — Pages spécifiques (HIBP, GitHub, RansomLook, LeakCheck, URLScan, etc.)
+#### ✅ Phase 2 — Pages par Outil
+- [x] Phase 2.1 — Layout partagé `ToolPageLayout`
+- [x] Phase 2.2 à 2.6 — Pages spécifiques (HIBP, GitHub, RansomLook, LeakCheck, URLScan)
+
+#### ⏳ Prochaine session — Phase 3 (Rapports)
+- [ ] Phase 3.1 — Liste des rapports
+- [ ] Phase 3.2 — Export PDF
 
 ---
 
