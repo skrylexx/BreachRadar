@@ -3,7 +3,7 @@
 /**
  * Sidebar — BreachRadar WebUI
  * Barre latérale gauche, icônes uniquement, tooltip au survol.
- * Logo : image PNG réelle (logo_only-nobg.png) — fond transparent natif.
+ * Logo : image PNG réelle (/images/logo_only-nobg.png) — fond transparent natif.
  *
  * Navigation couvre toutes les routes du TODO.md :
  *   - Dashboard, Scans, Reports
@@ -227,7 +227,7 @@ export function Sidebar() {
       <div className="flex items-center justify-center mb-4">
         <div className="relative group" title="BreachRadar">
           <Image
-            src="/logo_only-nobg.png"
+            src="/images/logo_only-nobg.png"
             alt="BreachRadar"
             width={32}
             height={32}

@@ -4,6 +4,7 @@
  */
 
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -14,30 +15,24 @@ export default function ForbiddenPage() {
   return (
     <div className="flex h-screen items-center justify-center bg-background">
       <div className="text-center space-y-6 max-w-md px-6">
-        {/* Code d'erreur stylisé */}
-        <div className="relative">
-          <p className="text-[120px] font-bold font-data text-radar/10 leading-none select-none">
+
+        {/* Logo + code d'erreur */}
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            {/* Halo rouge derrière le logo */}
+            <div className="absolute inset-0 rounded-full bg-red-500/10 blur-xl scale-150" />
+            <Image
+              src="/images/logo_only-nobg.png"
+              alt="BreachRadar"
+              width={56}
+              height={56}
+              className="relative w-14 h-14 object-contain opacity-80"
+              priority
+            />
+          </div>
+          <p className="text-[80px] font-bold font-data text-red-500/20 leading-none select-none">
             403
           </p>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-red-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="space-y-2">

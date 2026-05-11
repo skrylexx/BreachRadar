@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Geist } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-
-// ─── Fonts ────────────────────────────────────────────────────────────────────────
+// ─── Fonts ─────────────────────────────────────────────────────────────────────
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -20,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
-// ─── SEO Metadata ────────────────────────────────────────────────────────────
+// ─── SEO Metadata ──────────────────────────────────────────────────────────────
 const domain =
   process.env.TARGET_DOMAIN ||
   process.env.NEXT_PUBLIC_TARGET_DOMAIN ||
@@ -39,21 +35,18 @@ export const metadata: Metadata = {
     follow: false,
   },
   icons: {
-    // ── Favicon ────────────────────────────────────────────────────────────
-    // Le fichier doit être présent dans frontend/public/logo_only.png
-    // (copié depuis images/logo_only.png à la racine du repo).
-    // Next.js ne sert que les fichiers du dossier public/ de son propre contexte.
+    // Logos dans public/images/ — Next.js sert tout le contenu de public/ statiquement
     icon: [
-      { url: "/logo_only.png", type: "image/png", sizes: "any" },
+      { url: "/images/logo_only.png", type: "image/png", sizes: "any" },
     ],
     apple: [
-      { url: "/logo_only.png", sizes: "180x180", type: "image/png" },
+      { url: "/images/logo_only.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/logo_only.png",
+    shortcut: "/images/logo_only.png",
   },
 };
 
-// ─── Root Layout ────────────────────────────────────────────────────────────
+// ─── Root Layout ───────────────────────────────────────────────────────────────
 export default function RootLayout({
   children,
 }: {
@@ -62,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("dark", "font-sans", geist.variable)}
+      className="dark"
       suppressHydrationWarning
     >
       <body
