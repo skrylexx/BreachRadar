@@ -1,3 +1,5 @@
 {
-  "/(dashboard)/page": "app/(dashboard)/page.js"
+  "/403/page": "app/403/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/_not-found/page": "app/_not-found/page.js"
 }

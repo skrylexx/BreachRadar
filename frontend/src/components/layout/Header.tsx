@@ -10,16 +10,41 @@ import { Bell, Globe, LogOut, Settings, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 // Mapping des chemins vers les titres de page
-const PAGE_TITLES: Record<string, string> = {
-  "/":          "Dashboard",
-  "/scans":     "Scan Results",
-  "/api-keys":  "API Keys",
-  "/users":     "User Management",
-  "/changelog": "Changelog",
-};
+// Supporte les correspondances exactes et par préfixe (ordre important : plus spécifique en premier)
+const PAGE_TITLES: Array<{ path: string; title: string; exact?: boolean }> = [
+  { path: "/",                    title: "Dashboard",           exact: true },
+  { path: "/scans",               title: "Scans" },
+  { path: "/reports",             title: "Rapports" },
+  { path: "/alerts/ransomware",   title: "Alertes Ransomware" },
+  { path: "/alerts/cve",          title: "Veille CVE & Exploits" },
+  { path: "/tools/hibp",          title: "HIBP & Fuites Emails" },
+  { path: "/tools/github",        title: "GitHub & GitLab" },
+  { path: "/tools/ransomlook",    title: "RansomLook" },
+  { path: "/tools/leakcheck",     title: "LeakCheck" },
+  { path: "/tools/urlscan",       title: "URLScan" },
+  { path: "/tools/dehashed",      title: "Dehashed" },
+  { path: "/tools/otx",           title: "AlienVault OTX" },
+  { path: "/tools/intelx",        title: "Intelligence X" },
+  { path: "/admin/users",         title: "Gestion Utilisateurs" },
+  { path: "/admin/api-keys",      title: "Clés API" },
+  { path: "/admin/smtp",          title: "Configuration SMTP" },
+  { path: "/admin/scheduling",    title: "Scheduling" },
+  { path: "/admin/audit",         title: "Audit Trail" },
+  { path: "/admin/settings",      title: "Paramètres" },
+  { path: "/admin",               title: "Administration" },
+  { path: "/profile",             title: "Mon Profil" },
+  { path: "/changelog",           title: "Changelog" },
+];
 
 function getPageTitle(pathname: string): string {
-  return PAGE_TITLES[pathname] ?? "BreachRadar";
+  for (const entry of PAGE_TITLES) {
+    if (entry.exact) {
+      if (pathname === entry.path) return entry.title;
+    } else {
+      if (pathname.startsWith(entry.path)) return entry.title;
+    }
+  }
+  return "BreachRadar";
 }
 
 // ─── Composant ────────────────────────────────────────────────────────────────

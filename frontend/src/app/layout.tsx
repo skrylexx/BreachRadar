@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 // ─── Fonts ────────────────────────────────────────────────────────────────────────
 const inter = Inter({
@@ -58,7 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="dark"
+      className={cn("dark", "font-sans", geist.variable)}
       suppressHydrationWarning
     >
       <body

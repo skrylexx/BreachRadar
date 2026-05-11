@@ -8,11 +8,19 @@
 ## Avancement global
 
 ```
-Phase 1 — MVP    [██████████] 100%
-Phase 2          [██████████] 100%
-Phase 3          [██████████] 100%
-Phase 4 — WebUI  [██████████] 100%
-Phase 5          [░░░░░░░░░░]   0%
+Phase 1 — MVP         [██████████] 100%
+Phase 2               [██████████] 100%
+Phase 3               [██████████] 100%
+Phase 4 — WebUI       [██████████] 100%
+Phase 5 — Hardening   [░░░░░░░░░░]   0%
+
+── Frontend (TODO.md) ──────────────────
+Phase 0 — Fondations  [██████████] 100%
+Phase 1 — Dashboard   [██░░░░░░░░]  20%  (structure OK, mock data)
+Phase 2 — Tools       [░░░░░░░░░░]   0%
+Phase 3 — Reports     [░░░░░░░░░░]   0%
+Phase 4 — Ransomware  [░░░░░░░░░░]   0%
+Phase 5 — Admin       [░░░░░░░░░░]   0%
 ```
 
 ---
@@ -103,6 +111,53 @@ Phase 5          [░░░░░░░░░░]   0%
 ---
 
 ## CHANGELOG
+
+### Itération 9 — 2026-05-11 (Claude Sonnet 4.6 — Antigravity)
+
+**Objectif de l'itération** : Implémentation de la Phase 0 (Fondations & Infrastructure UI) du TODO.md frontend.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/globals.css` | Modification | Restauration du design system BreachRadar (tokens HSL, variables de sévérité `--color-critical/high/medium/low`, utilitaires custom) |
+| `frontend/src/components/ui/severity-badge.tsx` | Création | `<SeverityBadge>` — badge coloré CRITICAL/HIGH/MEDIUM/LOW/NONE/INFO réutilisable |
+| `frontend/src/components/ui/status-dot.tsx` | Création | `<StatusDot>` — indicateur de statut source avec animation ping (ok/warning/error/unknown) |
+| `frontend/src/components/ui/page-header.tsx` | Création | `<PageHeader>` — en-tête de page standard avec breadcrumb et slot actions |
+| `frontend/src/components/ui/empty-state.tsx` | Création | `<EmptyState>` — état vide standard avec icône radar, message et CTA |
+| `frontend/src/components/ui/time-filter.tsx` | Création | `<TimeFilter>` — sélecteur 7j/1m/6m/12m/Tout |
+| `frontend/src/components/ui/radar-spinner.tsx` | Création | `<RadarSpinner>` — spinner SVG animé type radar (pas de dépendance) |
+| `frontend/src/components/ui/data-table.tsx` | Création | `<DataTable>` — tableau paginé réutilisable avec tri, pagination client/serveur, loading, empty state |
+| `frontend/src/lib/api.ts` | Réécriture | Client HTTP enrichi : types métier complets + fonctions typées par domaine (dashboardApi, scansApi, findingsApi, reportsApi, ransomwareApi, cveApi, usersApi, apiKeysApi, auditApi, authApi) |
+| `frontend/src/middleware.ts` | Création | Middleware Next.js Edge : guard JWT cookie + RBAC admin (redirect /login ou /403) |
+| `frontend/src/app/403/page.tsx` | Création | Page 403 custom — cohérente avec le thème SOC |
+| `frontend/src/app/not-found.tsx` | Création | Page 404 custom — cohérente avec le thème SOC |
+| `frontend/src/components/layout/Sidebar.tsx` | Réécriture | Sidebar étendue avec toutes les routes du TODO (Tools, Alerts, Admin collapsible) |
+| `frontend/src/components/layout/Header.tsx` | Modification | Mapping des titres de page pour toutes les routes du TODO |
+| `frontend/src/components/ui/badge.tsx` + 14 autres | Création | Composants Shadcn/UI installés : badge, table, tabs, select, dialog, skeleton, tooltip, switch, form, input, label, separator, dropdown-menu, alert, progress |
+
+#### Décisions techniques
+
+1. **Design system** : Shadcn init a écrasé les tokens oklch génériques — restaurés en HSL conformément au CDC (`#09090b`, `#18181b`, `#38bdf8`).
+2. **DataTable** : Implémentation vanilla (sans Tanstack Table) pour minimiser les dépendances — upgrade possible si nécessaire.
+3. **Middleware** : Décode JWT basique côté Edge (sans crypto) pour UX guard — la vérification de signature réelle reste côté FastAPI.
+4. **Sidebar** : Section Admin collapsible (état local React) pour ne pas surcharger la sidebar 56px.
+5. **API client** : Toutes les fonctions sont typées avec les interfaces métier BreachRadar — prêtes pour les pages Phase 1-10.
+
+#### ✅ Phase 0 — Tâches complétées
+- [x] 0.1 — Design system tokens (globals.css, variables sévérité, polices)
+- [x] 0.2 — Composants Shadcn/UI installés (15 composants)
+- [x] 0.3 — Composants partagés custom (SeverityBadge, StatusDot, PageHeader, EmptyState, DataTable, RadarSpinner, TimeFilter)
+- [x] 0.5 — Couche API client enrichie (fonctions typées par domaine)
+- [x] 0.6 — Guard authentification (middleware.ts JWT + RBAC)
+- [x] 7.4 — Pages 403 / 404 custom
+
+#### ⏳ Prochaine session — Phase 0 restante + Phase 1
+- [ ] 0.4 — i18n setup (next-intl + messages/en.json + messages/fr.json)
+- [ ] 0.7 — Dark/Light mode toggle dans le Header
+- [ ] Phase 1 — Dashboard avec vraies données API
+
+---
 
 ### Itération 8 — 2026-05-04 (Gemini 3.1 Pro — Antigravity)
 
