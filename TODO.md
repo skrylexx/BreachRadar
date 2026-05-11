@@ -12,7 +12,7 @@
 |---|---|---|
 | `/` (dashboard) | `(dashboard)/page.tsx` | ✅ Partiel (mock data) |
 | `/login` | `(auth)/login/page.tsx` | ✅ Présent |
-| `/scans` | — | ❌ Inexistant |
+| `/scans` | `(dashboard)/scans/page.tsx` | ✅ Présent |
 | `/tools/hibp` | — | ❌ Inexistant |
 | `/tools/github` | — | ❌ Inexistant |
 | `/tools/ransomlook` | — | ❌ Inexistant |
