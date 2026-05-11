@@ -6,41 +6,19 @@
  * - Empty state avec CTA "Premier scan" si au moins un connecteur est actif
  */
 
-import { ExternalLink, Shield, Radar } from "lucide-react";
+import { Shield, Radar } from "lucide-react";
 import { useState } from "react";
-
-type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | string;
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { SeverityBadge, type SeverityLevel } from "@/components/ui/severity-badge";
 
 interface Finding {
   id: string;
   source: string;
   domain: string;
-  severity: Severity;
+  severity: SeverityLevel;
   type: string;
   count: number;
   discovered_at: string;
-}
-
-// ─── Badge de sévérité ─────────────────────────────────────────────────────────────
-function SeverityBadge({ severity }: { severity: Severity }) {
-  const s = severity.toLowerCase();
-  const classes: Record<string, string> = {
-    critical: "badge-critical",
-    high:     "badge-high",
-    medium:   "badge-medium",
-    low:      "badge-low",
-    none:     "badge-none",
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold
-                  font-data uppercase tracking-wide ${
-                    classes[s] ?? "badge-low"
-                  }`}
-    >
-      {severity}
-    </span>
-  );
 }
 
 // ─── Badge source ──────────────────────────────────────────────────────────────────
@@ -155,6 +133,52 @@ export function FindingsTable({
     });
   };
 
+  const columns: DataTableColumn<Finding>[] = [
+    {
+      key: "severity",
+      header: "Severity",
+      render: (row) => <SeverityBadge level={row.severity} />,
+      sortable: true,
+      accessor: (row) => row.severity,
+    },
+    {
+      key: "source",
+      header: "Source",
+      render: (row) => <SourceBadge source={row.source} />,
+      sortable: true,
+      accessor: (row) => row.source,
+    },
+    {
+      key: "domain",
+      header: "Domain",
+      className: "font-data text-foreground",
+      sortable: true,
+      accessor: (row) => row.domain,
+    },
+    {
+      key: "type",
+      header: "Type",
+      className: "capitalize",
+      sortable: true,
+      accessor: (row) => row.type,
+    },
+    {
+      key: "count",
+      header: "Count",
+      className: "font-data font-semibold text-foreground",
+      sortable: true,
+      accessor: (row) => row.count,
+    },
+    {
+      key: "discovered_at",
+      header: "Discovered",
+      className: "font-data whitespace-nowrap",
+      render: (row) => formatDate(row.discovered_at),
+      sortable: true,
+      accessor: (row) => row.discovered_at,
+    },
+  ];
+
   return (
     <div className="card-soc">
       {/* En-tête */}
@@ -169,58 +193,16 @@ export function FindingsTable({
       </div>
 
       {/* Contenu */}
-      {findings.length === 0 ? (
-        hasActiveConnector ? <FirstScanCTA /> : <EmptyFindings />
+      {findings.length === 0 && hasActiveConnector ? (
+        <FirstScanCTA />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full" aria-label="Findings table">
-            <thead>
-              <tr className="border-b border-border/30">
-                {["Severity", "Source", "Domain", "Type", "Count", "Discovered"].map(
-                  (col) => (
-                    <th
-                      key={col}
-                      scope="col"
-                      className="px-4 py-2.5 text-left text-xs font-medium
-                                 text-muted-foreground uppercase tracking-wider"
-                    >
-                      {col}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {findings.map((finding, idx) => (
-                <tr
-                  key={finding.id}
-                  className={`border-b border-border/20 last:border-0
-                              hover:bg-accent/30 transition-colors duration-100
-                              ${idx % 2 === 0 ? "" : "bg-secondary/20"}`}
-                >
-                  <td className="px-4 py-3">
-                    <SeverityBadge severity={finding.severity} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <SourceBadge source={finding.source} />
-                  </td>
-                  <td className="px-4 py-3 font-data text-xs text-foreground">
-                    {finding.domain}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground capitalize">
-                    {finding.type}
-                  </td>
-                  <td className="px-4 py-3 font-data text-xs text-foreground font-semibold">
-                    {finding.count}
-                  </td>
-                  <td className="px-4 py-3 font-data text-xs text-muted-foreground whitespace-nowrap">
-                    {formatDate(finding.discovered_at)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<Finding>
+          columns={columns}
+          data={findings}
+          rowKey={(row) => row.id}
+          emptyMessage="Findings will appear here once the backend has completed its first scan and data sources are configured."
+          className="border-0 rounded-none"
+        />
       )}
     </div>
   );

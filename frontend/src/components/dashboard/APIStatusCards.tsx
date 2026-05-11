@@ -4,40 +4,25 @@
  * Vert = actif/opérationnel  |  Rouge = non configuré / erreur
  */
 
-import { CheckCircle, XCircle, HelpCircle, Plug } from "lucide-react";
+import { Plug } from "lucide-react";
+import type { ConnectorStatus } from "@/lib/api";
+import { StatusDot, type SourceStatus } from "@/components/ui/status-dot";
 
-export interface ConnectorStatus {
-  service_name: string;
-  service_label: string;
-  configured: boolean;
-  is_active: boolean;
-  last_test_success: boolean | null;
-}
-
-// ─── Indicateur de statut ───────────────────────────────────────────────────────────
-function StatusDot({ status }: { status: "ok" | "error" | "unknown" }) {
-  const map = {
-    ok:      { Icon: CheckCircle, cls: "text-emerald-400" },
-    error:   { Icon: XCircle,     cls: "text-red-400" },
-    unknown: { Icon: HelpCircle,  cls: "text-yellow-400" },
-  };
-  const { Icon, cls } = map[status];
-  return <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${cls}`} strokeWidth={1.5} />;
-}
-
-function resolveStatus(c: ConnectorStatus): "ok" | "error" | "unknown" {
-  if (!c.configured || !c.is_active) return "error";
-  if (c.last_test_success === true)  return "ok";
-  if (c.last_test_success === false) return "error";
-  return "unknown"; // null = test pas encore effectué
+function formatTime(iso: string | null): string {
+  if (!iso) return "Never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 function resolveLabel(c: ConnectorStatus): string {
-  if (!c.configured)                 return "Not configured";
-  if (!c.is_active)                  return "Inactive";
-  if (c.last_test_success === true)  return "Operational";
-  if (c.last_test_success === false) return "Error";
-  return "Not tested";
+  if (!c.configured) return "Not configured";
+  if (!c.is_active) return "Inactive";
+  return c.status === "ok" ? "Operational" : c.status === "warning" ? "Degraded" : c.status === "error" ? "Error" : "Unknown";
 }
 
 // ─── Empty state (liste vide) ──────────────────────────────────────────────────────
@@ -76,33 +61,39 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
       ) : (
         <div className="grid grid-cols-2 gap-2 overflow-y-auto">
           {statuses.map((c) => {
-            const status = resolveStatus(c);
+            const status: SourceStatus = (!c.configured || !c.is_active) ? "error" : c.status;
             const label  = resolveLabel(c);
             return (
               <div
-                key={c.service_name}
+                key={c.name}
                 className={
-                  "flex items-start gap-1.5 p-2 rounded-md border " +
+                  "flex flex-col gap-1 p-2 rounded-md border " +
                   (status === "ok"
-                    ? "bg-emerald-500/5 border-emerald-500/20"
+                    ? "bg-green-500/5 border-green-500/20"
                     : status === "error"
                     ? "bg-red-500/5 border-red-500/20"
-                    : "bg-yellow-500/5 border-yellow-500/20")
+                    : status === "warning"
+                    ? "bg-yellow-500/5 border-yellow-500/20"
+                    : "bg-slate-500/5 border-slate-500/20")
                 }
               >
-                <StatusDot status={status} />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-foreground truncate">
-                    {c.service_label}
+                <div className="flex items-center gap-2">
+                  <StatusDot status={status} />
+                  <p className="text-xs font-medium text-foreground truncate uppercase tracking-wider">
+                    {c.name}
                   </p>
-                  <p className={"text-xs " + (
-                    status === "ok"
-                      ? "text-emerald-400"
-                      : status === "error"
-                      ? "text-red-400/80"
-                      : "text-yellow-400/80"
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <p className={"text-[10px] " + (
+                    status === "ok" ? "text-green-400" :
+                    status === "error" ? "text-red-400" :
+                    status === "warning" ? "text-yellow-400" :
+                    "text-slate-400"
                   )}>
                     {label}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-data">
+                    {formatTime(c.last_scan_at)}
                   </p>
                 </div>
               </div>

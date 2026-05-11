@@ -1,0 +1,19 @@
+{
+  "Header": {
+    "dashboard": "Dashboard",
+    "scans": "Scans",
+    "reports": "Reports",
+    "alerts_ransomware": "Ransomware Alerts",
+    "alerts_cve": "CVE & Exploits",
+    "admin_users": "User Management",
+    "admin_api_keys": "API Keys",
+    "profile": "My Profile"
+  },
+  "Dashboard": {
+    "title": "Global Overview",
+    "total_scans": "Scans 7d",
+    "critical_alerts": "Critical Alerts",
+    "active_sources": "Active Sources",
+    "last_scan": "Last scan"
+  }
+}

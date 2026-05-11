@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   BarChart,
   Bar,
@@ -17,8 +18,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BarChart2 } from "lucide-react";
-
-type Period = "7d" | "1m" | "6m" | "12m";
+import { TimeFilter, type TimePeriod } from "@/components/ui/time-filter";
 
 interface DataPoint {
   date: string;
@@ -32,14 +32,8 @@ interface DataPoint {
 interface RiskHeatmapProps {
   data?: DataPoint[];
   isLoading?: boolean;
+  initialPeriod?: TimePeriod;
 }
-
-const PERIOD_LABELS: Record<Period, string> = {
-  "7d": "7 days",
-  "1m": "1 month",
-  "6m": "6 months",
-  "12m": "12 months",
-};
 
 // ─── Tooltip personnalisé ─────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label }: any) {
@@ -73,9 +67,12 @@ function EmptyChart() {
   );
 }
 
-// ─── Composant ────────────────────────────────────────────────────────────────
-export function RiskHeatmap({ data = [], isLoading = false }: RiskHeatmapProps) {
-  const [period, setPeriod] = useState<Period>("7d");
+export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d" }: RiskHeatmapProps) {
+  const router = useRouter();
+
+  const handlePeriodChange = (p: TimePeriod) => {
+    router.push(`/?period=${p}`);
+  };
 
   return (
     <div className="card-soc p-4 space-y-4">
@@ -87,28 +84,7 @@ export function RiskHeatmap({ data = [], isLoading = false }: RiskHeatmapProps) 
             Findings over time — all sources combined
           </p>
         </div>
-        <div
-          className="flex items-center bg-secondary rounded-md border border-border overflow-hidden"
-          role="group"
-          aria-label="Time period selector"
-        >
-          {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
-            <button
-              key={p}
-              id={`period-${p}`}
-              onClick={() => setPeriod(p)}
-              className={`px-2.5 py-1.5 text-xs font-medium transition-colors duration-150
-                ${
-                  period === p
-                    ? "bg-radar text-background"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              aria-pressed={period === p}
-            >
-              {PERIOD_LABELS[p]}
-            </button>
-          ))}
-        </div>
+        <TimeFilter value={initialPeriod} onChange={handlePeriodChange} />
       </div>
 
       {/* Graphique ou empty state */}

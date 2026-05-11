@@ -7,49 +7,40 @@
  */
 
 import { Bell, Globe, LogOut, Settings, User } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 
-// Mapping des chemins vers les titres de page
-// Supporte les correspondances exactes et par préfixe (ordre important : plus spécifique en premier)
-const PAGE_TITLES: Array<{ path: string; title: string; exact?: boolean }> = [
-  { path: "/",                    title: "Dashboard",           exact: true },
-  { path: "/scans",               title: "Scans" },
-  { path: "/reports",             title: "Rapports" },
-  { path: "/alerts/ransomware",   title: "Alertes Ransomware" },
-  { path: "/alerts/cve",          title: "Veille CVE & Exploits" },
-  { path: "/tools/hibp",          title: "HIBP & Fuites Emails" },
-  { path: "/tools/github",        title: "GitHub & GitLab" },
-  { path: "/tools/ransomlook",    title: "RansomLook" },
-  { path: "/tools/leakcheck",     title: "LeakCheck" },
-  { path: "/tools/urlscan",       title: "URLScan" },
-  { path: "/tools/dehashed",      title: "Dehashed" },
-  { path: "/tools/otx",           title: "AlienVault OTX" },
-  { path: "/tools/intelx",        title: "Intelligence X" },
-  { path: "/admin/users",         title: "Gestion Utilisateurs" },
-  { path: "/admin/api-keys",      title: "Clés API" },
-  { path: "/admin/smtp",          title: "Configuration SMTP" },
-  { path: "/admin/scheduling",    title: "Scheduling" },
-  { path: "/admin/audit",         title: "Audit Trail" },
-  { path: "/admin/settings",      title: "Paramètres" },
-  { path: "/admin",               title: "Administration" },
-  { path: "/profile",             title: "Mon Profil" },
-  { path: "/changelog",           title: "Changelog" },
-];
-
-function getPageTitle(pathname: string): string {
-  for (const entry of PAGE_TITLES) {
-    if (entry.exact) {
-      if (pathname === entry.path) return entry.title;
-    } else {
-      if (pathname.startsWith(entry.path)) return entry.title;
-    }
-  }
-  return "BreachRadar";
-}
-
-// ─── Composant ────────────────────────────────────────────────────────────────
 export function Header() {
   const pathname = usePathname();
+  const t = useTranslations("Header");
+  
+  const getPageTitle = (path: string) => {
+    if (path === "/") return t("dashboard");
+    if (path.startsWith("/scans")) return t("scans");
+    if (path.startsWith("/reports")) return t("reports");
+    if (path.startsWith("/alerts/ransomware")) return t("alerts_ransomware");
+    if (path.startsWith("/alerts/cve")) return t("alerts_cve");
+    if (path.startsWith("/admin/users")) return t("admin_users");
+    if (path.startsWith("/admin/api-keys")) return t("admin_api_keys");
+    if (path.startsWith("/profile")) return t("profile");
+    // Fallbacks for tools and others can remain hardcoded or we can add them to translations later
+    if (path.startsWith("/tools/hibp")) return "HIBP & Fuites Emails";
+    if (path.startsWith("/tools/github")) return "GitHub & GitLab";
+    if (path.startsWith("/tools/ransomlook")) return "RansomLook";
+    if (path.startsWith("/tools/leakcheck")) return "LeakCheck";
+    if (path.startsWith("/tools/urlscan")) return "URLScan";
+    if (path.startsWith("/tools/dehashed")) return "Dehashed";
+    if (path.startsWith("/tools/otx")) return "AlienVault OTX";
+    if (path.startsWith("/tools/intelx")) return "Intelligence X";
+    if (path.startsWith("/admin/smtp")) return "Configuration SMTP";
+    if (path.startsWith("/admin/scheduling")) return "Scheduling";
+    if (path.startsWith("/admin/audit")) return "Audit Trail";
+    if (path.startsWith("/admin/settings")) return "Paramètres";
+    if (path === "/admin") return "Administration";
+    if (path === "/changelog") return "Changelog";
+    return "BreachRadar";
+  };
+
   const title = getPageTitle(pathname);
 
   return (
@@ -93,15 +84,24 @@ export function Header() {
 
 // ─── Sélecteur de langue ─────────────────────────────────────────────────────
 function LanguageSelector() {
+  const router = useRouter();
+  const locale = useLocale();
+
+  const changeLanguage = (newLocale: string) => {
+    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
+    router.refresh();
+  };
+
   return (
     <div className="relative group">
       <button
         id="header-language"
-        className="sidebar-icon gap-1"
+        className="sidebar-icon gap-1 flex items-center"
         title="Language"
         aria-label="Change language"
       >
         <Globe className="w-4 h-4" strokeWidth={1.5} />
+        <span className="text-[10px] font-medium uppercase">{locale}</span>
       </button>
 
       {/* Dropdown langues */}
@@ -116,8 +116,12 @@ function LanguageSelector() {
           <button
             key={lang.code}
             id={`lang-${lang.code}`}
-            className="w-full text-left px-3 py-2 text-xs text-foreground
-                       hover:bg-accent transition-colors first:rounded-t-md last:rounded-b-md"
+            onClick={() => changeLanguage(lang.code)}
+            className={`w-full text-left px-3 py-2 text-xs transition-colors first:rounded-t-md last:rounded-b-md ${
+              locale === lang.code
+                ? "bg-radar/15 text-radar font-medium"
+                : "text-foreground hover:bg-accent"
+            }`}
           >
             {lang.label}
           </button>

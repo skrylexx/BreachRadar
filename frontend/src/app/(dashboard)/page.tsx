@@ -5,10 +5,12 @@
  */
 
 import { APIStatusCards } from "@/components/dashboard/APIStatusCards";
-import type { ConnectorStatus } from "@/components/dashboard/APIStatusCards";
+import type { ConnectorStatus } from "@/lib/api";
 import { RiskHeatmap } from "@/components/dashboard/RiskHeatmap";
 import { FindingsTable } from "@/components/dashboard/FindingsTable";
 import { RadarLoader } from "@/components/dashboard/RadarLoader";
+import { RansomwareAlertBlock } from "@/components/dashboard/RansomwareAlertBlock";
+import { CVEAlertsBlock } from "@/components/dashboard/CVEAlertsBlock";
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -57,13 +59,21 @@ function timeAgo(iso: string | null): string {
 }
 
 // ─── Page ────────────────────────────────────────────────────────────────────────────────
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
+  const { period = "7d" } = await searchParams;
+
   // Appels parallèles vers le backend
-  const [stats, connectors, findings, chartData] = await Promise.all([
+  const [stats, connectors, findings, chartData, ransomwareAlerts, cveAlerts] = await Promise.all([
     fetchJSON<DashboardStats>("/api/v1/dashboard/stats"),
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
     fetchJSON<any[]>("/api/v1/findings?limit=10&sort=discovered_at:desc"),
-    fetchJSON<any[]>("/api/v1/dashboard/chart?period=7d"),
+    fetchJSON<any[]>(`/api/v1/dashboard/chart?period=${period}`),
+    fetchJSON<any[]>("/api/v1/ransomlook/alerts?status=LISTED&limit=1"),
+    fetchJSON<any[]>("/api/v1/cve/alerts?limit=5"),
   ]);
 
   // Au moins un connecteur actif ? → afficher le CTA "Premier scan"
@@ -133,14 +143,24 @@ export default async function DashboardPage() {
       {/* ─── Rangée 2 : Graphique + Statut connecteurs ──────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2">
-          <RiskHeatmap data={chartData ?? []} />
+          <RiskHeatmap data={chartData ?? []} initialPeriod={period as any} />
         </div>
         <div className="card-soc p-4">
           <APIStatusCards statuses={connectors ?? []} />
         </div>
       </div>
 
-      {/* ─── Rangée 3 : Tableau des dernières trouvailles ─────────────────────────── */}
+      {/* ─── Rangée 3 : Alertes Ransomware (conditionnel) ───────────────────────── */}
+      {Array.isArray(ransomwareAlerts) && ransomwareAlerts.length > 0 && (
+        <RansomwareAlertBlock alerts={ransomwareAlerts} />
+      )}
+
+      {/* ─── Rangée 4 : Dernières CVE (si configuré) ─────────────────────────────── */}
+      {Array.isArray(cveAlerts) && cveAlerts.length > 0 && (
+        <CVEAlertsBlock alerts={cveAlerts} />
+      )}
+
+      {/* ─── Rangée 5 : Tableau des dernières trouvailles ─────────────────────────── */}
       <FindingsTable
         findings={findings ?? []}
         hasActiveConnector={hasActiveConnector}
