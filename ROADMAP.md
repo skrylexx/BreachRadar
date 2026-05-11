@@ -133,8 +133,11 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 | `frontend/src/app/403/page.tsx` | Création | Page 403 custom — cohérente avec le thème SOC |
 | `frontend/src/app/not-found.tsx` | Création | Page 404 custom — cohérente avec le thème SOC |
 | `frontend/src/components/layout/Sidebar.tsx` | Réécriture | Sidebar étendue avec toutes les routes du TODO (Tools, Alerts, Admin collapsible) |
-| `frontend/src/components/layout/Header.tsx` | Modification | Mapping des titres de page pour toutes les routes du TODO |
+| `frontend/src/components/layout/Header.tsx` | Modification | Intégration de next-intl et ajout du sélecteur de langue dynamique (FR/EN) |
+| `frontend/src/components/dashboard/RansomwareAlertBlock.tsx` | Création | Bloc d'alerte Ransomware dynamique |
+| `frontend/src/components/dashboard/CVEAlertsBlock.tsx` | Création | Bloc des dernières alertes CVE et exploits |
 | `frontend/src/components/ui/badge.tsx` + 14 autres | Création | Composants Shadcn/UI installés : badge, table, tabs, select, dialog, skeleton, tooltip, switch, form, input, label, separator, dropdown-menu, alert, progress |
+| `frontend/src/app/(dashboard)/page.tsx` | Modification | Câblage complet de la page avec l'API Backend via `searchParams` pour les filtres temporels |
 
 #### Décisions techniques
 
@@ -148,14 +151,21 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 - [x] 0.1 — Design system tokens (globals.css, variables sévérité, polices)
 - [x] 0.2 — Composants Shadcn/UI installés (15 composants)
 - [x] 0.3 — Composants partagés custom (SeverityBadge, StatusDot, PageHeader, EmptyState, DataTable, RadarSpinner, TimeFilter)
+- [x] 0.4 — i18n setup (`next-intl` via configuration non-routable pour préserver les URLs du dashboard, `messages/en.json`, `messages/fr.json`)
 - [x] 0.5 — Couche API client enrichie (fonctions typées par domaine)
 - [x] 0.6 — Guard authentification (middleware.ts JWT + RBAC)
+- [~] 0.7 — Dark/Light mode toggle dans le Header (Annulé : le contexte SOC impose un thème Dark obligatoire global, aucune gestion de mode clair n'est autorisée).
 - [x] 7.4 — Pages 403 / 404 custom
 
-#### ⏳ Prochaine session — Phase 0 restante + Phase 1
-- [ ] 0.4 — i18n setup (next-intl + messages/en.json + messages/fr.json)
-- [ ] 0.7 — Dark/Light mode toggle dans le Header
-- [ ] Phase 1 — Dashboard avec vraies données API
+#### ✅ Phase 1 — Dashboard principal
+- [x] 1.1 — Graphique d'évolution global (`RiskHeatmap` + `TimeFilter` fonctionnel modifiant les `searchParams`)
+- [x] 1.2 — Cards connecteurs / sources (`APIStatusCards` + statut dynamique)
+- [x] 1.3 — Bloc alerte RansomLook conditionnel
+- [x] 1.4 — Dernières CVE & Exploits (composant `CVEAlertsBlock`)
+- [x] 1.5 — Dernières alertes "Findings" (refonte avec la `DataTable` générique)
+
+#### ⏳ Prochaine session — Phase 2 (Scans)
+- [ ] Phase 2 — Liste et Lancement de Scans
 
 ---
 

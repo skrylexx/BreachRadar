@@ -36,16 +36,16 @@
 
 > Prérequis à toutes les pages. À faire en premier.
 
-- [ ] **0.1 — Design system tokens**
+- [x] **0.1 — Design system tokens**
   - Vérifier / compléter `globals.css` : variables CSS pour les couleurs de sévérité (`--color-critical`, `--color-high`, `--color-medium`, `--color-low`)
   - Palette dark-first conforme au CDC : fond `#09090b`, surfaces `#18181b`, accent `#38bdf8`
   - Police `Inter` (UI) + `JetBrains Mono` (données techniques) via `next/font`
 
-- [ ] **0.2 — Composants Shadcn/UI manquants**
+- [x] **0.2 — Composants Shadcn/UI manquants**
   - Installer : `badge`, `table`, `tabs`, `select`, `dialog`, `toast`, `skeleton`, `tooltip`, `switch`, `form`, `input`, `label`, `separator`, `dropdown-menu`, `alert`, `progress`
   - Vérifier que `button`, `card` sont déjà présents
 
-- [ ] **0.3 — Composants partagés custom**
+- [x] **0.3 — Composants partagés custom**
   - `<SeverityBadge level="CRITICAL|HIGH|MEDIUM|LOW" />` — badge coloré réutilisable
   - `<StatusDot status="ok|warning|error" />` — indicateur de statut source
   - `<PageHeader title props breadcrumb />` — en-tête de page standard
@@ -54,24 +54,24 @@
   - `<RadarSpinner />` — spinner animé type radar (SVG, utilisé pendant les scans)
   - `<TimeFilter value onChange />` — sélecteur 7j / 1 mois / 6 mois / 12 mois / Tout
 
-- [ ] **0.4 — i18n setup**
+- [x] **0.4 — i18n setup**
   - Installer et configurer `next-intl` (ou `next-i18next`)
   - Créer `messages/en.json` et `messages/fr.json` avec les clés de base
   - Ajouter le sélecteur langue dans le Header (icône globe + EN/FR)
   - Stocker la préférence en `localStorage` / cookie
 
-- [ ] **0.5 — Couche API client**
+- [x] **0.5 — Couche API client**
   - Créer `frontend/src/lib/api.ts` : client HTTP centralisé (fetch avec `NEXT_PUBLIC_API_URL`)
   - Fonctions typées par domaine : `getScans()`, `getFindings()`, `getSources()`, `getRansomLookAlerts()`, `getReports()`, `getUsers()`, etc.
   - Gestion des erreurs 401 → redirect `/login`
   - Hooks React Query (ou SWR) pour chaque ressource
 
-- [ ] **0.6 — Guard d'authentification**
+- [x] **0.6 — Guard d'authentification**
   - Middleware Next.js (`middleware.ts`) : vérifier le JWT dans le cookie sur toutes les routes `(dashboard)` et `admin`
   - Redirect `/login` si non authentifié
   - Guard rôle Admin sur les routes `/admin/*`
 
-- [ ] **0.7 — Dark/Light mode**
+- [x] **0.7 — Dark/Light mode**
   - Vérifier que `ThemeProvider` est bien en place et fonctionnel
   - Toggle dark/light dans le Header avec persistance (`localStorage`)
 
@@ -81,19 +81,19 @@
 
 > Page `(dashboard)/page.tsx` — déjà partiellement présente, à compléter avec vraies données.
 
-- [ ] **1.1 — Graphique d'évolution global (heatmap / barres)**
+- [x] **1.1 — Graphique d'évolution global (heatmap / barres)**
   - Remplacer les mock data par appel API réel
   - Composant `<FindingsChart />` avec `recharts` ou `chart.js`
   - Filtres temporels fonctionnels (7j / 1 mois / 6 mois / 12 mois)
   - Axes : X = temps, Y = nb findings ; couleurs par sévérité (stacked bars)
 
-- [ ] **1.2 — Cards connecteurs / sources**
+- [x] **1.2 — Cards connecteurs / sources**
   - Remplacer les données statiques par API `/api/sources/status`
   - Statut dynamique : ✅ Opérationnel / ⚠️ Dégradé / ❌ Erreur
   - Date du dernier scan réussi
   - Badge CRITICAL si RansomLook a une alerte active
 
-- [ ] **1.3 — Bloc alerte RansomLook**
+- [x] **1.3 — Bloc alerte RansomLook**
   - Affiché uniquement si une alerte CRITICAL est active
   - Résumé : groupe, date, taille revendiquée, statut
   - CTA → `/alerts/ransomware`
