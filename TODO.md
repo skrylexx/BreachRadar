@@ -194,35 +194,35 @@
 
 > Toutes ces pages : visible uniquement si `role === "admin"`. Redirect 403 sinon.
 
-- [ ] **5.1 — Layout admin**
+- [x] **5.1 — Layout admin**
   - Sous-navigation admin : Utilisateurs / Clés API / SMTP / Scheduling / Audit / **Paramètres**
   - `<AdminGuard />` wrappant toutes les pages `/admin`
 
-- [ ] **5.2 — Gestion utilisateurs** (`/admin/users`)
+- [x] **5.2 — Gestion utilisateurs** (`/admin/users`)
   - Tableau : email, rôle, statut MFA, dernière connexion
   - Actions : créer, désactiver, reset password par email, reset MFA
   - Modal création : email + mot de passe + rôle (Admin/Viewer)
   - Politique de mot de passe affichée : min 16 chars (Admin) / min 12 chars (Viewer)
   - Indicateur rotation mot de passe (date expiration, alerte si dépassée)
 
-- [ ] **5.3 — Clés API & Intégrations** (`/admin/api-keys`)
+- [x] **5.3 — Clés API & Intégrations** (`/admin/api-keys`)
   - Formulaire pour chaque clé : HIBP, GitHub, GitLab, URLScan, OTX, LeakCheck, Dehashed, IntelX, Shodan, Hunter
   - Indicateur visuel : clé présente ✅ / absente ⬜ (jamais en clair)
   - Section RansomLook : toggle local/SaaS + champ API key SaaS
   - Bouton "Tester cette source" → appel santé → toast résultat
   - Champ TARGET_DOMAIN avec sauvegarde
 
-- [ ] **5.4 — Configuration SMTP** (`/admin/smtp`)
+- [x] **5.4 — Configuration SMTP** (`/admin/smtp`)
   - Champs : host, port, TLS/SSL toggle, user, password (masqué), from, reply-to
   - Bouton "Envoyer un mail de test" → feedback toast
 
-- [ ] **5.5 — Scheduling** (`/admin/scheduling`)
+- [x] **5.5 — Scheduling** (`/admin/scheduling`)
   - Toggle activation/désactivation du cron
   - Champ expression cron avec validation (affichage lisible : "Tous les lundis à 08:00")
   - Affichage du prochain run prévu
   - Historique des 5 dernières exécutions planifiées
 
-- [ ] **5.6 — Audit trail** (`/admin/audit`)
+- [x] **5.6 — Audit trail** (`/admin/audit`)
   - Tableau : date, utilisateur, action (login / modif clé / relance scan / export…), IP
   - Filtres : utilisateur, type d'action, période
   - Pagination côté serveur
@@ -500,4 +500,4 @@ Phase 0 (fondations) → Phase 7.1 + 7.3 (auth branchée) → Phase 1 (dashboard
 
 ---
 
-*Dernière mise à jour : 2026-05-06*
+*Dernière mise à jour : 2026-05-13*

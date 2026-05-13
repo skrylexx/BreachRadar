@@ -16,11 +16,11 @@ Phase 5 — Hardening   [░░░░░░░░░░]   0%
 
 ── Frontend (TODO.md) ──────────────────
 Phase 0 — Fondations  [██████████] 100%
-Phase 1 — Dashboard   [██░░░░░░░░]  20%  (structure OK, mock data)
-Phase 2 — Tools       [░░░░░░░░░░]   0%
-Phase 3 — Reports     [░░░░░░░░░░]   0%
-Phase 4 — Ransomware  [░░░░░░░░░░]   0%
-Phase 5 — Admin       [░░░░░░░░░░]   0%
+Phase 1 — Dashboard   [██████████] 100%
+Phase 2 — Tools       [██████████] 100%
+Phase 3 — Reports     [██████████] 100%
+Phase 4 — Ransomware  [██████████] 100%
+Phase 5 — Admin       [██████████] 100%
 ```
 
 ---
@@ -111,6 +111,54 @@ Phase 5 — Admin       [░░░░░░░░░░]   0%
 ---
 
 ## CHANGELOG
+
+### Itération 10 — 2026-05-13 (Claude Sonnet 4.6 — Antigravity)
+
+**Objectif de l'itération** : Implémentation complète de la Phase 5 (Administration) du TODO.md frontend.
+
+#### Fichiers créés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/(dashboard)/admin/users/page.tsx` | Création | Server component page Utilisateurs |
+| `frontend/src/app/(dashboard)/admin/users/client.tsx` | Création | Client complet : tableau paginé, modal création, actions désactiver/reset MDP/reset MFA, politique MDP |
+| `frontend/src/app/(dashboard)/admin/api-keys/page.tsx` | Création | Server component page Clés API |
+| `frontend/src/app/(dashboard)/admin/api-keys/client.tsx` | Création | Client : grille de cartes par source, modal Set/Delete/Test, jamais de valeur en clair, avertissement sécurité |
+| `frontend/src/app/(dashboard)/admin/smtp/page.tsx` | Création | Server component page SMTP |
+| `frontend/src/app/(dashboard)/admin/smtp/client.tsx` | Création | Client : formulaire SMTP complet (host/port/TLS/SSL/user/password masqué/from/reply-to), bouton test email |
+| `frontend/src/app/(dashboard)/admin/scheduling/page.tsx` | Création | Server component page Scheduling |
+| `frontend/src/app/(dashboard)/admin/scheduling/client.tsx` | Création | Client : toggle activation, input cron + presets lisibles, affichage prochain run, historique 5 derniers runs |
+| `frontend/src/app/(dashboard)/admin/audit/page.tsx` | Création | Server component page Audit Trail |
+| `frontend/src/app/(dashboard)/admin/audit/client.tsx` | Création | Client : tableau paginé (date/user/action/IP), filtres user+action+période, export CSV |
+| `frontend/src/app/(dashboard)/admin/settings/page.tsx` | Création | Server component page Paramètres |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Création | Client : 4 onglets Tabs (Général, Surveillance CVE, Notifications, Avancé) — toggles catégories CVE, clé NVD masquée, mode maintenance, seuil alerte, export cache |
+
+#### Décisions techniques
+
+1. **Pattern Server + Client** : Architecture Next.js 15 App Router maintenue — chaque page = `page.tsx` (Server) + `client.tsx` ("use client").
+2. **Sécurité API Keys** : Aucune valeur de clé n'est jamais pré-remplie dans un input — le champ est toujours vide à l'ouverture du dialog. Avertissement Docker volume permanent.
+3. **Toast local** : Pattern `useToast` inline (sans dep externe) pour éviter d'importer une lib lourde — usage cohérent avec le reste du frontend.
+4. **SMTP password masqué** : Bouton œil pour révéler, jamais de `autocomplete="current-password"` pour forcer la saisie explicite.
+5. **Cron presets** : 6 pré-sets courants + traduction cron → phrase lisible (dict statique + pattern matching).
+6. **Export CSV audit** : Généré côté client (Blob URL) pour éviter un endpoint dédié — acceptable pour les volumes d'audit trail WebUI.
+
+#### ✅ Phase 5 — Tâches complétées
+- [x] 5.1 — Layout admin (déjà présent depuis itération 9)
+- [x] 5.2 — Gestion utilisateurs (`/admin/users`)
+- [x] 5.3 — Clés API & Intégrations (`/admin/api-keys`)
+- [x] 5.4 — Configuration SMTP (`/admin/smtp`)
+- [x] 5.5 — Scheduling (`/admin/scheduling`)
+- [x] 5.6 — Audit trail (`/admin/audit`)
+- [x] 10.1 à 10.4 — Paramètres instance (`/admin/settings`) — 4 onglets
+
+#### ⏳ Prochaine session — Phases 9, 7 & 6
+- [ ] Phase 9.1 à 9.5 — Page `/alerts/cve` (veille CVE)
+- [ ] Phase 7.1 — Branchement réel API `/auth/login` (JWT cookie)
+- [ ] Phase 7.2 — Page profil utilisateur (`/profile`)
+- [ ] Phase 7.3 — Logout (`POST /auth/logout`, clear cookie, redirect)
+- [ ] Phase 6.1 — Page changelog (`/changelog`)
+
+---
 
 ### Itération 9 — 2026-05-11 (Claude Sonnet 4.6 — Antigravity)
 
