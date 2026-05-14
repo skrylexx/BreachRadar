@@ -25,7 +25,7 @@ import { RadarSpinner } from "@/components/ui/radar-spinner";
 import { cn } from "@/lib/utils";
 import { Database } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────────
 
 export interface DataTableColumn<T> {
   /** Clé unique de la colonne */
@@ -44,10 +44,15 @@ export interface DataTableColumn<T> {
   width?: string;
 }
 
-interface PaginationConfig {
+export interface PaginationConfig {
   page: number;
   pageSize: number;
-  total: number;
+  /** Nombre total d'items (alias: totalItems) */
+  total?: number;
+  /** Alias de total — accepté pour la compatibilité avec les pages qui passent totalItems */
+  totalItems?: number;
+  /** Nombre total de pages (optionnel, calculé automatiquement si absent) */
+  totalPages?: number;
   onPageChange: (page: number) => void;
 }
 
@@ -65,7 +70,7 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
 }
 
-// ─── Composant ────────────────────────────────────────────────────────────────
+// ─── Composant ───────────────────────────────────────────────────────────
 
 export function DataTable<T>({
   columns,
@@ -80,7 +85,7 @@ export function DataTable<T>({
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  // ─── Tri côté client (si pas de pagination serveur) ─────────────────────
+  // ─── Tri côté client (si pas de pagination serveur) ─────────────────────────
   const sortedData = useMemo(() => {
     if (!sortKey || pagination) return data;
     const col = columns.find((c) => c.key === sortKey);
@@ -103,12 +108,13 @@ export function DataTable<T>({
     }
   };
 
-  // ─── Pagination côté client ──────────────────────────────────────────────
+  // ─── Pagination côté client ───────────────────────────────────────────────────────
   const [clientPage, setClientPage] = useState(1);
   const pageSize = pagination?.pageSize ?? 25;
   const currentPage = pagination?.page ?? clientPage;
-  const total = pagination?.total ?? data.length;
-  const totalPages = Math.ceil(total / pageSize);
+  // Support total, totalItems (alias), avec fallback sur la longueur des data
+  const total = pagination?.total ?? pagination?.totalItems ?? data.length;
+  const totalPages = pagination?.totalPages ?? Math.ceil(total / pageSize);
 
   const displayData = pagination
     ? sortedData
@@ -116,7 +122,7 @@ export function DataTable<T>({
 
   const onPageChange = pagination?.onPageChange ?? setClientPage;
 
-  // ─── Render ──────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className={cn("rounded-lg border border-border/50 overflow-hidden", className)}>
       <div className="overflow-x-auto custom-scrollbar">
@@ -156,7 +162,7 @@ export function DataTable<T>({
           </TableHeader>
 
           <TableBody>
-            {/* ── Loading ───────────────────────────────────────────────── */}
+            {/* ── Loading ────────────────────────────────────────────────────── */}
             {loading && (
               <TableRow>
                 <TableCell colSpan={columns.length} className="py-12">
@@ -167,7 +173,7 @@ export function DataTable<T>({
               </TableRow>
             )}
 
-            {/* ── Empty state ───────────────────────────────────────────── */}
+            {/* ── Empty state ─────────────────────────────────────────────────── */}
             {!loading && displayData.length === 0 && (
               <TableRow>
                 <TableCell colSpan={columns.length} className="p-0">
@@ -179,7 +185,7 @@ export function DataTable<T>({
               </TableRow>
             )}
 
-            {/* ── Rows ──────────────────────────────────────────────────── */}
+            {/* ── Rows ────────────────────────────────────────────────────────── */}
             {!loading &&
               displayData.map((row) => (
                 <TableRow
@@ -204,7 +210,7 @@ export function DataTable<T>({
         </Table>
       </div>
 
-      {/* ── Pagination ────────────────────────────────────────────────────── */}
+      {/* ── Pagination ───────────────────────────────────────────────────────────── */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 bg-card/50">
           <span className="text-xs text-muted-foreground font-data">
