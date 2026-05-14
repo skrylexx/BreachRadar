@@ -440,52 +440,56 @@ export function UsersClient() {
       },
     },
     {
-      key: "actions",
-      header: "Actions",
-      width: "140px",
-      render: (u) => (
-        <div className="flex items-center gap-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <button
-                  id={`reset-password-${u.id}`}
-                  onClick={(e) => { e.stopPropagation(); handleResetPassword(u); }}
-                >
-              <TooltipContent side="top" className="text-xs">Reset MDP</TooltipContent>
-            </Tooltip>
+  key: "actions",
+  header: "Actions",
+  width: "140px",
+  render: (u) => (
+    <div className="flex items-center gap-1">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <button
+              id={`reset-password-${u.id}`}
+              onClick={(e) => { e.stopPropagation(); handleResetPassword(u); }}
+              className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Reset MDP</TooltipContent>
+        </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  id={`reset-mfa-${u.id}`}
-                  onClick={(e) => { e.stopPropagation(); handleResetMfa(u); }}
-                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                  disabled={!u.mfa_enabled}
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">Reset MFA</TooltipContent>
-            </Tooltip>
+        <Tooltip>
+          <TooltipTrigger>
+            <button
+              id={`reset-mfa-${u.id}`}
+              onClick={(e) => { e.stopPropagation(); handleResetMfa(u); }}
+              className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              disabled={!u.mfa_enabled}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Reset MFA</TooltipContent>
+        </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  id={`disable-user-${u.id}`}
-                  onClick={(e) => { e.stopPropagation(); handleDisable(u); }}
-                  className="p-1.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-red-400 transition-colors"
-                  disabled={!u.is_active}
-                >
-                  <XCircle className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">Désactiver</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      ),
-    },
+        <Tooltip>
+          <TooltipTrigger>
+            <button
+              id={`disable-user-${u.id}`}
+              onClick={(e) => { e.stopPropagation(); handleDisable(u); }}
+              className="p-1.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-red-400 transition-colors"
+              disabled={!u.is_active}
+            >
+              <XCircle className="w-3.5 h-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Désactiver</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  ),
+},
   ];
 
   // ─── Render ───────────────────────────────────────────────────────────────
