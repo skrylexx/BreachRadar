@@ -268,11 +268,11 @@ function SourceCard({ source, status, onSet, onDelete, onTest }: SourceCardProps
           <code className="text-[11px] text-muted-foreground font-data">{source.variable}</code>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" aria-label={isSet ? "Clé définie" : "Clé absente"}>
           {isSet ? (
-            <CheckCircle2 className="w-4 h-4 text-green-400" title="Clé définie" />
+            <CheckCircle2 className="w-4 h-4 text-green-400" />
           ) : (
-            <div className="w-4 h-4 rounded-full border-2 border-border/50" title="Clé absente" />
+            <div className="w-4 h-4 rounded-full border-2 border-border/50" />
           )}
         </div>
       </div>
@@ -348,7 +348,7 @@ export function ApiKeysClient() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     fetchStatuses();
