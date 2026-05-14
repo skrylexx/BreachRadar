@@ -91,7 +91,6 @@ export function ScansClient({
     try {
       setIsScanning(true);
       await scansApi.trigger();
-      // Wait a bit and refresh the page to show the new scan
       setTimeout(() => {
         router.refresh();
         setIsScanning(false);
@@ -137,7 +136,7 @@ export function ScansClient({
             page: initialPage,
             pageSize: 25,
             totalItems: initialData.total,
-            totalPages: initialData.pages,
+            totalPages: Math.ceil(initialData.total / initialData.page_size),
             onPageChange: handlePageChange,
           } : undefined}
         />
