@@ -50,7 +50,6 @@ export function ReportsClient({
   };
 
   const handleExportJSON = (id: string) => {
-    // Phase 3.3 : JSON export fallback (simulate using PDF link structure but with format=json)
     window.open(`${reportsApi.exportPdf(id).replace("format=pdf", "format=json")}`, "_blank");
   };
 
@@ -67,7 +66,6 @@ export function ReportsClient({
       setIsGenerating(true);
       await reportsApi.generate(startDate, endDate);
       setShowGenerateModal(false);
-      // Wait a moment before refreshing so backend has time to process if sync
       setTimeout(() => {
         router.refresh();
       }, 1500);
@@ -125,7 +123,7 @@ export function ReportsClient({
         </span>
       ),
       sortable: false,
-      accessor: (row) => row.has_ransomware_alert,
+      accessor: (row) => (row.has_ransomware_alert ? "yes" : "no"),
     },
     {
       key: "actions",
@@ -187,13 +185,13 @@ export function ReportsClient({
             page: initialPage,
             pageSize: 25,
             totalItems: initialData.total,
-            totalPages: initialData.pages,
+            totalPages: Math.ceil(initialData.total / initialData.page_size),
             onPageChange: handlePageChange,
           } : undefined}
         />
       </div>
 
-      {/* ─── Modal de Génération ────────────────────────────────────────────────── */}
+      {/* ─── Modal de Génération ─────────────────────────────────────────────── */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="card-soc p-6 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
