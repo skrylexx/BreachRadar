@@ -44,7 +44,7 @@ export function GitHubClient({
       header: "Repository",
       className: "font-data font-medium text-foreground truncate max-w-[200px]",
       sortable: false,
-      accessor: (row) => row.domain,
+      accessor: (row) => (row as any).domain || (row as any).url || "N/A",
     },
     {
       key: "type",
@@ -81,7 +81,8 @@ export function GitHubClient({
   };
 
   return (
-    <ToolPageLayout<Finding>
+    <ToolPageLayout
+      icon={Github}
       title="GitHub & GitLab"
       description="Monitor exposed secrets and credentials in public repositories."
       breadcrumb={[
@@ -98,7 +99,7 @@ export function GitHubClient({
         page: initialPage,
         pageSize: 25,
         totalItems: initialData.total,
-        totalPages: initialData.pages,
+        totalPages: Math.ceil(initialData.total / initialData.page_size),
         onPageChange: handlePageChange,
       } : undefined}
       actions={

@@ -112,6 +112,39 @@ Phase 5 — Admin       [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 11 — 2026-05-14 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Résolution des erreurs de build Docker Frontend et standardisation des réponses API Backend.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/(dashboard)/tools/*/client.tsx` | Fix | Correction des erreurs de syntaxe TSX (génériques explicites) et ajout des icônes manquantes. |
+| `frontend/src/components/ui/page-header.tsx` | Modification | Ajout du support des icônes dans l'en-tête de page. |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Utilisation de l'icône passée en prop dans le `PageHeader`. |
+| `frontend/src/lib/api.ts` | Fix | Ajout de la propriété `domain` à l'interface `Finding` et correction de la logique de pagination (calcul `totalPages`). |
+| `backend/app/schemas/common.py` | Création | Ajout du schéma générique `PaginatedResponse`. |
+| `backend/app/schemas/finding.py` | Création | Ajout du schéma `FindingRead` pour la validation API. |
+| `backend/app/routers/dashboard.py` | Modification | Standardisation de `/api/v1/findings` pour retourner une `PaginatedResponse`. |
+| `backend/app/routers/scans.py` | Modification | Standardisation de `/api/v1/scans` pour retourner une `PaginatedResponse`. |
+| `backend/app/routers/ransomlook.py` | Création | Nouveau routeur pour centraliser les alertes Ransomware (proxy vers RansomLook). |
+| `backend/app/main.py` | Modification | Enregistrement du routeur `ransomlook` et correction des préfixes de routes pour correspondre au frontend. |
+
+#### Décisions techniques
+
+1. **Standardisation API** : Toutes les listes (findings, scans, ransomware) retournent désormais un objet `PaginatedResponse` `{ items, total, page, page_size }` au lieu d'une liste brute.
+2. **Icons by Type** : Les icônes Lucide sont désormais passées comme types de composants (`LucideIcon`) et non plus comme éléments JSX, permettant une injection propre dans le layout.
+3. **Calcul Pagination** : Le frontend calcule désormais `totalPages` dynamiquement via `Math.ceil(total / page_size)` pour plus de flexibilité si le backend change.
+
+#### ✅ Phase 0 & 2 — Corrections build
+- [x] Correction syntaxe TSX ToolPageLayout
+- [x] Correction types PaginatedResponse (pages -> total/page_size)
+- [x] Correction interface Finding (ajout domain)
+- [x] Standardisation Backend (Schémas génériques)
+
+---
+
 ### Itération 10 — 2026-05-13 (Claude Sonnet 4.6 — Antigravity)
 
 **Objectif de l'itération** : Implémentation complète de la Phase 5 (Administration) du TODO.md frontend.

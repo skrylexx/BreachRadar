@@ -81,7 +81,8 @@ export function HIBPClient({
   };
 
   return (
-    <ToolPageLayout<Finding>
+    <ToolPageLayout
+      icon={Key}
       title="HIBP & Breaches"
       description="Monitor compromised emails and data breaches via HaveIBeenPwned."
       breadcrumb={[
@@ -98,7 +99,7 @@ export function HIBPClient({
         page: initialPage,
         pageSize: 25,
         totalItems: initialData.total,
-        totalPages: initialData.pages,
+        totalPages: Math.ceil(initialData.total / initialData.page_size),
         onPageChange: handlePageChange,
       } : undefined}
       actions={

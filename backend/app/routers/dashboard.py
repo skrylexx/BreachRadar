@@ -10,16 +10,18 @@ Endpoints consommés par le frontend Server Component (page.tsx) :
 
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.dependencies.auth import ViewerUser
 from app.models.scan import ScanResult, ScanSeverity, ScanStatus
+from app.schemas.common import PaginatedResponse
+from app.schemas.finding import FindingRead
 
 router = APIRouter()
 
@@ -118,26 +120,17 @@ async def connectors_status(current_user: ViewerUser) -> list[dict[str, Any]]:
     État de TOUS les connecteurs disponibles dans l'application,
     qu'ils soient configurés ou non. Le frontend les affiche tous
     (vert = actif, rouge = non configuré / inactif).
-
-    last_test_success :
-      - True  → dot vert  "Operational"
-      - False → dot rouge "Error"
-      - None  → dot jaune "Not tested"
     """
     ransomlook_ok = _ransomlook_active()
 
     connectors = [
-        # ─ Toujours présent : RansomLook (local ou SaaS) ────────────────
         {
             "service_name": "ransomlook",
             "service_label": "RansomLook",
             "configured": ransomlook_ok,
             "is_active": ransomlook_ok,
-            # Mode local : on considère le service opérationnel sans test réseau.
-            # Mode SaaS avec clé : last_test_success=None (non encore testé en live).
             "last_test_success": True if settings.ransomlook_mode == "local" else None,
         },
-        # ─ Sources avec clé API ───────────────────────────────────────
         {
             "service_name": "hibp",
             "service_label": "HIBP",
@@ -208,56 +201,73 @@ async def connectors_status(current_user: ViewerUser) -> list[dict[str, Any]]:
 
 # ─── /findings ────────────────────────────────────────────────────────────────
 
-@router.get("/findings")
+@router.get("/findings", response_model=PaginatedResponse[FindingRead])
 async def list_findings(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
     limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     sort: str = Query("discovered_at:desc"),
-) -> list[dict[str, Any]]:
+    source: Optional[str] = None,
+    period: Optional[str] = None,
+) -> PaginatedResponse[FindingRead]:
     """
     Dernières trouvailles pour la table Latest Findings du dashboard.
     Chaque ScanResult est "explosé" par source via findings_by_source.
     """
+    # Count total scans to handle pagination
+    count_query = select(func.count(ScanResult.id)).where(ScanResult.status == ScanStatus.COMPLETED).where(ScanResult.total_findings > 0)
+    total_result = await db.execute(count_query)
+    total_scans = total_result.scalar_one()
+
     result = await db.execute(
         select(ScanResult)
         .where(ScanResult.status == ScanStatus.COMPLETED)
         .where(ScanResult.total_findings > 0)
         .order_by(ScanResult.started_at.desc())
+        .offset(offset)
         .limit(limit)
     )
     scans = result.scalars().all()
 
-    rows: list[dict[str, Any]] = []
+    rows: list[FindingRead] = []
     for scan in scans:
         if scan.findings_by_source:
-            for source, count in scan.findings_by_source.items():
+            for src, count in scan.findings_by_source.items():
+                if source and src.lower() != source.lower():
+                    continue
                 if count and count > 0:
-                    rows.append({
-                        "id": f"{scan.id}-{source}",
-                        "severity": (
+                    rows.append(FindingRead(
+                        id=f"{scan.id}-{src}",
+                        severity=(
                             scan.severity.value.upper() if scan.severity else "LOW"
                         ),
-                        "source": source,
-                        "domain": scan.target_domain,
-                        "type": _source_to_type(source),
-                        "count": count,
-                        "discovered_at": scan.started_at.isoformat(),
-                    })
+                        source=src,
+                        domain=scan.target_domain,
+                        type=_source_to_type(src),
+                        count=count,
+                        discovered_at=scan.started_at,
+                    ))
         else:
-            rows.append({
-                "id": str(scan.id),
-                "severity": (
-                    scan.severity.value.upper() if scan.severity else "LOW"
-                ),
-                "source": scan.triggered_by or "scheduler",
-                "domain": scan.target_domain,
-                "type": "Scan",
-                "count": scan.total_findings,
-                "discovered_at": scan.started_at.isoformat(),
-            })
+            if not source:
+                rows.append(FindingRead(
+                    id=str(scan.id),
+                    severity=(
+                        scan.severity.value.upper() if scan.severity else "LOW"
+                    ),
+                    source=scan.triggered_by or "scheduler",
+                    domain=scan.target_domain,
+                    type="Scan",
+                    count=scan.total_findings,
+                    discovered_at=scan.started_at,
+                ))
 
-    return rows[:limit]
+    return PaginatedResponse(
+        items=rows,
+        total=total_scans,
+        page=(offset // limit) + 1,
+        page_size=limit
+    )
 
 
 def _source_to_type(source: str) -> str:

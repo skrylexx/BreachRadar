@@ -147,6 +147,7 @@ export interface Finding {
   severity: Severity;
   title: string;
   description: string;
+  domain: string; // Add this
   discovered_at: string;
   metadata: Record<string, unknown>;
 }

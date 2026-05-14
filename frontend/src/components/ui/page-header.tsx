@@ -10,7 +10,7 @@
  */
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BreadcrumbSegment {
@@ -21,6 +21,7 @@ interface BreadcrumbSegment {
 interface PageHeaderProps {
   title: string;
   description?: string;
+  icon?: LucideIcon;
   breadcrumb?: BreadcrumbSegment[];
   children?: React.ReactNode;
   className?: string;
@@ -29,6 +30,7 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  icon: Icon,
   breadcrumb,
   children,
   className,
@@ -61,13 +63,20 @@ export function PageHeader({
 
       {/* Titre + actions */}
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">
-            {title}
-          </h1>
-          {description && (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <div className="flex items-start gap-4">
+          {Icon && (
+            <div className="p-2.5 rounded-xl bg-radar/10 border border-radar/20 text-radar">
+              <Icon className="w-6 h-6" />
+            </div>
           )}
+          <div>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">
+              {title}
+            </h1>
+            {description && (
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            )}
+          </div>
         </div>
 
         {/* Slot actions CTA */}

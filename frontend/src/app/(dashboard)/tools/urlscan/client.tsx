@@ -81,7 +81,8 @@ export function URLScanClient({
   };
 
   return (
-    <ToolPageLayout<Finding>
+    <ToolPageLayout
+      icon={Globe}
       title="URLScan"
       description="Monitor scanned URLs and domain reputations."
       breadcrumb={[
@@ -98,7 +99,7 @@ export function URLScanClient({
         page: initialPage,
         pageSize: 25,
         totalItems: initialData.total,
-        totalPages: initialData.pages,
+        totalPages: Math.ceil(initialData.total / initialData.page_size),
         onPageChange: handlePageChange,
       } : undefined}
       actions={

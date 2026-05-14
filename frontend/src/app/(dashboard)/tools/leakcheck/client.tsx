@@ -81,7 +81,8 @@ export function LeakCheckClient({
   };
 
   return (
-    <ToolPageLayout<Finding>
+    <ToolPageLayout
+      icon={Search}
       title="LeakCheck"
       description="Monitor credential leaks and compromised accounts."
       breadcrumb={[
@@ -98,7 +99,7 @@ export function LeakCheckClient({
         page: initialPage,
         pageSize: 25,
         totalItems: initialData.total,
-        totalPages: initialData.pages,
+        totalPages: Math.ceil(initialData.total / initialData.page_size),
         onPageChange: handlePageChange,
       } : undefined}
       actions={

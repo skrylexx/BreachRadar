@@ -85,7 +85,8 @@ export function RansomLookClient({
   };
 
   return (
-    <ToolPageLayout<RansomwareAlert>
+    <ToolPageLayout
+      icon={Lock}
       title="RansomLook"
       description="Monitor ransomware group activities and victims."
       breadcrumb={[
@@ -102,7 +103,7 @@ export function RansomLookClient({
         page: initialPage,
         pageSize: 25,
         totalItems: initialData.total,
-        totalPages: initialData.pages,
+        totalPages: Math.ceil(initialData.total / initialData.page_size),
         onPageChange: handlePageChange,
       } : undefined}
       actions={
