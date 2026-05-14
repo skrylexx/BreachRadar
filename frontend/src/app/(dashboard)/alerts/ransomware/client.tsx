@@ -248,7 +248,7 @@ export function RansomwareAlertsClient({
             page: initialPage,
             pageSize: 25,
             totalItems: initialData.total,
-            totalPages: initialData.pages,
+            totalPages: Math.ceil(initialData.total / initialData.page_size),
             onPageChange: handlePageChange,
           } : undefined}
         />
