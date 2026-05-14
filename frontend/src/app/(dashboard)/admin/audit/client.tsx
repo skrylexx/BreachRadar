@@ -145,7 +145,7 @@ export function AuditClient() {
     } finally {
       setLoading(false);
     }
-  }, [page, userFilter, actionFilter, period]);
+  }, [page, userFilter, actionFilter, period, showToast]);
 
   useEffect(() => {
     setPage(1);
@@ -269,8 +269,14 @@ export function AuditClient() {
         </div>
 
         {/* Filtre action */}
-        <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger id="audit-action-filter" className="w-48 bg-secondary border-border/50 h-9 text-sm">
+        <Select
+          value={actionFilter}
+          onValueChange={(value) => setActionFilter(value ?? "all")}
+        >
+          <SelectTrigger
+            id="audit-action-filter"
+            className="w-48 bg-secondary border-border/50 h-9 text-sm"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="card-soc border-border/60 max-h-60">
@@ -283,8 +289,11 @@ export function AuditClient() {
         </Select>
 
         {/* Filtre période */}
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger id="audit-period-filter" className="w-40 bg-secondary border-border/50 h-9 text-sm">
+        <Select value={period} onValueChange={(value) => setPeriod(value ?? "7d")}>
+          <SelectTrigger
+            id="audit-period-filter"
+            className="w-40 bg-secondary border-border/50 h-9 text-sm"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="card-soc border-border/60">
