@@ -44,7 +44,6 @@ export function ToolPageLayout<T>({
       <PageHeader
         title={title}
         description={description}
-        icon={icon}
         breadcrumb={breadcrumb}
       >
         {actions}

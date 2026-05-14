@@ -172,7 +172,6 @@ export function DataTable<T>({
               <TableRow>
                 <TableCell colSpan={columns.length} className="p-0">
                   <EmptyState
-                    icon={Database}
                     message={emptyMessage}
                     className="py-10"
                   />

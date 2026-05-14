@@ -84,11 +84,10 @@ export function LeakCheckClient({
     <ToolPageLayout<Finding>
       title="LeakCheck"
       description="Monitor credential leaks and compromised accounts."
-      icon={Search}
       breadcrumb={[
         { label: "Dashboard", href: "/" },
         { label: "Tools", href: "#" },
-        { label: "LeakCheck", active: true },
+        { label: "LeakCheck" },
       ]}
       period={period}
       chartData={chartData}

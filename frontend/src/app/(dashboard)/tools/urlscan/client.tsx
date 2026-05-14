@@ -84,11 +84,10 @@ export function URLScanClient({
     <ToolPageLayout<Finding>
       title="URLScan"
       description="Monitor scanned URLs and domain reputations."
-      icon={Globe}
       breadcrumb={[
         { label: "Dashboard", href: "/" },
         { label: "Tools", href: "#" },
-        { label: "URLScan", active: true },
+        { label: "URLScan" },
       ]}
       period={period}
       chartData={chartData}

@@ -88,11 +88,10 @@ export function RansomLookClient({
     <ToolPageLayout<RansomwareAlert>
       title="RansomLook"
       description="Monitor ransomware group activities and victims."
-      icon={Lock}
       breadcrumb={[
         { label: "Dashboard", href: "/" },
         { label: "Tools", href: "#" },
-        { label: "RansomLook", active: true },
+        { label: "RansomLook" },
       ]}
       period={period}
       chartData={chartData}

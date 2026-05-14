@@ -28,10 +28,9 @@ export default async function ScansPage({
       <PageHeader
         title="Scans History"
         description="View past scans and trigger new ones."
-        icon={Activity}
         breadcrumb={[
           { label: "Dashboard", href: "/" },
-          { label: "Scans", active: true },
+          { label: "Scans" },
         ]}
       />
 

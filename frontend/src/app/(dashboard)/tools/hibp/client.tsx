@@ -84,11 +84,10 @@ export function HIBPClient({
     <ToolPageLayout<Finding>
       title="HIBP & Breaches"
       description="Monitor compromised emails and data breaches via HaveIBeenPwned."
-      icon={Key}
       breadcrumb={[
         { label: "Dashboard", href: "/" },
         { label: "Tools", href: "#" },
-        { label: "HIBP", active: true },
+        { label: "HIBP" },
       ]}
       period={period}
       chartData={chartData}

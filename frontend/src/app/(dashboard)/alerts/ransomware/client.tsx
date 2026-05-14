@@ -143,11 +143,10 @@ export function RansomwareAlertsClient({
       <PageHeader
         title="Ransomware Alerts"
         description="Detailed view of ransomware victims, groups, and status."
-        icon={ShieldAlert}
         breadcrumb={[
           { label: "Dashboard", href: "/" },
           { label: "Alerts", href: "#" },
-          { label: "Ransomware", active: true },
+          { label: "Ransomware" },
         ]}
       >
         <TimeFilter value={period as TimePeriod} onChange={handlePeriodChange} />

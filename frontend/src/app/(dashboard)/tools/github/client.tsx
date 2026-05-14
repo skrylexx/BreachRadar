@@ -84,11 +84,10 @@ export function GitHubClient({
     <ToolPageLayout<Finding>
       title="GitHub & GitLab"
       description="Monitor exposed secrets and credentials in public repositories."
-      icon={Github}
       breadcrumb={[
         { label: "Dashboard", href: "/" },
         { label: "Tools", href: "#" },
-        { label: "GitHub", active: true },
+        { label: "GitHub" },
       ]}
       period={period}
       chartData={chartData}

@@ -158,10 +158,9 @@ export function ReportsClient({
       <PageHeader
         title="Reports"
         description="View generated security audit reports and export them as PDF or JSON."
-        icon={FileText}
         breadcrumb={[
           { label: "Dashboard", href: "/" },
-          { label: "Reports", active: true },
+          { label: "Reports" },
         ]}
       >
         <div className="flex items-center gap-4">
