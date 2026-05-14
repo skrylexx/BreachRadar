@@ -131,7 +131,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
           <Label htmlFor="default-lang" className="text-xs text-muted-foreground uppercase tracking-wider">
             Langue par défaut
           </Label>
-          <Select value={lang} onValueChange={setLang}>
+          <Select value={lang} onValueChange={(value) => setLang(value ?? "fr")}>
             <SelectTrigger id="default-lang" className="w-40 bg-secondary border-border/50">
               <SelectValue />
             </SelectTrigger>
