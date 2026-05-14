@@ -309,7 +309,7 @@ export function UsersClient() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     fetchUsers();
@@ -399,7 +399,7 @@ export function UsersClient() {
       render: (u) => (
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger>
               <span className="flex items-center gap-1">
                 {u.mfa_enabled ? (
                   <ShieldCheck className="w-4 h-4 text-green-400" />
