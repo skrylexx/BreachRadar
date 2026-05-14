@@ -447,15 +447,11 @@ export function UsersClient() {
         <div className="flex items-center gap-1">
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <button
                   id={`reset-password-${u.id}`}
                   onClick={(e) => { e.stopPropagation(); handleResetPassword(u); }}
-                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <KeyRound className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">Reset MDP</TooltipContent>
             </Tooltip>
 
