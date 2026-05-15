@@ -14,6 +14,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Installer uv + dépendances système minimales
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    libpango-1.0-0 \
+    libharfbuzz0b \
+    libpangoft2-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
+    shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -25,7 +32,7 @@ WORKDIR /app
 # Copier et installer les dépendances Python
 COPY pyproject.toml ./
 COPY README.md ./
-RUN uv pip install --system .
+RUN uv pip install --system ".[pdf]"
 
 # Copier le code source
 COPY app/ ./app/

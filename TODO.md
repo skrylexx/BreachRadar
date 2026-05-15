@@ -75,9 +75,9 @@ Le frontend est **100% opérationnel** et utilise actuellement des données fact
 
 > Fournir les livrables attendus par les utilisateurs.
 
-- [ ] **4.1 — Connecter l'Export PDF**
-  - Lier `GET /api/v1/reports/{id}/export?format=pdf` à la fonction `_generate_pdf()` de `report/engine.py`.
-  - Vérifier la bonne génération des assets (CSS/images) via WeasyPrint.
+- [x] **4.1 — Connecter l'Export PDF**
+  - [x] Lier `GET /api/v1/reports/{id}/export?format=pdf` à la fonction `_generate_pdf()` de `report/engine.py`.
+  - [x] Configurer WeasyPrint avec les dépendances système dans le Dockerfile.
 
 - [ ] **4.2 — Génération de Rapport Global**
   - Implémenter `POST /api/v1/reports/generate` : agréger les résultats de multiples `ScanResult` sur une période de temps donnée (start_date, end_date) en un seul document consolidé.

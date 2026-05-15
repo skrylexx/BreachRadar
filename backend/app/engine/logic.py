@@ -81,8 +81,9 @@ class ScanManager:
                     target_domain=domain,
                     generated_at=datetime.now(timezone.utc),
                     scan_duration_seconds=0.0,
-                    active_sources=self.registry.active_sources,
-                    skipped_sources=list(self.registry.skipped_sources.keys())
+                    sources_queried=self.registry.active_sources,
+                    total_emails_checked=len(emails),
+                    total_findings=len(all_leak_findings) + len(ransom_findings)
                 )
                 
                 report = self.aggregator.aggregate(
@@ -91,8 +92,8 @@ class ScanManager:
                     metadata=metadata
                 )
 
-                # 4. Génération du rapport physique (JSON, HTML)
-                report_files = self.report_engine.generate(report, formats=["json", "html"])
+                # 4. Génération du rapport physique (JSON, HTML, PDF)
+                report_files = self.report_engine.generate(report, formats=["json", "html", "pdf"])
                 
                 # 5. Mise à jour de la base de données
                 severity_map = {

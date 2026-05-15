@@ -23,26 +23,57 @@ Phase 4 — Ransomware  [██████████] 100%
 Phase 5 — Admin       [██████████] 100%
 
 ── Backend Implementation ──────────────
-Phase 1 — CVE Engine  [██████░░░░]  60%
-Phase 2 — Security    [████░░░░░░]  40%
-Phase 3 — Settings    [█████░░░░░]  50%
-Phase 4 — Reports     [░░░░░░░░░░]   0%
+Phase 1 — CVE Engine  [████████░░]  80%
+Phase 2 — Security    [██████░░░░]  60%
+Phase 3 — Settings    [████████░░]  80%
+Phase 4 — Reports     [█████░░░░░]  50%
 ```
 
 ---
 
 ## Vision globale
 
-### Phase 5 — Hardening (15%)
-- [x] Chiffrement Fernet des clés d'API en DB
-- [x] Gestion dynamique des données de démonstration (Mock Mode)
-- [x] Centralisation des System Settings en base de données
+### Phase 4 — WebUI Gouvernance SOC (100%)
+- [x] Infrastructure Docker WebUI
+- [x] Backend FastAPI : JWT, RBAC Admin/Viewer, TOTP MFA
+- [x] Frontend Next.js : thème SOC, sidebar fine, radar animation
+- [x] Pages : `/scans`, `/api-keys`, `/users`, `/changelog`, `/alerts/cve`, `/profile`
+- [x] Intégration next-intl
+- [x] Export PDF fonctionnel avec WeasyPrint
 
 ---
 
 ## CHANGELOG
 
-### Itération 14 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Itération 15 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Finalisation de la génération de rapports PDF et des flux d'authentification MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/routers/reports.py` | Création | Routeur pour la liste et l'export (PDF, HTML, JSON) des rapports. |
+| `backend/app/report/engine.py` | Modification | Robustesse de WeasyPrint et gestion des fallbacks HTML. |
+| `backend/app/engine/logic.py` | Modification | Activation de la génération PDF lors des scans. |
+| `backend/Dockerfile` | Modification | Installation des dépendances système WeasyPrint (pango, cairo, etc.). |
+| `backend/app/routers/auth.py` | Modification | Finalisation des endpoints `mfa/verify` et `mfa/confirm`. |
+| `backend/app/engine/cve_monitor.py` | Modification | Implémentation du fetcher OSV.dev réel via `modified_id.csv`. |
+
+#### Décisions techniques
+
+1. **Isolation PDF** : WeasyPrint est installé comme dépendance optionnelle `[pdf]` mais activé par défaut dans le Dockerfile de production pour garantir l'export.
+2. **Reconstruction Rapport** : L'endpoint d'export relit le JSON du scan pour reconstruire l'objet `FinalReport` et garantir une génération PDF identique à l'original.
+3. **MFA State** : Utilisation du scan Redis pour retrouver le `user_id` associé à un `challenge_token` de manière sécurisée et sans état permanent.
+
+#### ✅ Phase 2.2 & 4.1 — Tâches complétées
+- [x] Phase 2.2 — Verification et confirmation MFA complètes.
+- [x] Phase 4.1 — Export PDF fonctionnel et intégré.
+
+---
+
+### Itération 14
+ — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
 **Objectif de l'itération** : Implémentation d'un système global de Mock Data et finalisation des fondations backend.
 
