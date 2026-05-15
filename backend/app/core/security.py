@@ -142,3 +142,25 @@ def verify_totp(secret: str, code: str) -> bool:
     """
     totp = pyotp.TOTP(secret)
     return totp.verify(code, valid_window=1)
+
+
+# ─── Chiffrement Fernet (Secrets en base) ────────────────────────────────────
+
+def _get_fernet() -> Fernet:
+    """Initialise Fernet avec la clé de configuration."""
+    if not settings.encryption_key:
+        # Fallback pour le développement uniquement — NE PAS UTILISER EN PROD
+        return Fernet(Fernet.generate_key())
+    return Fernet(settings.encryption_key.encode())
+
+
+def encrypt_secret(value: str) -> str:
+    """Chiffre une chaîne de caractères (clé API, password SMTP)."""
+    f = _get_fernet()
+    return f.encrypt(value.encode()).decode()
+
+
+def decrypt_secret(token: str) -> str:
+    """Déchiffre un token Fernet."""
+    f = _get_fernet()
+    return f.decrypt(token.encode()).decode()

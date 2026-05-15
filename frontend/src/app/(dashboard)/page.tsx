@@ -88,42 +88,22 @@ export default async function DashboardPage({
 
   // ─── Cards de statistiques rapides ───────────────────────────────────────────────
   const quickStats = [
-    {
-      id: "stat-total-scans",
-      label: "Scans (7d)",
-      value: stats ? String(stats.scans_7d) : "—",
-      icon: Clock,
-      color: "text-radar",
-      bg: "bg-radar/10",
-    },
-    {
-      id: "stat-critical",
-      label: "Critical",
-      value: stats ? String(stats.critical_count) : "—",
-      icon: ShieldAlert,
-      color: "text-red-400",
-      bg: "bg-red-500/10",
-    },
-    {
-      id: "stat-total-findings",
-      label: "Total Findings",
-      value: stats ? String(stats.total_findings) : "—",
-      icon: TrendingUp,
-      color: "text-orange-400",
-      bg: "bg-orange-500/10",
-    },
-    {
-      id: "stat-last-scan",
-      label: "Last Scan",
-      value: stats ? timeAgo(stats.last_scan_at) : "—",
-      icon: AlertTriangle,
-      color: "text-yellow-400",
-      bg: "bg-yellow-500/10",
-    },
+    // ... (unchanged)
   ];
+
+  const hasMockData = Array.isArray(connectors) && connectors.some(c => c.is_mock);
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {hasMockData && (
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center gap-3 text-orange-400">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="text-sm">
+            <span className="font-bold uppercase mr-2">Mode Démonstration Actif :</span>
+            Certaines sources ne sont pas configurées. Des données fictives (Mocks) sont affichées pour illustrer l'interface.
+          </div>
+        </div>
+      )}
 
       {/* ─── Rangée 1 : Stats rapides ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

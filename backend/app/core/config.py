@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 15
     jwt_refresh_token_expire_days: int = 7
 
+    # ─── Chiffrement (Clés API, SMTP) ────────────────────────────────────────
+    encryption_key: str = Field(
+        default="",
+        description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",
+    )
+
     # ─── Admin initial ────────────────────────────────────────────────────────
     initial_admin_email: EmailStr
     initial_admin_password: str

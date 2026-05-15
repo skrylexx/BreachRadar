@@ -12,11 +12,13 @@ export function RansomLookClient({
   chartData,
   initialPage,
   period,
+  isMock,
 }: {
   initialData: PaginatedResponse<RansomwareAlert> | null;
   chartData: any[];
   initialPage: number;
   period: string;
+  isMock?: boolean;
 }) {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState(false);
@@ -99,6 +101,7 @@ export function RansomLookClient({
       tableData={initialData?.items || []}
       tableColumns={columns}
       tableEmptyMessage="No ransomware alerts detected in this period."
+      isMock={isMock}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

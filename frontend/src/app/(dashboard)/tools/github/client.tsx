@@ -13,11 +13,13 @@ export function GitHubClient({
   chartData,
   initialPage,
   period,
+  isMock,
 }: {
   initialData: PaginatedResponse<Finding> | null;
   chartData: any[];
   initialPage: number;
   period: string;
+  isMock?: boolean;
 }) {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState(false);
@@ -95,6 +97,7 @@ export function GitHubClient({
       tableData={initialData?.items || []}
       tableColumns={columns}
       tableEmptyMessage="No exposed secrets detected in this period."
+      isMock={isMock}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

@@ -586,6 +586,20 @@ function TabAdvanced({ showToast }: { showToast: (msg: string, type?: "success" 
             </div>
             <Switch id="include-unscored" checked={includeUnscored} onCheckedChange={setIncludeUnscored} />
           </div>
+
+          <Separator className="bg-border/30" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="mock-data" className="text-sm text-foreground">
+                Données de démonstration (Mocks)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Affiche des données factices pour les connecteurs non configurés.
+              </p>
+            </div>
+            <Switch id="mock-data" checked={mockData} onCheckedChange={setMockData} />
+          </div>
         </div>
 
         <div className="flex items-center justify-between">

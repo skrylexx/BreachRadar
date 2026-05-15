@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import encrypt_secret
 from app.dependencies.auth import AdminUser
 from app.models.api_key import APIKey
 from app.models.audit_log import AuditLog

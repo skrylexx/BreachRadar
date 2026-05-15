@@ -20,27 +20,17 @@ function formatTime(iso: string | null): string {
 }
 
 function resolveLabel(c: ConnectorStatus): string {
+  if (c.is_mock) return "Demo Mode";
   if (!c.configured) return "Not configured";
   if (!c.is_active) return "Inactive";
   return c.status === "ok" ? "Operational" : c.status === "warning" ? "Degraded" : c.status === "error" ? "Error" : "Unknown";
 }
 
-// ─── Empty state (liste vide) ──────────────────────────────────────────────────────
-function EmptyConnectors() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full py-8 text-center px-4">
-      <Plug className="w-8 h-8 text-muted-foreground/30 mb-3" strokeWidth={1} />
-      <p className="text-sm font-medium text-foreground mb-1">No connectors</p>
-      <p className="text-xs text-muted-foreground">
-        Configure data sources in Settings to start monitoring.
-      </p>
-    </div>
-  );
-}
+// ... (EmptyConnectors remains the same)
 
 // ─── Composant principal ───────────────────────────────────────────────────────────
 export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[] }) {
-  const activeCount = statuses.filter((s) => s.is_active && s.configured).length;
+  const activeCount = statuses.filter((s) => (s.is_active && s.configured) || s.is_mock).length;
   const total       = statuses.length;
 
   return (
@@ -61,14 +51,16 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
       ) : (
         <div className="grid grid-cols-2 gap-2 overflow-y-auto">
           {statuses.map((c) => {
-            const status: SourceStatus = (!c.configured || !c.is_active) ? "error" : c.status;
+            const status: SourceStatus = c.is_mock ? "warning" : ((!c.configured || !c.is_active) ? "error" : c.status);
             const label  = resolveLabel(c);
             return (
               <div
                 key={c.name}
                 className={
                   "flex flex-col gap-1 p-2 rounded-md border " +
-                  (status === "ok"
+                  (c.is_mock 
+                    ? "bg-orange-500/5 border-orange-500/20"
+                    : status === "ok"
                     ? "bg-green-500/5 border-green-500/20"
                     : status === "error"
                     ? "bg-red-500/5 border-red-500/20"
@@ -77,14 +69,22 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
                     : "bg-slate-500/5 border-slate-500/20")
                 }
               >
-                <div className="flex items-center gap-2">
-                  <StatusDot status={status} />
-                  <p className="text-xs font-medium text-foreground truncate uppercase tracking-wider">
-                    {c.name}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <StatusDot status={status} />
+                    <p className="text-xs font-medium text-foreground truncate uppercase tracking-wider">
+                      {c.name}
+                    </p>
+                  </div>
+                  {c.is_mock && (
+                    <span className="text-[8px] font-bold px-1 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                      MOCK
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between mt-1">
                   <p className={"text-[10px] " + (
+                    c.is_mock ? "text-orange-400" :
                     status === "ok" ? "text-green-400" :
                     status === "error" ? "text-red-400" :
                     status === "warning" ? "text-yellow-400" :

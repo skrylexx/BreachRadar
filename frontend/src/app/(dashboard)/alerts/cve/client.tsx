@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Search,
   Filter,
+  AlertTriangle,
 } from "lucide-react";
 import {
   cveApi,
@@ -145,6 +146,15 @@ export default function CVEClient() {
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
+      {isMock && (
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center gap-3 text-orange-400">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="text-sm">
+            <span className="font-bold uppercase mr-2">Mode Démonstration :</span>
+            Aucune CVE réelle n'est encore en base. Des données de démonstration sont affichées.
+          </div>
+        </div>
+      )}
       <PageHeader
         title="Veille CVE & Exploits"
         icon={Bug}

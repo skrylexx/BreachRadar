@@ -157,7 +157,8 @@ export interface ConnectorStatus {
   name: string;
   is_active: boolean;
   configured: boolean;
-  status: "ok" | "warning" | "error" | "unknown";
+  is_mock?: boolean; // Add this
+  status: "ok" | "warning" | "error" | "unknown" | "mock";
   last_scan_at: string | null;
   error_message?: string;
 }
