@@ -71,8 +71,7 @@ Phase 4 — Reports     [░░░░░░░░░░]   0%
 
 ---
 
-### Itération 13
- — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Itération 13 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
 **Objectif de l'itération** : Mise en place des fondations Backend : Modèles SQLAlchemy, chiffrement Fernet et routeurs de paramètres.
 
