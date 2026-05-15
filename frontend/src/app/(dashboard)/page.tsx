@@ -88,7 +88,38 @@ export default async function DashboardPage({
 
   // ─── Cards de statistiques rapides ───────────────────────────────────────────────
   const quickStats = [
-    // ... (unchanged)
+    {
+      id: "stat-critical",
+      label: "Alertes Critiques",
+      value: stats?.critical_count ?? 0,
+      icon: ShieldAlert,
+      bg: "bg-red-500/10",
+      color: "text-red-500",
+    },
+    {
+      id: "stat-total",
+      label: "Fuites Détectées",
+      value: stats?.total_findings ?? 0,
+      icon: TrendingUp,
+      bg: "bg-radar/10",
+      color: "text-radar",
+    },
+    {
+      id: "stat-scans",
+      label: "Scans (7j)",
+      value: stats?.scans_7d ?? 0,
+      icon: Clock,
+      bg: "bg-blue-500/10",
+      color: "text-blue-500",
+    },
+    {
+      id: "stat-last-scan",
+      label: "Dernier scan",
+      value: timeAgo(stats?.last_scan_at ?? null),
+      icon: Clock,
+      bg: "bg-secondary",
+      color: "text-muted-foreground",
+    },
   ];
 
   const hasMockData = Array.isArray(connectors) && connectors.some(c => c.is_mock);

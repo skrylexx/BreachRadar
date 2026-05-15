@@ -12,7 +12,15 @@ export function RansomwareAlertBlock({ alerts = [] }: { alerts?: RansomwareAlert
 
   return (
     <div className="card-soc border-red-500/30 bg-red-500/5 relative overflow-hidden group">
-// ... (rest of component unchanged)
+      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+        <ShieldAlert className="w-24 h-24 text-red-500 -mr-6 -mt-6 rotate-12" />
+      </div>
+
+      <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div className="flex items-start gap-4">
+          <div className="p-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 animate-pulse">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-sm font-bold text-red-400 uppercase tracking-wide">
@@ -27,7 +35,6 @@ export function RansomwareAlertBlock({ alerts = [] }: { alerts?: RansomwareAlert
                 </span>
               )}
             </div>
-// ... (rest of component unchanged)
             <p className="text-xs text-foreground font-medium mb-1">
               Victim: <span className="font-data text-muted-foreground">{alert.victim}</span>
             </p>

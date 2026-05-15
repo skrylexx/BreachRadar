@@ -26,7 +26,16 @@ function resolveLabel(c: ConnectorStatus): string {
   return c.status === "ok" ? "Operational" : c.status === "warning" ? "Degraded" : c.status === "error" ? "Error" : "Unknown";
 }
 
-// ... (EmptyConnectors remains the same)
+function EmptyConnectors() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3 opacity-40">
+      <Plug className="w-8 h-8 text-muted-foreground stroke-1" />
+      <p className="text-xs text-muted-foreground">
+        No connectors detected. Check backend connection.
+      </p>
+    </div>
+  );
+}
 
 // ─── Composant principal ───────────────────────────────────────────────────────────
 export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[] }) {
@@ -51,7 +60,15 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
       ) : (
         <div className="grid grid-cols-2 gap-2 overflow-y-auto">
           {statuses.map((c) => {
-            const status: SourceStatus = c.is_mock ? "warning" : ((!c.configured || !c.is_active) ? "error" : c.status);
+            let status: SourceStatus = "unknown";
+            if (c.is_mock || c.status === "mock") {
+              status = "warning";
+            } else if (!c.configured || !c.is_active) {
+              status = "error";
+            } else if (c.status === "ok" || c.status === "warning" || c.status === "error") {
+              status = c.status;
+            }
+            
             const label  = resolveLabel(c);
             return (
               <div

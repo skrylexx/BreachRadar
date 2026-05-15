@@ -88,12 +88,15 @@ Le frontend est **100% opérationnel** et utilise actuellement des données fact
 > S'assurer que les connecteurs externes fonctionnent parfaitement.
 
 - [ ] **5.1 — Vérification des connecteurs**
-  - S'assurer que les limites de rate-limit sont bien respectées par `hibp.py` (1.5s entre chaque requête).
-  - Vérifier que `intelx.py`, `dehashed.py`, `leakcheck.py` gèrent correctement les exceptions réseaux (timeout, erreur 500, quotas atteints).
+  - [x] Corriger le build des images Docker (Backend & Frontend).
+  - [x] Résoudre les erreurs de typage et les composants manquants dans la WebUI.
+  - [ ] S'assurer que les limites de rate-limit sont bien respectées par `hibp.py` (1.5s entre chaque requête).
+  - [ ] Vérifier que `intelx.py`, `dehashed.py`, `leakcheck.py` gèrent correctement les exceptions réseaux (timeout, erreur 500, quotas atteints).
 
-- [ ] **5.2 — Tests Unitaires**
-  - Écrire des tests asynchrones (pytest + httpx) pour `cve_monitor.py` avec des mocks.
-  - Vérifier la logique de `RansomwareTracker` (une alerte ransomware doit forcer la sévérité globale à CRITICAL).
+- [/] **5.2 — Tests Unitaires**
+  - [x] Vérifier la réussite du build Next.js en production (CI/CD check).
+  - [ ] Écrire des tests asynchrones (pytest + httpx) pour `cve_monitor.py` avec des mocks.
+  - [ ] Vérifier la logique de `RansomwareTracker` (une alerte ransomware doit forcer la sévérité globale à CRITICAL).
 
 - [ ] **5.3 — Audit Automatisé**
   - Lancer `bandit -r backend/app` pour vérifier les failles courantes.

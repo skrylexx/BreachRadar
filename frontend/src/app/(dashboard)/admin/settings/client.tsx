@@ -21,6 +21,7 @@ import {
   Shield,
   ChevronRight,
   RefreshCw,
+  Loader2,
   CheckCircle2,
   XCircle,
   Trash2,
@@ -632,6 +633,7 @@ function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "succ
 function TabAdvanced({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [pollingInterval, setPollingInterval] = useState(60);
   const [includeUnscored, setIncludeUnscored] = useState(false);
+  const [mockData, setMockData] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);

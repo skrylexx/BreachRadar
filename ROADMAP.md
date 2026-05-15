@@ -12,7 +12,7 @@ Phase 1 — MVP         [██████████] 100%
 Phase 2               [██████████] 100%
 Phase 3               [██████████] 100%
 Phase 4 — WebUI       [██████████] 100%
-Phase 5 — Hardening   [█░░░░░░░░░]  10%
+Phase 5 — Hardening   [███░░░░░░░]  30%
 
 ── Frontend (TODO.md) ──────────────────
 Phase 0 — Fondations  [██████████] 100%
@@ -39,10 +39,40 @@ Phase 4 — Reports     [██████████] 100%
 - [x] Centralisation des System Settings en base de données
 - [x] Flux de sécurité complet (MFA + Password change)
 - [x] Consolidation globale des rapports de scan
+- [x] Correction et stabilisation du build Docker (Full Stack)
 
 ---
 
 ## CHANGELOG
+
+### Itération 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Stabilisation du build Docker et correction des régressions UI (composants manquants, erreurs de typage).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/Dockerfile` | Modification | Fix du nom de paquet `libgdk-pixbuf-2.0-0` pour Debian Trixie. |
+| `frontend/src/components/ui/card.tsx` | Création | Ajout du composant Card manquant. |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Restauration du code tronqué et stabilisation des interfaces. |
+| `frontend/src/app/(dashboard)/tools/hibp/client.tsx` | Modification | Restauration et correction des types (DataTable). |
+| `frontend/src/app/(dashboard)/alerts/cve/client.tsx` | Modification | Correction massive des erreurs de typage (TimePeriod, PageHeader, DataTable). |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout de l'import `Separator` manquant. |
+| `frontend/src/app/(dashboard)/page.tsx` | Modification | Restauration du composant DashboardPage complet (Stats rapides). |
+| `frontend/src/components/dashboard/APIStatusCards.tsx` | Modification | Recréation de `EmptyConnectors` et fix du type `SourceStatus`. |
+
+#### Décisions techniques
+
+1. **Build Integrity** : Passage au build Next.js en production pour valider l'absence d'erreurs TypeScript/Lint avant livraison.
+2. **UI Resilience** : Reconstruction des fichiers tronqués lors des itérations précédentes pour garantir une interface fonctionnelle sans placeholders.
+3. **Hyphen Consistency** : Harmonisation des noms de paquets système dans le Dockerfile backend.
+
+#### ✅ Phase 5 (Hardening) — Tâches complétées
+- [x] Stabilisation totale du build Docker Full Stack.
+- [x] Résolution des erreurs de compilation Next.js.
+
+---
 
 ### Itération 16 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 

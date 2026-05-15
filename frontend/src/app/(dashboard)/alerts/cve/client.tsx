@@ -20,7 +20,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SeverityBadge } from "@/components/ui/severity-badge";
 import { StatusDot } from "@/components/ui/status-dot";
 import { DataTable } from "@/components/ui/data-table";
-import { TimeFilter } from "@/components/ui/time-filter";
+import { TimeFilter, type TimePeriod } from "@/components/ui/time-filter";
 import { Card } from "@/components/ui/card";
 import {
   BarChart,
@@ -40,11 +40,13 @@ export default function CVEClient() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  const [period, setPeriod] = useState("7d");
+  const [period, setPeriod] = useState<TimePeriod>("7d");
   const [severityFilter, setSeverityFilter] = useState<Severity | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  const isMock = alerts.length > 0 && alerts[0].id.startsWith("mock-");
 
   const fetchData = async () => {
     setLoading(true);
@@ -82,22 +84,29 @@ export default function CVEClient() {
 
   const columns = [
     {
+      key: "cve_id",
       header: "CVE ID",
-      accessor: (item: CVEAlert) => (
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-radar hover:underline font-data"
-        >
-          {item.cve_id}
-          <ExternalLink className="w-3 h-3" />
-        </a>
-      ),
+      render: (item: CVEAlert) => {
+        const url = item.source === "GitHub" 
+          ? `https://github.com/advisories/${item.cve_id}`
+          : `https://nvd.nist.gov/vuln/detail/${item.cve_id}`;
+        return (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-radar hover:underline font-data"
+          >
+            {item.cve_id}
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        );
+      },
     },
     {
+      key: "title",
       header: "Titre / Description",
-      accessor: (item: CVEAlert) => (
+      render: (item: CVEAlert) => (
         <div className="max-w-md">
           <p className="font-medium text-foreground truncate" title={item.title}>
             {item.title}
@@ -109,34 +118,39 @@ export default function CVEClient() {
       ),
     },
     {
+      key: "severity",
       header: "Sévérité",
-      accessor: (item: CVEAlert) => <SeverityBadge level={item.severity} />,
+      render: (item: CVEAlert) => <SeverityBadge level={item.severity} />,
     },
     {
+      key: "cvss_score",
       header: "Score CVSS",
-      accessor: (item: CVEAlert) => (
+      render: (item: CVEAlert) => (
         <span className="font-data text-sm">
           {item.cvss_score?.toFixed(1) || "N/A"}
         </span>
       ),
     },
     {
+      key: "category",
       header: "Catégorie",
-      accessor: (item: CVEAlert) => (
+      render: (item: CVEAlert) => (
         <span className="px-2 py-0.5 rounded-full bg-secondary text-[10px] font-medium border border-border">
           {item.category}
         </span>
       ),
     },
     {
+      key: "source",
       header: "Source",
-      accessor: (item: CVEAlert) => (
+      render: (item: CVEAlert) => (
         <span className="text-xs text-muted-foreground uppercase">{item.source}</span>
       ),
     },
     {
+      key: "published_at",
       header: "Publication",
-      accessor: (item: CVEAlert) => (
+      render: (item: CVEAlert) => (
         <span className="text-xs font-data">
           {new Date(item.published_at).toLocaleDateString()}
         </span>
@@ -158,18 +172,17 @@ export default function CVEClient() {
       <PageHeader
         title="Veille CVE & Exploits"
         icon={Bug}
-        actions={
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-accent
-                       border border-border rounded-md text-xs font-medium transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            Rafraîchir
-          </button>
-        }
-      />
+      >
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-accent
+                     border border-border rounded-md text-xs font-medium transition-colors"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          Rafraîchir
+        </button>
+      </PageHeader>
 
       {/* ─── Statut des sources ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -276,6 +289,7 @@ export default function CVEClient() {
           <DataTable
             columns={columns}
             data={alerts}
+            rowKey={(item: CVEAlert) => item.id}
             loading={loading}
             pagination={{
               page,

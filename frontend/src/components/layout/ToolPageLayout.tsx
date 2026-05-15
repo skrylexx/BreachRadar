@@ -16,9 +16,15 @@ interface ToolPageLayoutProps<T> {
   tableEmptyMessage?: string;
   actions?: ReactNode;
   children?: ReactNode;
-  isMock?: boolean; // Add this
+  isMock?: boolean;
   pagination?: {
-// ... (rest of props)
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  };
+}
 
 export function ToolPageLayout<T>({
   title,
@@ -48,7 +54,13 @@ export function ToolPageLayout<T>({
       )}
 
       <PageHeader
-// ... (rest of component)
+        title={title}
+        description={description}
+        icon={icon}
+        breadcrumb={breadcrumb}
+      >
+        {actions}
+      </PageHeader>
 
       <div className="grid grid-cols-1 gap-6">
         {/* Chart section */}

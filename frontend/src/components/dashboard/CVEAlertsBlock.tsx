@@ -12,7 +12,37 @@ export function CVEAlertsBlock({ alerts = [] }: { alerts?: CVEAlert[] }) {
   const isMock = alerts.length > 0 && alerts[0].id.startsWith("mock-");
 
   const formatDate = (iso: string) => {
-// ... (rest of component unchanged)
+    return new Date(iso).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+  };
+
+  const columns: DataTableColumn<CVEAlert>[] = [
+    {
+      key: "published_at",
+      header: "Date",
+      className: "font-data text-muted-foreground whitespace-nowrap",
+      render: (row) => formatDate(row.published_at),
+    },
+    {
+      key: "cve_id",
+      header: "ID",
+      className: "font-data font-bold text-foreground",
+    },
+    {
+      key: "title",
+      header: "Title",
+      className: "truncate max-w-[300px]",
+    },
+    {
+      key: "severity",
+      header: "Severity",
+      render: (row) => <SeverityBadge level={row.severity as SeverityLevel} />,
+      className: "text-right",
+    },
+  ];
+
   return (
     <div className="card-soc">
       {/* En-tête */}
@@ -27,7 +57,13 @@ export function CVEAlertsBlock({ alerts = [] }: { alerts?: CVEAlert[] }) {
           )}
         </div>
         <Link 
-// ... (rest of component unchanged)
+          href="/alerts/cve"
+          className="text-[11px] font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+        >
+          View All
+          <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
 
       <DataTable<CVEAlert>
         columns={columns}
