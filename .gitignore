@@ -17,6 +17,7 @@ dist/
 # ─── Frontend ───────────────────────────────────────────────────────────────
 frontend/node_modules
 frontend/.next/
+frontend/tsconfig.tsbuildinfo
 
 # ─── Environnements virtuels ─────────────────────────────────────────────────
 .venv/
@@ -66,3 +67,6 @@ ransomlook_data/
 
 # Données d'audit de sécurité
 security_audits/reports/
+
+# Images docker
+docker_images/

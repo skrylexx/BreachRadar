@@ -1,105 +1,106 @@
-"use client";
-
 /**
- * APIStatusCards — Cards de statut des connecteurs OSINT
- * Design : bordure latérale colorée (vert=ok, rouge=ko), badge statut.
- * Affiche tous les connecteurs configurés ET non-configurés.
+ * APIStatusCards — Grille de statut des connecteurs
+ * Affiche TOUS les connecteurs (configurés ou non).
+ * Vert = actif/opérationnel  |  Rouge = non configuré / erreur
  */
 
-import { CheckCircle2, XCircle, Clock, Minus } from "lucide-react";
+import { Plug } from "lucide-react";
+import type { ConnectorStatus } from "@/lib/api";
+import { StatusDot, type SourceStatus } from "@/components/ui/status-dot";
 
-interface APIKeyStatus {
-  service_name: string;
-  service_label: string;
-  configured: boolean;
-  is_active: boolean;
-  last_test_success: boolean | null;
+function formatTime(iso: string | null): string {
+  if (!iso) return "Never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
-interface APIStatusCardsProps {
-  statuses: APIKeyStatus[];
+function resolveLabel(c: ConnectorStatus): string {
+  if (!c.configured) return "Not configured";
+  if (!c.is_active) return "Inactive";
+  return c.status === "ok" ? "Operational" : c.status === "warning" ? "Degraded" : c.status === "error" ? "Error" : "Unknown";
 }
 
-// ─── Composant carte individuelle ─────────────────────────────────────────────
-function StatusCard({ status }: { status: APIKeyStatus }) {
-  const isOk = status.configured && status.is_active && status.last_test_success !== false;
-  const isError = !status.configured || !status.is_active || status.last_test_success === false;
-  const isPending = status.configured && status.last_test_success === null;
-
-  const borderClass = isOk ? "card-status-ok"
-    : isError ? "card-status-error"
-    : "card-status-warning";
-
+// ─── Empty state (liste vide) ──────────────────────────────────────────────────────
+function EmptyConnectors() {
   return (
-    <div className={`card-soc px-3 py-2.5 ${borderClass} flex items-center gap-2.5 min-w-[140px]`}>
-      {/* Icône de statut */}
-      <div className="flex-shrink-0">
-        {isOk ? (
-          <CheckCircle2 className="w-4 h-4 text-green-400" strokeWidth={1.5} />
-        ) : isPending ? (
-          <Clock className="w-4 h-4 text-yellow-400" strokeWidth={1.5} />
-        ) : isError ? (
-          <XCircle className="w-4 h-4 text-red-400" strokeWidth={1.5} />
-        ) : (
-          <Minus className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-        )}
-      </div>
-
-      {/* Nom du service */}
-      <div className="flex flex-col min-w-0">
-        <span className="text-xs font-semibold text-foreground truncate">
-          {status.service_label}
-        </span>
-        <span className="text-[10px] font-data text-muted-foreground">
-          {!status.configured ? "Not configured"
-           : isPending ? "Not tested"
-           : isOk ? "Operational"
-           : "Error"}
-        </span>
-      </div>
+    <div className="flex flex-col items-center justify-center h-full py-8 text-center px-4">
+      <Plug className="w-8 h-8 text-muted-foreground/30 mb-3" strokeWidth={1} />
+      <p className="text-sm font-medium text-foreground mb-1">No connectors</p>
+      <p className="text-xs text-muted-foreground">
+        Configure data sources in Settings to start monitoring.
+      </p>
     </div>
   );
 }
 
-// ─── Composant liste ──────────────────────────────────────────────────────────
-export function APIStatusCards({ statuses }: APIStatusCardsProps) {
-  const configured = statuses.filter((s) => s.configured);
-  const unconfigured = statuses.filter((s) => !s.configured);
-  const activeCount = configured.filter((s) => s.is_active && s.last_test_success !== false).length;
+// ─── Composant principal ───────────────────────────────────────────────────────────
+export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[] }) {
+  const activeCount = statuses.filter((s) => s.is_active && s.configured).length;
+  const total       = statuses.length;
 
   return (
-    <div className="space-y-3">
-      {/* Résumé */}
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-full">
+      {/* En-tête */}
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-foreground">Connectors</h3>
-        <span className="text-xs text-muted-foreground">
-          <span className="text-green-400 font-medium">{activeCount}</span>
-          /{statuses.length} active
-        </span>
-      </div>
-
-      {/* Cards configurées */}
-      <div className="flex flex-wrap gap-2">
-        {configured.map((status) => (
-          <StatusCard key={status.service_name} status={status} />
-        ))}
-
-        {/* Bouton "voir les non-configurés" (collapsible via details) */}
-        {unconfigured.length > 0 && (
-          <details className="group">
-            <summary className="cursor-pointer text-xs text-muted-foreground
-                                hover:text-foreground transition-colors
-                                flex items-center gap-1 px-2 py-2">
-              +{unconfigured.length} not configured
-            </summary>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {unconfigured.map((status) => (
-                <StatusCard key={status.service_name} status={status} />
-              ))}
-            </div>
-          </details>
+        {total > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {activeCount}/{total} active
+          </span>
         )}
       </div>
+
+      {/* Grille — tous les connecteurs, configurés ou non */}
+      {total === 0 ? (
+        <EmptyConnectors />
+      ) : (
+        <div className="grid grid-cols-2 gap-2 overflow-y-auto">
+          {statuses.map((c) => {
+            const status: SourceStatus = (!c.configured || !c.is_active) ? "error" : c.status;
+            const label  = resolveLabel(c);
+            return (
+              <div
+                key={c.name}
+                className={
+                  "flex flex-col gap-1 p-2 rounded-md border " +
+                  (status === "ok"
+                    ? "bg-green-500/5 border-green-500/20"
+                    : status === "error"
+                    ? "bg-red-500/5 border-red-500/20"
+                    : status === "warning"
+                    ? "bg-yellow-500/5 border-yellow-500/20"
+                    : "bg-slate-500/5 border-slate-500/20")
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <StatusDot status={status} />
+                  <p className="text-xs font-medium text-foreground truncate uppercase tracking-wider">
+                    {c.name}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <p className={"text-[10px] " + (
+                    status === "ok" ? "text-green-400" :
+                    status === "error" ? "text-red-400" :
+                    status === "warning" ? "text-yellow-400" :
+                    "text-slate-400"
+                  )}>
+                    {label}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-data">
+                    {formatTime(c.last_scan_at)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

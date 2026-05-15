@@ -8,11 +8,19 @@
 ## Avancement global
 
 ```
-Phase 1 — MVP    [██████████] 100%
-Phase 2          [██████████] 100%
-Phase 3          [██████████] 100%
-Phase 4 — WebUI  [██████████] 100%
-Phase 5          [░░░░░░░░░░]   0%
+Phase 1 — MVP         [██████████] 100%
+Phase 2               [██████████] 100%
+Phase 3               [██████████] 100%
+Phase 4 — WebUI       [██████████] 100%
+Phase 5 — Hardening   [░░░░░░░░░░]   0%
+
+── Frontend (TODO.md) ──────────────────
+Phase 0 — Fondations  [██████████] 100%
+Phase 1 — Dashboard   [██████████] 100%
+Phase 2 — Tools       [██████████] 100%
+Phase 3 — Reports     [██████████] 100%
+Phase 4 — Ransomware  [██████████] 100%
+Phase 5 — Admin       [██████████] 100%
 ```
 
 ---
@@ -103,6 +111,209 @@ Phase 5          [░░░░░░░░░░]   0%
 ---
 
 ## CHANGELOG
+
+### Itération 12 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Implémentation des pages manquantes (CVE, Profil, Changelog) et finalisation des paramètres d'instance.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/schemas/cve.py` | Création | Schémas pour les alertes CVE, paramètres et statuts des sources. |
+| `backend/app/routers/cve.py` | Création | Routeur API pour les alertes CVE, trends, settings et statuts (Mocks inclus). |
+| `backend/app/main.py` | Modification | Enregistrement du routeur CVE. |
+| `frontend/src/lib/api.ts` | Modification | Ajout des interfaces et fonctions API pour CVE, Profil et Settings. |
+| `frontend/src/app/(dashboard)/alerts/cve/page.tsx` | Création | Page Veille CVE & Exploits (Server). |
+| `frontend/src/app/(dashboard)/alerts/cve/client.tsx` | Création | Client CVE : graphique d'évolution, statut sources, tableau filtrable. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Création | Page Profil Utilisateur : infos personnelles, sécurité, statut MFA. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Création | Page Changelog : timeline des versions v0.9 à v1.0. |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Ajout de l'onglet "Sources Custom" et correction de la logique de l'onglet "CVE". |
+
+#### Décisions techniques
+
+1. **Backend Mocks** : Création de routes API CVE avec des données mockées pour permettre le développement frontend immédiat sans attendre l'implémentation des scrapers NVD/OSV.
+2. **Page Profil** : Intégration du statut MFA et des informations de sécurité conformes au CDC.
+3. **Timeline Changelog** : Style visuel avec timeline verticale pour une lecture claire des mises à jour.
+
+#### ✅ Phase 6, 7 & 9 — Tâches complétées
+- [x] Phase 9.1 à 9.5 — Page `/alerts/cve` complète.
+- [x] Phase 7.2 — Page profil utilisateur (`/profile`).
+- [x] Phase 6.1 — Page changelog (`/changelog`).
+- [x] Phase 10.6 — Onglet "Sources custom" ajouté aux settings.
+
+---
+
+### Itération 11 — 2026-05-14 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Résolution des erreurs de build Docker Frontend et standardisation des réponses API Backend.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/(dashboard)/tools/*/client.tsx` | Fix | Correction des erreurs de syntaxe TSX (génériques explicites) et ajout des icônes manquantes. |
+| `frontend/src/components/ui/page-header.tsx` | Modification | Ajout du support des icônes dans l'en-tête de page. |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Utilisation de l'icône passée en prop dans le `PageHeader`. |
+| `frontend/src/lib/api.ts` | Fix | Ajout de la propriété `domain` à l'interface `Finding` et correction de la logique de pagination (calcul `totalPages`). |
+| `backend/app/schemas/common.py` | Création | Ajout du schéma générique `PaginatedResponse`. |
+| `backend/app/schemas/finding.py` | Création | Ajout du schéma `FindingRead` pour la validation API. |
+| `backend/app/routers/dashboard.py` | Modification | Standardisation de `/api/v1/findings` pour retourner une `PaginatedResponse`. |
+| `backend/app/routers/scans.py` | Modification | Standardisation de `/api/v1/scans` pour retourner une `PaginatedResponse`. |
+| `backend/app/routers/ransomlook.py` | Création | Nouveau routeur pour centraliser les alertes Ransomware (proxy vers RansomLook). |
+| `backend/app/main.py` | Modification | Enregistrement du routeur `ransomlook` et correction des préfixes de routes pour correspondre au frontend. |
+
+#### Décisions techniques
+
+1. **Standardisation API** : Toutes les listes (findings, scans, ransomware) retournent désormais un objet `PaginatedResponse` `{ items, total, page, page_size }` au lieu d'une liste brute.
+2. **Icons by Type** : Les icônes Lucide sont désormais passées comme types de composants (`LucideIcon`) et non plus comme éléments JSX, permettant une injection propre dans le layout.
+3. **Calcul Pagination** : Le frontend calcule désormais `totalPages` dynamiquement via `Math.ceil(total / page_size)` pour plus de flexibilité si le backend change.
+
+#### ✅ Phase 0 & 2 — Corrections build
+- [x] Correction syntaxe TSX ToolPageLayout
+- [x] Correction types PaginatedResponse (pages -> total/page_size)
+- [x] Correction interface Finding (ajout domain)
+- [x] Standardisation Backend (Schémas génériques)
+
+---
+
+### Itération 10 — 2026-05-13 (Claude Sonnet 4.6 — Antigravity)
+
+**Objectif de l'itération** : Implémentation complète de la Phase 5 (Administration) du TODO.md frontend.
+
+#### Fichiers créés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/(dashboard)/admin/users/page.tsx` | Création | Server component page Utilisateurs |
+| `frontend/src/app/(dashboard)/admin/users/client.tsx` | Création | Client complet : tableau paginé, modal création, actions désactiver/reset MDP/reset MFA, politique MDP |
+| `frontend/src/app/(dashboard)/admin/api-keys/page.tsx` | Création | Server component page Clés API |
+| `frontend/src/app/(dashboard)/admin/api-keys/client.tsx` | Création | Client : grille de cartes par source, modal Set/Delete/Test, jamais de valeur en clair, avertissement sécurité |
+| `frontend/src/app/(dashboard)/admin/smtp/page.tsx` | Création | Server component page SMTP |
+| `frontend/src/app/(dashboard)/admin/smtp/client.tsx` | Création | Client : formulaire SMTP complet (host/port/TLS/SSL/user/password masqué/from/reply-to), bouton test email |
+| `frontend/src/app/(dashboard)/admin/scheduling/page.tsx` | Création | Server component page Scheduling |
+| `frontend/src/app/(dashboard)/admin/scheduling/client.tsx` | Création | Client : toggle activation, input cron + presets lisibles, affichage prochain run, historique 5 derniers runs |
+| `frontend/src/app/(dashboard)/admin/audit/page.tsx` | Création | Server component page Audit Trail |
+| `frontend/src/app/(dashboard)/admin/audit/client.tsx` | Création | Client : tableau paginé (date/user/action/IP), filtres user+action+période, export CSV |
+| `frontend/src/app/(dashboard)/admin/settings/page.tsx` | Création | Server component page Paramètres |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Création | Client : 4 onglets Tabs (Général, Surveillance CVE, Notifications, Avancé) — toggles catégories CVE, clé NVD masquée, mode maintenance, seuil alerte, export cache |
+
+#### Décisions techniques
+
+1. **Pattern Server + Client** : Architecture Next.js 15 App Router maintenue — chaque page = `page.tsx` (Server) + `client.tsx` ("use client").
+2. **Sécurité API Keys** : Aucune valeur de clé n'est jamais pré-remplie dans un input — le champ est toujours vide à l'ouverture du dialog. Avertissement Docker volume permanent.
+3. **Toast local** : Pattern `useToast` inline (sans dep externe) pour éviter d'importer une lib lourde — usage cohérent avec le reste du frontend.
+4. **SMTP password masqué** : Bouton œil pour révéler, jamais de `autocomplete="current-password"` pour forcer la saisie explicite.
+5. **Cron presets** : 6 pré-sets courants + traduction cron → phrase lisible (dict statique + pattern matching).
+6. **Export CSV audit** : Généré côté client (Blob URL) pour éviter un endpoint dédié — acceptable pour les volumes d'audit trail WebUI.
+
+#### ✅ Phase 5 — Tâches complétées
+- [x] 5.1 — Layout admin (déjà présent depuis itération 9)
+- [x] 5.2 — Gestion utilisateurs (`/admin/users`)
+- [x] 5.3 — Clés API & Intégrations (`/admin/api-keys`)
+- [x] 5.4 — Configuration SMTP (`/admin/smtp`)
+- [x] 5.5 — Scheduling (`/admin/scheduling`)
+- [x] 5.6 — Audit trail (`/admin/audit`)
+- [x] 10.1 à 10.4 — Paramètres instance (`/admin/settings`) — 4 onglets
+
+#### ⏳ Prochaine session — Phases 9, 7 & 6
+- [ ] Phase 9.1 à 9.5 — Page `/alerts/cve` (veille CVE)
+- [ ] Phase 7.1 — Branchement réel API `/auth/login` (JWT cookie)
+- [ ] Phase 7.2 — Page profil utilisateur (`/profile`)
+- [ ] Phase 7.3 — Logout (`POST /auth/logout`, clear cookie, redirect)
+- [ ] Phase 6.1 — Page changelog (`/changelog`)
+
+---
+
+### Itération 9 — 2026-05-11 (Claude Sonnet 4.6 — Antigravity)
+
+**Objectif de l'itération** : Implémentation de la Phase 0 (Fondations & Infrastructure UI) du TODO.md frontend.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/globals.css` | Modification | Restauration du design system BreachRadar (tokens HSL, variables de sévérité `--color-critical/high/medium/low`, utilitaires custom) |
+| `frontend/src/components/ui/severity-badge.tsx` | Création | `<SeverityBadge>` — badge coloré CRITICAL/HIGH/MEDIUM/LOW/NONE/INFO réutilisable |
+| `frontend/src/components/ui/status-dot.tsx` | Création | `<StatusDot>` — indicateur de statut source avec animation ping (ok/warning/error/unknown) |
+| `frontend/src/components/ui/page-header.tsx` | Création | `<PageHeader>` — en-tête de page standard avec breadcrumb et slot actions |
+| `frontend/src/components/ui/empty-state.tsx` | Création | `<EmptyState>` — état vide standard avec icône radar, message et CTA |
+| `frontend/src/components/ui/time-filter.tsx` | Création | `<TimeFilter>` — sélecteur 7j/1m/6m/12m/Tout |
+| `frontend/src/components/ui/radar-spinner.tsx` | Création | `<RadarSpinner>` — spinner SVG animé type radar (pas de dépendance) |
+| `frontend/src/components/ui/data-table.tsx` | Création | `<DataTable>` — tableau paginé réutilisable avec tri, pagination client/serveur, loading, empty state |
+| `frontend/src/lib/api.ts` | Réécriture | Client HTTP enrichi : types métier complets + fonctions typées par domaine (dashboardApi, scansApi, findingsApi, reportsApi, ransomwareApi, cveApi, usersApi, apiKeysApi, auditApi, authApi) |
+| `frontend/src/middleware.ts` | Création | Middleware Next.js Edge : guard JWT cookie + RBAC admin (redirect /login ou /403) |
+| `frontend/src/app/403/page.tsx` | Création | Page 403 custom — cohérente avec le thème SOC |
+| `frontend/src/app/not-found.tsx` | Création | Page 404 custom — cohérente avec le thème SOC |
+| `frontend/src/components/layout/Sidebar.tsx` | Réécriture | Sidebar étendue avec toutes les routes du TODO (Tools, Alerts, Admin collapsible) |
+| `frontend/src/components/layout/Header.tsx` | Modification | Intégration de next-intl et ajout du sélecteur de langue dynamique (FR/EN) |
+| `frontend/src/components/dashboard/RansomwareAlertBlock.tsx` | Création | Bloc d'alerte Ransomware dynamique |
+| `frontend/src/components/dashboard/CVEAlertsBlock.tsx` | Création | Bloc des dernières alertes CVE et exploits |
+| `frontend/src/components/dashboard/ScansTableBlock.tsx` | Création | Tableau des derniers scans |
+| `frontend/src/components/dashboard/QuickAccessBlock.tsx` | Création | Bloc d'accès rapide aux outils |
+| `frontend/src/app/(dashboard)/scans/page.tsx` | Création | Page des scans avec historique et bouton de lancement |
+| `frontend/src/app/(dashboard)/scans/client.tsx` | Création | Client des scans avec DataTable |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Création | Layout réutilisable pour toutes les pages outils |
+| `frontend/src/app/(dashboard)/tools/hibp/*` | Création | Page outil HIBP (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/github/*` | Création | Page outil GitHub (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/ransomlook/*` | Création | Page outil RansomLook (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/leakcheck/*` | Création | Page outil LeakCheck (Server + Client) |
+| `frontend/src/app/(dashboard)/tools/urlscan/*` | Création | Page outil URLScan (Server + Client) |
+| `frontend/src/app/(dashboard)/reports/page.tsx` | Création | Page Rapports (Server) |
+| `frontend/src/app/(dashboard)/reports/client.tsx` | Création | Page Rapports (Client) avec modal de génération et actions d'export PDF/JSON |
+| `frontend/src/app/(dashboard)/alerts/ransomware/*` | Création | Page Alertes Ransomware détaillée (Server + Client) |
+| `frontend/src/components/ui/badge.tsx` + 14 autres | Création | Composants Shadcn/UI installés : badge, table, tabs, select, dialog, skeleton, tooltip, switch, form, input, label, separator, dropdown-menu, alert, progress |
+| `frontend/src/app/(dashboard)/page.tsx` | Modification | Câblage complet de la page avec l'API Backend via `searchParams` pour les filtres temporels |
+
+#### Décisions techniques
+
+1. **Design system** : Shadcn init a écrasé les tokens oklch génériques — restaurés en HSL conformément au CDC (`#09090b`, `#18181b`, `#38bdf8`).
+2. **DataTable** : Implémentation vanilla (sans Tanstack Table) pour minimiser les dépendances — upgrade possible si nécessaire.
+3. **Middleware** : Décode JWT basique côté Edge (sans crypto) pour UX guard — la vérification de signature réelle reste côté FastAPI.
+4. **Sidebar** : Section Admin collapsible (état local React) pour ne pas surcharger la sidebar 56px.
+5. **API client** : Toutes les fonctions sont typées avec les interfaces métier BreachRadar — prêtes pour les pages Phase 1-10.
+
+#### ✅ Phase 0 — Tâches complétées
+- [x] 0.1 — Design system tokens (globals.css, variables sévérité, polices)
+- [x] 0.2 — Composants Shadcn/UI installés (15 composants)
+- [x] 0.3 — Composants partagés custom (SeverityBadge, StatusDot, PageHeader, EmptyState, DataTable, RadarSpinner, TimeFilter)
+- [x] 0.4 — i18n setup (`next-intl` via configuration non-routable pour préserver les URLs du dashboard, `messages/en.json`, `messages/fr.json`)
+- [x] 0.5 — Couche API client enrichie (fonctions typées par domaine)
+- [x] 0.6 — Guard authentification (middleware.ts JWT + RBAC)
+- [~] 0.7 — Dark/Light mode toggle dans le Header (Annulé : le contexte SOC impose un thème Dark obligatoire global, aucune gestion de mode clair n'est autorisée).
+- [x] 7.4 — Pages 403 / 404 custom
+
+#### ✅ Phase 1 — Dashboard principal
+- [x] 1.1 — Graphique d'évolution global (`RiskHeatmap` + `TimeFilter` fonctionnel modifiant les `searchParams`)
+- [x] 1.2 — Cards connecteurs / sources (`APIStatusCards` + statut dynamique)
+- [x] 1.3 — Bloc alerte RansomLook conditionnel
+- [x] 1.4 — Dernières CVE & Exploits (composant `CVEAlertsBlock`)
+- [x] 1.5 — Dernières alertes "Findings" (refonte avec la `DataTable` générique)
+
+#### ✅ Phase 2 — Liste et Scans
+- [x] Page `/scans` — Liste paginée de l'historique des scans avec possibilité de relancer un scan via l'API.
+
+#### ✅ Phase 2 — Pages par Outil
+- [x] Phase 2.1 — Layout partagé `ToolPageLayout`
+- [x] Phase 2.2 à 2.6 — Pages spécifiques (HIBP, GitHub, RansomLook, LeakCheck, URLScan)
+
+#### ✅ Phase 3 — Rapports
+- [x] Phase 3.1 — Liste des rapports
+- [x] Phase 3.2 — Export PDF
+- [x] Phase 3.3 — Export JSON / CSV
+- [x] Phase 3.4 — Génération de rapport global
+
+#### ✅ Phase 4 — Alertes Ransomware
+- [x] Phase 4.1 — Bloc état instance RansomLook
+- [x] Phase 4.2 — Liste des alertes
+- [x] Phase 4.3 — Filtres
+- [x] Phase 4.4 — Lien rapport
+
+#### ⏳ Prochaine session — Phase 5 (Administration)
+- [ ] Phase 5.1 — Layout admin
+- [ ] Phase 5.2 — Gestion utilisateurs
+
+---
 
 ### Itération 8 — 2026-05-04 (Gemini 3.1 Pro — Antigravity)
 

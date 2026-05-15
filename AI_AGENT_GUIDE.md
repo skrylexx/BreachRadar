@@ -90,11 +90,13 @@ BreachRadar/
 ### 3.1 — Développement (Feature / Fix)
 
 1. **Code** : fichiers sources fonctionnels, propres et commentés selon les priorités du ROADMAP.md
-2. **ROADMAP.md** mis à jour :
+2. **TODO.md** mis à jour :
+   - Cocher impérativement (`- [x]`) les cases de TOUTES les étapes terminées jusqu'ici.
+3. **ROADMAP.md** mis à jour :
    - Section CHANGELOG : chaque modification listée précisément (fichier, ligne, nature du changement)
    - Indicateur d'avancement mis à jour (ex : `[████░░] 60%`)
    - Section "Prochain agent" complétée si la session s'arrête avant la fin de la tâche
-3. **README.md** mis à jour si l'architecture ou les instructions d'installation évoluent
+4. **README.md** mis à jour si l'architecture ou les instructions d'installation évoluent
 
 ### 3.2 — Audit de Sécurité
 

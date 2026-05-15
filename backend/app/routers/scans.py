@@ -17,22 +17,31 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.dependencies.auth import AdminUser, ViewerUser
 from app.models.scan import ScanResult, ScanSeverity, ScanStatus
+from app.schemas.common import PaginatedResponse
 from app.schemas.scan import ScanResultRead, ScanStats, ScanTriggerRequest, ScanTriggerResponse
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 
 
-@router.get("", response_model=list[ScanResultRead])
+@router.get("", response_model=PaginatedResponse[ScanResultRead])
 async def list_scans(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
     page: int = 1,
-    page_size: int = 20,
+    page_size: int = Query(25, ge=1, le=100),
     severity: Optional[ScanSeverity] = None,
-) -> list[ScanResultRead]:
+) -> PaginatedResponse[ScanResultRead]:
     """Liste les résultats de scan (Viewer + Admin)."""
     offset = (page - 1) * page_size
+    
+    # Count total
+    count_query = select(func.count(ScanResult.id))
+    if severity:
+        count_query = count_query.where(ScanResult.severity == severity)
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one()
+
     query = select(ScanResult).order_by(ScanResult.started_at.desc())
 
     if severity:
@@ -41,7 +50,13 @@ async def list_scans(
     query = query.offset(offset).limit(page_size)
     result = await db.execute(query)
     scans = result.scalars().all()
-    return [ScanResultRead.model_validate(s) for s in scans]
+    
+    return PaginatedResponse(
+        items=[ScanResultRead.model_validate(s) for s in scans],
+        total=total,
+        page=page,
+        page_size=page_size
+    )
 
 
 @router.get("/stats", response_model=ScanStats)
