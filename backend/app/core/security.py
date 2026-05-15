@@ -7,6 +7,7 @@ Toutes les fonctions de sécurité centralisées ici.
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from cryptography.fernet import Fernet
 import pyotp
 import qrcode
 import qrcode.image.svg
