@@ -201,6 +201,13 @@ export interface CVEAlert {
   published_at: string;
 }
 
+export interface CVESettings {
+  active_categories: string[];
+  nvd_api_key?: string;
+  polling_interval_minutes: number;
+  include_no_cvss: boolean;
+}
+
 export interface CVESourceStatus {
   source: string;
   status: "ok" | "error" | "unknown";
@@ -342,9 +349,11 @@ export const cveApi = {
     if (params?.period) qs.set("period", params.period ?? "");
     return api.get<PaginatedResponse<CVEAlert>>(`/api/v1/cve/alerts?${qs}`);
   },
+  getTrend: (period = "7d") =>
+    api.get<DashboardChartPoint[]>(`/api/v1/cve/trend?period=${period}`),
   getStatus: () => api.get<CVESourceStatus[]>("/api/v1/cve/status"),
-  getSettings: () => api.get<Record<string, boolean>>("/api/v1/cve/settings"),
-  updateSettings: (settings: Record<string, boolean>) =>
+  getSettings: () => api.get<CVESettings>("/api/v1/cve/settings"),
+  updateSettings: (settings: CVESettings) =>
     api.put<void>("/api/v1/cve/settings", settings),
 };
 

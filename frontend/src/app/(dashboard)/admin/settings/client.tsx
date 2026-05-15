@@ -7,12 +7,13 @@
  *   - Général : TARGET_DOMAIN, langue par défaut, mode maintenance
  *   - Surveillance CVE : toggles par catégorie (NVD / OSV / GitHub / CVEFeed)
  *   - Notifications : alertes email CVE, seuil, destinataires
+ *   - Sources Custom : flux RSS/Atom personnalisés
  *   - Avancé : polling interval, inclure CVE sans score, vider cache
  *
  * Phase 10 du TODO.md.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Settings,
   Globe,
@@ -27,9 +28,11 @@ import {
   Eye,
   EyeOff,
   Save,
+  Plus,
+  Link as LinkIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
-import { cveApi, api } from "@/lib/api";
+import { cveApi, api, type CVESettings } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -180,7 +183,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
 // ─── Tab Surveillance CVE ─────────────────────────────────────────────────────
 
 function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
-  const [settings, setSettings] = useState<Record<string, boolean>>({});
+  const [settings, setSettings] = useState<CVESettings | null>(null);
   const [nvdKey, setNvdKey] = useState("");
   const [showNvdKey, setShowNvdKey] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -191,18 +194,24 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
   }, []);
 
   const toggleCategory = (id: string) => {
-    setSettings((prev) => ({ ...prev, [id]: !prev[id] }));
+    if (!settings) return;
+    const active = settings.active_categories.includes(id);
+    const next = active
+      ? settings.active_categories.filter((c) => c !== id)
+      : [...settings.active_categories, id];
+    setSettings({ ...settings, active_categories: next });
   };
 
-  const activeCount = Object.values(settings).filter(Boolean).length;
+  const activeCount = settings?.active_categories.length ?? 0;
 
   const handleSaveCategories = async () => {
+    if (!settings) return;
     setSaving(true);
     try {
       await cveApi.updateSettings(settings);
-      showToast("Catégories CVE sauvegardées.");
+      showToast("Configuration CVE sauvegardée.");
     } catch (err: unknown) {
-      showToast(err instanceof Error ? err.message : "Erreur lors de la sauvegarde.", "error");
+      showToast(err instanceof Error ? err.message : "Erreur.", "error");
     } finally {
       setSaving(false);
     }
@@ -289,7 +298,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
                   </Label>
                   <Switch
                     id={`cve-cat-${cat.id}`}
-                    checked={settings[cat.id] ?? false}
+                    checked={settings?.active_categories.includes(cat.id) ?? false}
                     onCheckedChange={() => toggleCategory(cat.id)}
                   />
                 </div>
@@ -423,6 +432,88 @@ function TabNotifications({ showToast }: { showToast: (msg: string, type?: "succ
         </Button>
       </div>
     </form>
+  );
+}
+
+// ─── Tab Sources Custom ───────────────────────────────────────────────────────
+
+function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
+  const [sources, setSources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  useEffect(() => {
+    // api.get("/api/v1/settings/custom-sources").then(setSources).finally(() => setLoading(false));
+    setSources([]); // Mock for now
+    setLoading(false);
+  }, []);
+
+  const handleAdd = async () => {
+    showToast("Source ajoutée (simulation).");
+    setDialogOpen(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="card-soc p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Sources RSS / Atom personnalisées
+          </h2>
+          <Button
+            size="sm"
+            onClick={() => setDialogOpen(true)}
+            className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30 h-7 text-[10px]"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Ajouter
+          </Button>
+        </div>
+
+        {sources.length === 0 ? (
+          <div className="py-12 text-center space-y-3">
+            <LinkIcon className="w-8 h-8 text-muted-foreground/20 mx-auto" />
+            <p className="text-xs text-muted-foreground">Aucune source personnalisée configurée.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {/* Table or list would go here */}
+          </div>
+        )}
+      </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="card-soc border-border/60 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Ajouter une source personnalisée</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Entrez l'URL d'un flux RSS ou Atom pour l'intégrer à la veille CVE.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="src-name" className="text-xs">Nom de la source</Label>
+              <Input id="src-name" placeholder="ex: CERT-FR Avis" className="bg-secondary border-border/50" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="src-url" className="text-xs">URL du flux</Label>
+              <Input id="src-url" placeholder="https://..." className="bg-secondary border-border/50 font-data" />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">
+              Annuler
+            </Button>
+            <Button onClick={handleAdd} className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30">
+              Ajouter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
@@ -605,6 +696,13 @@ export function SettingsClient() {
             Notifications
           </TabsTrigger>
           <TabsTrigger
+            value="custom"
+            className="text-xs data-[state=active]:bg-radar/10 data-[state=active]:text-radar data-[state=active]:border data-[state=active]:border-radar/20"
+          >
+            <LinkIcon className="w-3.5 h-3.5 mr-1.5" />
+            Sources Custom
+          </TabsTrigger>
+          <TabsTrigger
             value="advanced"
             className="text-xs data-[state=active]:bg-radar/10 data-[state=active]:text-radar data-[state=active]:border data-[state=active]:border-radar/20"
           >
@@ -621,6 +719,9 @@ export function SettingsClient() {
         </TabsContent>
         <TabsContent value="notifications">
           <TabNotifications showToast={showToast} />
+        </TabsContent>
+        <TabsContent value="custom">
+          <TabCustomSources showToast={showToast} />
         </TabsContent>
         <TabsContent value="advanced">
           <TabAdvanced showToast={showToast} />

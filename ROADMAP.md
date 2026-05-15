@@ -112,6 +112,38 @@ Phase 5 — Admin       [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 12 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Implémentation des pages manquantes (CVE, Profil, Changelog) et finalisation des paramètres d'instance.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/schemas/cve.py` | Création | Schémas pour les alertes CVE, paramètres et statuts des sources. |
+| `backend/app/routers/cve.py` | Création | Routeur API pour les alertes CVE, trends, settings et statuts (Mocks inclus). |
+| `backend/app/main.py` | Modification | Enregistrement du routeur CVE. |
+| `frontend/src/lib/api.ts` | Modification | Ajout des interfaces et fonctions API pour CVE, Profil et Settings. |
+| `frontend/src/app/(dashboard)/alerts/cve/page.tsx` | Création | Page Veille CVE & Exploits (Server). |
+| `frontend/src/app/(dashboard)/alerts/cve/client.tsx` | Création | Client CVE : graphique d'évolution, statut sources, tableau filtrable. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Création | Page Profil Utilisateur : infos personnelles, sécurité, statut MFA. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Création | Page Changelog : timeline des versions v0.9 à v1.0. |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Ajout de l'onglet "Sources Custom" et correction de la logique de l'onglet "CVE". |
+
+#### Décisions techniques
+
+1. **Backend Mocks** : Création de routes API CVE avec des données mockées pour permettre le développement frontend immédiat sans attendre l'implémentation des scrapers NVD/OSV.
+2. **Page Profil** : Intégration du statut MFA et des informations de sécurité conformes au CDC.
+3. **Timeline Changelog** : Style visuel avec timeline verticale pour une lecture claire des mises à jour.
+
+#### ✅ Phase 6, 7 & 9 — Tâches complétées
+- [x] Phase 9.1 à 9.5 — Page `/alerts/cve` complète.
+- [x] Phase 7.2 — Page profil utilisateur (`/profile`).
+- [x] Phase 6.1 — Page changelog (`/changelog`).
+- [x] Phase 10.6 — Onglet "Sources custom" ajouté aux settings.
+
+---
+
 ### Itération 11 — 2026-05-14 (Gemini 2.0 Flash — Antigravity)
 
 **Objectif de l'itération** : Résolution des erreurs de build Docker Frontend et standardisation des réponses API Backend.

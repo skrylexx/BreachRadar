@@ -20,15 +20,15 @@
 | `/tools/urlscan` | `(dashboard)/tools/urlscan/page.tsx` | ✅ Présent |
 | `/reports` | `(dashboard)/reports/page.tsx` | ✅ Présent |
 | `/alerts/ransomware` | `(dashboard)/alerts/ransomware/page.tsx` | ✅ Présent |
-| `/admin/users` | — | ❌ Inexistant |
-| `/admin/api-keys` | — | ❌ Inexistant |
-| `/admin/smtp` | — | ❌ Inexistant |
-| `/admin/scheduling` | — | ❌ Inexistant |
-| `/admin/audit` | — | ❌ Inexistant |
-| `/admin/settings` | — | ❌ Inexistant |
-| `/alerts/cve` | — | ❌ Inexistant |
-| `/changelog` | — | ❌ Inexistant |
-| `/profile` | — | ❌ Inexistant |
+| `/alerts/cve` | `(dashboard)/alerts/cve/page.tsx` | ✅ Présent |
+| `/admin/users` | `(dashboard)/admin/users/page.tsx` | ✅ Présent |
+| `/admin/api-keys` | `(dashboard)/admin/api-keys/page.tsx` | ✅ Présent |
+| `/admin/smtp` | `(dashboard)/admin/smtp/page.tsx` | ✅ Présent |
+| `/admin/scheduling` | `(dashboard)/admin/scheduling/page.tsx` | ✅ Présent |
+| `/admin/audit` | `(dashboard)/admin/audit/page.tsx` | ✅ Présent |
+| `/admin/settings` | `(dashboard)/admin/settings/page.tsx` | ✅ Présent |
+| `/changelog` | `(dashboard)/changelog/page.tsx` | ✅ Présent |
+| `/profile` | `(dashboard)/profile/page.tsx` | ✅ Présent |
 
 ---
 

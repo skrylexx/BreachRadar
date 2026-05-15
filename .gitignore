@@ -67,3 +67,6 @@ ransomlook_data/
 
 # Données d'audit de sécurité
 security_audits/reports/
+
+# Images docker
+docker_images/
