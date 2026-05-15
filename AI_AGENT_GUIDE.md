@@ -228,7 +228,7 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 ### Passation #2 — 2026-05-05
 
 - **Agent sortant**            : Claude (Perplexity — session refactoring documentation + UI)
-- **Agent entrant**            : indéfini
+- **Agent entrant**            : Gemini (session de construction Backend)
 - **Commit de fin de session** : *(voir commit associé à ce push)*
 - **Tâches accomplies** :
   - Fusion de `AGENT.md`, `IA_CHANGE.md`, `READ_BEFORE_RUN_AUDIT.md` → `AI_AGENT_GUIDE.md`
@@ -238,6 +238,25 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Tâche suivante** : Voir section `Prochain Agent — Reprendre ici` dans ROADMAP.md
 - **Points de vigilance** : Mêmes points de vigilance sécurité que la passation #1 (non résolus)
 - **Fichiers mis à jour** : AI_AGENT_GUIDE.md (nouveau) · Sidebar.tsx · layout.tsx (dashboard) · DomainBanner.tsx (nouveau)
+
+---
+
+### Passation #3 — 2026-05-15
+
+- **Agent sortant**            : Gemini (session de construction Backend)
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - Architecture Backend posée : Modèles SQLAlchemy (CVE, Settings, API Keys).
+  - Sécurité : Implémentation du chiffrement Fernet pour les secrets en base.
+  - Moteur CVE : Fetchers NVD API 2.0, GitHub, CVEFeed et gestion du rate-limit.
+  - Système Mock Data : Génération dynamique de données de démo si clés absentes.
+  - UI : Switch MOCK global, bannières d'avertissement et badges sur tout le dashboard.
+- **Tâche suivante** : Implémentation du polling réel et finalisation du fetcher OSV.dev.
+- **Points de vigilance** :
+  - Clé NVD recommandée pour éviter le rate-limit strict (5 req/30s).
+  - Les boutons MFA et Password dans Profile sont visuels mais pas encore reliés au backend.
+- **Fichiers mis à jour** : TODO.md · ROADMAP.md · README.md · QUICKSTART.md · Tout le backend/app/...
 
 ---
 
@@ -347,8 +366,8 @@ Fichiers lus   : TECH_STACK.md, AUDIT_INSTRUCTIONS.md (versions du jour)
 ### 8.5 — Contrôle de cohérence finale (fin de session d'audit)
 
 - [ ] `TECH_STACK.md` reflète l'état actuel du dépôt (pas de dépendance manquante, pas de service non documenté)
-- [ ] `AUDIT_INSTRUCTIONS.md` couvre tous les fichiers et composants actifs du dépôt
-- [ ] Le champ `Dernier commit audité` dans `TECH_STACK.md` est à jour
-- [ ] Le rapport d'audit est archivé dans `audit_reports/` avec la convention de nommage
-- [ ] Les failles résolues depuis le dernier audit ont été retirées ou marquées `[RÉSOLU]` dans `AUDIT_INSTRUCTIONS.md`
-- [ ] Aucune information sensible (clé API, mot de passe, token) n'apparaît en clair dans les fichiers de documentation
+- [ ] `AUDIT_INSTRUCTIONS.md` covers all active files and components of the repository
+- [ ] The field `Dernier commit audité` in `TECH_STACK.md` is up to date
+- [ ] The audit report is archived in `audit_reports/` with the naming convention
+- [ ] Fixed vulnerabilities since the last audit have been removed or marked `[RÉSOLU]` in `AUDIT_INSTRUCTIONS.md`
+- [ ] No sensitive information (API key, password, token) appears in clear text in the documentation files

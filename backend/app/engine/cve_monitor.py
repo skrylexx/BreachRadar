@@ -184,21 +184,86 @@ class CVEMonitor:
     # ─── OSV (Google) ────────────────────────────────────────────────────────
 
     async def _poll_osv(self, categories: List[str]):
-        """Interroge l'API OSV.dev par écosystème."""
+        """
+        Interroge l'API OSV.dev par écosystème.
+        Utilise modified_id.csv pour lister les IDs récents et GET /v1/vulns/<id> pour les détails.
+        """
         osv_cats = [c for c in categories if c.startswith("osv_")]
         for cat in osv_cats:
             ecosystem = cat.replace("osv_", "").capitalize()
-            if ecosystem == "Nuget": ecosystem = "NuGet"
-            if ecosystem == "Pypi": ecosystem = "PyPI"
-            if ecosystem == "Rubygems": ecosystem = "RubyGems"
+            # Normalisation des noms d'écosystème pour OSV
+            ecosystem_map = {
+                "Npm": "npm",
+                "Pypi": "PyPI",
+                "Nuget": "NuGet",
+                "Rubygems": "RubyGems",
+                "Maven": "Maven",
+                "Go": "Go",
+            }
+            osv_ecosystem = ecosystem_map.get(ecosystem, ecosystem)
             
             try:
-                # Note: OSV API /query est principalement pour un package précis.
-                # Pour avoir les "récentes", on peut utiliser leur dump ou d'autres endpoints.
-                # Ici on fait une requête factice car l'API de listing global est complexe.
-                pass
+                csv_url = f"https://storage.googleapis.com/osv-vulnerabilities/{osv_ecosystem}/modified_id.csv"
+                response = await self.client.get(csv_url)
+                if response.status_code != 200:
+                    logger.error(f"Erreur CSV OSV pour {osv_ecosystem}: {response.status_code}")
+                    continue
+                
+                # On prend les 10 plus récentes vulnérabilités (reverse chrono)
+                lines = response.text.strip().split("\n")
+                latest_vulns = lines[:10]
+                
+                for line in latest_vulns:
+                    if not line: continue
+                    parts = line.split(",")
+                    if len(parts) < 2: continue
+                    
+                    vuln_id = parts[1].strip()
+                    await self._fetch_osv_detail(vuln_id, cat)
+                    # Pause pour éviter de spammer api.osv.dev
+                    await asyncio.sleep(0.2)
+                    
             except Exception as e:
                 logger.error(f"Erreur OSV pour {cat}: {e}")
+
+    async def _fetch_osv_detail(self, vuln_id: str, category: str):
+        """Récupère les détails complets d'une vulnérabilité OSV."""
+        try:
+            url = f"https://api.osv.dev/v1/vulns/{vuln_id}"
+            res = await self.client.get(url)
+            if res.status_code == 200:
+                data = res.json()
+                
+                # Extraction sévérité (OSV utilise souvent CVSS v3)
+                severity_str = "UNKNOWN"
+                cvss_score = None
+                
+                # Check for severity field
+                if "severity" in data:
+                    for s in data["severity"]:
+                        if s.get("type") in ["CVSS_V3", "CVSS_V4"]:
+                            # On tente de parser le score depuis le vector ou le field
+                            # Note: OSV score est souvent absent, on peut avoir juste le vector
+                            pass
+                
+                # Check for database_specific field which sometimes contains severity
+                db_spec = data.get("database_specific", {})
+                severity_str = db_spec.get("severity", "UNKNOWN").upper()
+
+                alert = CVEAlert(
+                    cve_id=vuln_id,
+                    title=data.get("summary", vuln_id),
+                    description=data.get("details", ""),
+                    severity=self._map_severity(severity_str),
+                    cvss_score=cvss_score,
+                    category=category,
+                    source_type=CVESourceType.OSV,
+                    url=f"https://osv.dev/vulnerability/{vuln_id}",
+                    published_at=datetime.fromisoformat(data.get("published", datetime.now(timezone.utc).isoformat()).replace("Z", "+00:00"))
+                )
+                await self._upsert_cve(alert)
+        except Exception as e:
+            logger.error(f"Erreur détail OSV {vuln_id}: {e}")
 
     # ─── Utils ───────────────────────────────────────────────────────────────
 
