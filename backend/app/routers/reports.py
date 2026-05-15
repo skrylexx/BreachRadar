@@ -158,6 +158,11 @@ async def generate_global_report(
     Génère un rapport consolidé sur une période donnée.
     Récupère tous les findings des scans effectués entre start_date et end_date.
     """
+    import json
+    from app.models.report import FinalReport, ReportMetadata
+    from app.engine.aggregator import ResultAggregator
+    from app.report.engine import ReportEngine
+
     # 1. Récupérer les ScanResult de la période
     stmt = (
         select(ScanResult)
@@ -171,21 +176,75 @@ async def generate_global_report(
     if not scans:
         raise HTTPException(status_code=404, detail="No scans found in this period")
 
-    # 2. Agréger les données (Simplié pour l'instant)
-    # Dans une version complète, on relirait les JSON de chaque scan pour tout fusionner.
-    # Ici, on va créer un "Meta-Scan" ou simplement renvoyer l'ID du rapport généré.
+    # 2. Agréger les données de tous les scans
+    all_leak_findings = []
+    all_ransom_findings = []
+    sources_queried = set()
     
-    # Pour l'instant, on va juste logger l'action et simuler le succès
-    # Car l'agrégation complète demande de relire tous les fichiers JSON sur disque.
+    for scan in scans:
+        if not scan.report_path:
+            continue
+            
+        json_path = Path(scan.report_path).with_suffix(".json")
+        if not json_path.exists():
+            continue
+            
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                report_data = json.load(f)
+                report_obj = FinalReport.model_validate(report_data)
+                
+                # Extraire les findings individuels (LeakFinding)
+                for email_res in report_obj.findings:
+                    all_leak_findings.extend(email_res.findings)
+                
+                # Extraire les alertes ransomware
+                all_ransom_findings.extend(report_obj.ransomware_alerts.alerts)
+                
+                # Fusionner les sources
+                sources_queried.update(report_obj.report_metadata.sources_queried)
+        except Exception as e:
+            print(f"Error loading report {json_path}: {e}")
+
+    # 3. Créer le nouveau rapport consolidé
+    aggregator = ResultAggregator()
+    metadata = ReportMetadata(
+        target_domain=settings.target_domain,
+        generated_at=datetime.now(timezone.utc),
+        scan_duration_seconds=0.0,
+        sources_queried=list(sources_queried),
+        total_emails_checked=0, # Difficile à recalculer sans les logs de scan
+        total_findings=len(all_leak_findings) + len(all_ransom_findings)
+    )
     
+    consolidated_report = aggregator.aggregate(
+        email_findings=all_leak_findings,
+        ransom_findings=all_ransom_findings,
+        metadata=metadata
+    )
+
+    # 4. Générer les fichiers
+    engine = ReportEngine(output_dir=settings.report_output_dir)
+    # On ajoute "global_" au début du nom de fichier via le timestamp
+    timestamp = datetime.now(timezone.utc).strftime("GLOBAL_%Y%m%d_%H%M%S")
+    report_files = engine.generate(consolidated_report, formats=["json", "html", "pdf"])
+
+    # 5. Logger l'action
     db.add(AuditLog(
         user_email=current_user.email,
         action="report.global_generated",
-        details={"start_date": body.start_date.isoformat(), "end_date": body.end_date.isoformat(), "count": len(scans)},
+        details={
+            "start_date": body.start_date.isoformat(), 
+            "end_date": body.end_date.isoformat(), 
+            "scans_included": len(scans),
+            "output_path": str(report_files[0]) if report_files else None
+        },
         ip_address=None
     ))
     
-    # On pourrait renvoyer le premier scan comme "représentant" ou implémenter la fusion.
-    # TODO: Implémenter la fusion réelle des objets FinalReport.
-    
-    return {"status": "ok", "message": f"Global report based on {len(scans)} scans is ready for download.", "scans_included": len(scans)}
+    return {
+        "status": "ok", 
+        "message": f"Global report based on {len(scans)} scans has been generated.",
+        "report_id": str(scans[0].id), # On renvoie un ID pour que l'UI puisse le lister ou on devrait créer un ScanResult type "GLOBAL"
+        "scans_included": len(scans)
+    }
