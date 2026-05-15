@@ -113,6 +113,46 @@ async def create_custom_source(
     ))
     return source
 
+@router.post("/custom-sources/test")
+async def test_custom_source(
+    body: dict,
+    current_user: AdminUser,
+):
+    """Teste un flux RSS et renvoie un aperçu des 3 derniers items."""
+    import httpx
+    import feedparser
+    
+    url = body.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+        
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(url)
+            if res.status_code != 200:
+                return {"ok": False, "message": f"HTTP {res.status_code}"}
+            
+            feed = feedparser.parse(res.text)
+            if feed.bozo:
+                return {"ok": False, "message": "Invalid XML/RSS structure"}
+                
+            preview = []
+            for entry in feed.entries[:3]:
+                preview.append({
+                    "title": entry.get("title", "No title"),
+                    "link": entry.get("link", "#"),
+                    "date": entry.get("published", "No date")
+                })
+                
+            return {
+                "ok": True,
+                "title": feed.feed.get("title", "Unknown Feed"),
+                "item_count": len(feed.entries),
+                "preview": preview
+            }
+    except Exception as e:
+        return {"ok": False, "message": str(e)}
+
 @router.delete("/custom-sources/{source_id}")
 async def delete_custom_source(
     request: Request,
