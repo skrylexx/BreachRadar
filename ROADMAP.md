@@ -23,29 +23,56 @@ Phase 4 — Ransomware  [██████████] 100%
 Phase 5 — Admin       [██████████] 100%
 
 ── Backend Implementation ──────────────
-Phase 1 — CVE Engine  [████████░░]  80%
-Phase 2 — Security    [██████░░░░]  60%
-Phase 3 — Settings    [████████░░]  80%
-Phase 4 — Reports     [█████░░░░░]  50%
+Phase 1 — CVE Engine  [██████████] 100%
+Phase 2 — Security    [██████████] 100%
+Phase 3 — Settings    [██████████] 100%
+Phase 4 — Reports     [██████████] 100%
 ```
 
 ---
 
 ## Vision globale
 
-### Phase 4 — WebUI Gouvernance SOC (100%)
-- [x] Infrastructure Docker WebUI
-- [x] Backend FastAPI : JWT, RBAC Admin/Viewer, TOTP MFA
-- [x] Frontend Next.js : thème SOC, sidebar fine, radar animation
-- [x] Pages : `/scans`, `/api-keys`, `/users`, `/changelog`, `/alerts/cve`, `/profile`
-- [x] Intégration next-intl
-- [x] Export PDF fonctionnel avec WeasyPrint
+### Phase 5 — Hardening (100%)
+- [x] Chiffrement Fernet des clés d'API en DB
+- [x] Gestion dynamique des données de démonstration (Mock Mode)
+- [x] Centralisation des System Settings en base de données
+- [x] Flux de sécurité complet (MFA + Password change)
+- [x] Consolidation globale des rapports de scan
 
 ---
 
 ## CHANGELOG
 
-### Itération 15 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Itération 16 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+
+**Objectif de l'itération** : Finalisation totale du Backend : Rapports globaux, Sécurité Profil et Sources Custom.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/routers/reports.py` | Modification | Implémentation de la fusion réelle de scans pour les rapports globaux. |
+| `backend/app/routers/settings.py` | Modification | Endpoint de test pour les sources RSS/Atom avec aperçu d'items. |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Intégration complète du CRUD et des tests pour les sources custom. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Branchement des actions de changement de mot de passe et enrôlement MFA. |
+| `frontend/src/lib/api.ts` | Modification | Ajout des fonctions `passwordChange`, `mfaSetup` et `mfaConfirm`. |
+
+#### Décisions techniques
+
+1. **Fusion de Scans** : La génération globale relit les fichiers JSON physiques des scans précédents pour garantir l'intégrité des findings agrégés sans surcharger la base de données.
+2. **Validation Flux** : Utilisation de `feedparser` côté backend pour valider l'URL d'un flux RSS avant de permettre son enregistrement par l'admin.
+3. **Sécurité UI** : Les dialogues de changement de mot de passe et MFA intègrent des validations de correspondance et des retours d'état clairs.
+
+#### ✅ Phase 1.3, 2.2 & 4.2 — Tâches complétées
+- [x] Phase 1.3 — Gestion complète des sources custom RSS.
+- [x] Phase 2.2 — Sécurité Profil 100% fonctionnelle.
+- [x] Phase 4.2 — Génération de rapports globaux consolidés.
+
+---
+
+### Itération 15
+ — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
 **Objectif de l'itération** : Finalisation de la génération de rapports PDF et des flux d'authentification MFA.
 
