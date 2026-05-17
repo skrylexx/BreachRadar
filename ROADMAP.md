@@ -12,7 +12,7 @@ Phase 1 — MVP         [██████████] 100%
 Phase 2               [██████████] 100%
 Phase 3               [██████████] 100%
 Phase 4 — WebUI       [██████████] 100%
-Phase 5 — Hardening   [██████░░░░]  60%
+Phase 5 — Hardening   [████████░░]  80%
 
 ── Frontend (TODO.md) ──────────────────
 Phase 0 — Fondations  [██████████] 100%
@@ -27,7 +27,7 @@ Phase 1 — CVE Engine  [██████████] 100%
 Phase 2 — Security    [██████████] 100%
 Phase 3 — Settings    [██████████] 100%
 Phase 4 — Reports     [██████████] 100%
-Phase 5 — Validation  [███░░░░░░░]  30%
+Phase 5 — Validation  [█████░░░░░]  50%
 
 ---
 
@@ -42,36 +42,36 @@ Phase 5 — Validation  [███░░░░░░░]  30%
 - [x] Correction et stabilisation du build Docker (Full Stack)
 - [x] Activation du polling automatique CVE via APScheduler
 - [x] Renforcement des clients OSINT (Rate-limiting dynamique, gestion d'erreurs HTTP)
+- [x] Couverture de tests asynchrones pour le moteur CVE (Mocking API)
 
 ---
 
 ## CHANGELOG
 
-### Itération 19 — 2026-05-17 (Gemini CLI)
+### Itération 20 — 2026-05-17 (Gemini CLI)
 
-**Objectif de l'itération** : Robustesse des connecteurs OSINT et gestion centralisée des erreurs HTTP.
+**Objectif de l'itération** : Qualité et fiabilité du moteur CVE via tests unitaires et robustesse du parsing.
 
 #### Fichiers créés/modifiés
 
 | Fichier | Nature | Description |
 |---|---|---|
-| `backend/app/clients/base.py` | Modification | Ajout de `_safe_request` pour centraliser le retry et le logging d'erreurs (429, 500+). |
-| `backend/app/clients/hibp.py` | Modification | Support du rate-limit dynamique injecté par l'orchestrateur. |
-| `backend/app/clients/intelx.py` | Modification | Passage à `_safe_request` pour les appels POST/GET. |
-| `backend/app/engine/orchestrator.py` | Modification | Injection de `hibp_rate_limit_ms` depuis les settings lors de l'initialisation des clients. |
-| `TODO.md` | Modification | Phase 5.1 marquée comme terminée. |
+| `backend/tests/test_cve_monitor.py` | Création | Suite de tests asynchrones couvrant NVD, OSV, GitHub et CVEFeed. |
+| `backend/app/engine/cve_monitor.py` | Modification | Robustesse accrue du parsing de dates (fallbacks `published_parsed`/`updated_parsed`). |
+| `backend/app/core/config.py` | Modification | Flexibilité des types `ransomlook_search_terms` et `report_format` pour éviter les erreurs de parsing d'env vars vides. |
+| `TODO.md` | Modification | Phase 5.2 (CVE tests) marquée comme terminée. |
 
 #### Décisions techniques
 
-1. **Centralized Error Handling** : Utilisation de `_safe_request` dans la classe de base pour garantir que tous les clients bénéficient du retry exponentiel et du logging d'erreurs sans duplication de code.
-2. **Dynamic Rate Limit** : HIBP peut désormais avoir un délai configurable sans redémarrage (via modification future des settings en DB).
+1. **Date Robustness** : Ajout de fallbacks systématiques pour le parsing des dates dans les flux RSS/Atom, évitant les crashs silencieux en cas de flux malformé.
+2. **Settings Resiliency** : Passage des listes en `Union[str, list[str]]` dans Pydantic pour permettre le parsing transparent de chaînes vides ou de listes JSON depuis l'environnement.
 
-#### ✅ Phase 5.1 — Tâches complétées
-- [x] Validation et renforcement des connecteurs OSINT (HIBP, IntelX, LeakCheck, Dehashed).
+#### ✅ Phase 5.2 — Tâches complétées
+- [x] Écriture et validation des tests unitaires pour `CVEMonitor`.
 
 ---
 
-### Itération 18 — 2026-05-17 (Gemini CLI)
+### Itération 19 — 2026-05-17 (Gemini CLI)
 
 ### Itération 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 

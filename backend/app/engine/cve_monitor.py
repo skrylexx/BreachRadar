@@ -167,6 +167,14 @@ class CVEMonitor:
                     if not cve_id:
                         cve_id = f"GHSA-{entry.id.split('/')[-1]}"
 
+                    # Extraction de la date avec fallback
+                    if hasattr(entry, "published_parsed") and entry.published_parsed:
+                        published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                    elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
+                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+                    else:
+                        published_at = datetime.now(timezone.utc)
+
                     alert = CVEAlert(
                         cve_id=cve_id,
                         title=entry.title,
@@ -175,7 +183,7 @@ class CVEMonitor:
                         category="GitHub Advisories",
                         source_type=CVESourceType.GITHUB,
                         url=entry.link,
-                        published_at=datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                        published_at=published_at
                     )
                     await self._upsert_cve(alert)
         except Exception as e:
@@ -299,6 +307,14 @@ class CVEMonitor:
                     cve_id = entry.title.split(":")[0].strip()
                     if not cve_id.startswith("CVE-"): continue
                     
+                    # Extraction de la date avec fallback
+                    if hasattr(entry, "published_parsed") and entry.published_parsed:
+                        published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                    elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
+                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+                    else:
+                        published_at = datetime.now(timezone.utc)
+
                     alert = CVEAlert(
                         cve_id=cve_id,
                         title=entry.title,
@@ -308,7 +324,7 @@ class CVEMonitor:
                         category="General",
                         source_type=CVESourceType.CVEFEED,
                         url=entry.link,
-                        published_at=datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                        published_at=published_at
                     )
                     await self._upsert_cve(alert)
             except Exception as e:

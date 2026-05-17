@@ -105,7 +105,7 @@ class Settings(BaseSettings):
         default="",
         description="Clé d'API pour l'instance SaaS RansomLook (header Authorization)",
     )
-    ransomlook_search_terms: list[str] = Field(
+    ransomlook_search_terms: str | list[str] = Field(
         default_factory=list,
         description="Termes de recherche supplémentaires (noms commerciaux, filiales)",
     )
@@ -128,7 +128,7 @@ class Settings(BaseSettings):
 
     # ─── Rapports ────────────────────────────────────────────────────────────
     report_output_dir: str = Field(default="./reports")
-    report_format: list[str] = Field(
+    report_format: str | list[str] = Field(
         default_factory=lambda: ["markdown", "json"],
         description="Formats de rapport : markdown, json, html, pdf",
     )

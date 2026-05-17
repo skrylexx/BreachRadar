@@ -96,7 +96,7 @@ Le frontend est **100% opérationnel** et utilise actuellement des données fact
 
 - [/] **5.2 — Tests Unitaires**
   - [x] Vérifier la réussite du build Next.js en production (CI/CD check).
-  - [ ] Écrire des tests asynchrones (pytest + httpx) pour `cve_monitor.py` avec des mocks.
+  - [x] Écrire des tests asynchrones (pytest + httpx) pour `cve_monitor.py` avec des mocks.
   - [ ] Vérifier la logique de `RansomwareTracker` (une alerte ransomware doit forcer la sévérité globale à CRITICAL).
 
 - [ ] **5.3 — Audit Automatisé**
