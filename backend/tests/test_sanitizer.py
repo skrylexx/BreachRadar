@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.sanitizer import DataSanitizer, SanitizedResult
+from app.engine.sanitizer import DataSanitizer, SanitizedResult
 
 
 @pytest.fixture

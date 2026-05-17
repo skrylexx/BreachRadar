@@ -4,10 +4,10 @@ Tests unitaires pour l'Orchestrateur (ScanOrchestrator).
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from app.core.orchestrator import ScanOrchestrator
+from app.engine.orchestrator import ScanOrchestrator
 from app.models.finding import LeakFinding, Severity
-from app.config.settings import Settings
-from app.config.source_registry import SourceRegistry
+from app.core.config import Settings
+from app.core.source_registry import SourceRegistry
 
 @pytest.fixture
 def mock_settings():
@@ -16,8 +16,9 @@ def mock_settings():
 
 @pytest.fixture
 def mock_registry():
-    registry = SourceRegistry()
-    registry.sources["hibp"].is_active = True
+    registry = MagicMock(spec=SourceRegistry)
+    # On simule un dictionnaire de sources
+    registry.sources = {}
     return registry
 
 @pytest.mark.asyncio

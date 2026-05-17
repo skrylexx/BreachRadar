@@ -105,7 +105,7 @@ class BaseLeakClient(ABC):
         User-Agent identifiable et honnête (pas d'usurpation).
         """
         default_headers = {
-            "User-Agent": "BreachRadar/0.1.0 (OSINT defensif — usage legitime)",
+            "User-Agent": "BreachRadar/0.1.0 (OSINT defensif - usage legitime)",
             "Accept": "application/json",
         }
         if headers:

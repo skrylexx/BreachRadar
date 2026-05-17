@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.core.ransom_tracker import RansomwareTracker
+from app.engine.ransom_tracker import RansomwareTracker
 from app.models.ransom import RansomFinding, RansomStats, RansomStatus
 
 

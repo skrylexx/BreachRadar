@@ -12,7 +12,7 @@ import httpx
 import pytest
 
 from app.clients.hibp import HIBPClient
-from app.core.sanitizer import DataSanitizer
+from app.engine.sanitizer import DataSanitizer
 
 
 class TestHIBPClient:

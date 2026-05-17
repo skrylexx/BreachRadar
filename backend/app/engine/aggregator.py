@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from app.models.finding import (
     EmailFindingResult,
@@ -171,7 +171,7 @@ class ResultAggregator:
                 status="COMPROMISED",
                 breach_count=len(email_findings),
                 findings=email_findings,
-                checked_at=datetime.utcnow(),
+                checked_at=datetime.now(timezone.utc),
             )
 
         logger.info(

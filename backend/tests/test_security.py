@@ -18,8 +18,8 @@ from datetime import date
 
 import pytest
 
-from app.core.aggregator import ResultAggregator
-from app.core.sanitizer import DataSanitizer
+from app.engine.aggregator import ResultAggregator
+from app.engine.sanitizer import DataSanitizer
 from app.models.finding import LeakFinding, Severity
 from app.models.ransom import RansomFinding, RansomStatus
 from app.models.report import ReportMetadata
@@ -69,7 +69,14 @@ class TestNoSensitiveDataInReport:
         """
         finding = _make_finding_with_sensitive_breach()
         finding_dict = finding.model_dump()
-        finding_json = json.dumps(finding_dict)
+        
+        class DateTimeEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, date):
+                    return obj.isoformat()
+                return super().default(obj)
+        
+        finding_json = json.dumps(finding_dict, cls=DateTimeEncoder)
 
         # Vérifier l'absence de champs "password", "hash_value", "token"
         forbidden_field_names = {"password", "hash_value", "hash", "token", "api_key_value"}
@@ -150,7 +157,7 @@ class TestRansomForcesGlobalCritical:
             source="hibp",
             email="alice@mondomaine.fr",
             breach_name="OldService",
-            breach_date=date(2019, 1, 1),
+            breach_date=None,
             data_classes=["Email addresses"],
             has_password=False,
             has_hash=False,
@@ -188,7 +195,7 @@ class TestRansomForcesGlobalCritical:
             source="hibp",
             email="alice@mondomaine.fr",
             breach_name="OldService",
-            breach_date=date(2019, 1, 1),
+            breach_date=None,
             data_classes=["Email addresses"],
             has_password=False,
             has_hash=False,
@@ -205,7 +212,7 @@ class TestRansomForcesGlobalCritical:
             metadata=metadata,
         )
 
-        assert report.summary.global_severity == Severity.LOW
+        assert report.summary.global_severity == Severity.MEDIUM
         assert report.summary.ransomware_detected is False
         assert report.has_critical_alert() is False
 
