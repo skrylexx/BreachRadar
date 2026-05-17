@@ -94,8 +94,8 @@ async def list_reports(
 @router.get("/{report_id}/export")
 async def export_report(
     report_id: str,
+    current_user: ViewerUser,
     format: str = Query("pdf", pattern="^(pdf|json|html)$"),
-    current_user: ViewerUser = Depends(ViewerUser),
     db: AsyncSession = Depends(get_db)
 ):
     """Exporte un rapport existant dans le format demandé."""
