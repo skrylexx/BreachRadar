@@ -142,30 +142,44 @@ class BaseLeakClient(ABC):
         wait=wait_exponential(multiplier=1, min=1, max=10),
         reraise=False,
     )
+    async def _safe_request(
+        self,
+        client: httpx.AsyncClient,
+        method: str,
+        url: str,
+        **kwargs: Any,
+    ) -> httpx.Response | None:
+        """
+        Effectue une requête HTTP sécurisée avec retry automatique.
+        Supporte tous les types de requêtes (GET, POST, etc.) via kwargs.
+        """
+        try:
+            response = await client.request(method, url, **kwargs)
+            response.raise_for_status()
+            return response
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return None
+            if e.response.status_code == 429:
+                self._logger.warning(
+                    f"[{self.name}] Rate limit atteint (429) sur {url} — "
+                    f"attente avant retry"
+                )
+            elif e.response.status_code >= 500:
+                self._logger.error(
+                    f"[{self.name}] Erreur serveur (500+) sur {url} — "
+                    f"status={e.response.status_code}"
+                )
+            raise
+        except httpx.RequestError as e:
+            self._logger.error(f"[{self.name}] Erreur réseau sur {url} : {e}")
+            raise
+
     async def _safe_get(
         self,
         client: httpx.AsyncClient,
         url: str,
         params: dict[str, Any] | None = None,
     ) -> httpx.Response | None:
-        """
-        GET avec retry automatique (3 tentatives, backoff exponentiel).
-        Retourne None en cas d'échec final pour ne pas bloquer le scan.
-        """
-        try:
-            response = await client.get(url, params=params)
-            response.raise_for_status()
-            return response
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                # 404 = aucune donnée trouvée, pas une erreur
-                return None
-            if e.response.status_code == 429:
-                self._logger.warning(
-                    f"[{self.name}] Rate limit atteint (429) — "
-                    f"attente avant retry"
-                )
-            raise  # Laisser tenacity gérer le retry
-        except httpx.RequestError as e:
-            self._logger.error(f"[{self.name}] Erreur réseau : {e}")
-            raise
+        """GET avec retry automatique."""
+        return await self._safe_request(client, "GET", url, params=params)

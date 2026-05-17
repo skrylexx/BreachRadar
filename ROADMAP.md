@@ -12,7 +12,7 @@ Phase 1 — MVP         [██████████] 100%
 Phase 2               [██████████] 100%
 Phase 3               [██████████] 100%
 Phase 4 — WebUI       [██████████] 100%
-Phase 5 — Hardening   [████░░░░░░]  40%
+Phase 5 — Hardening   [██████░░░░]  60%
 
 ── Frontend (TODO.md) ──────────────────
 Phase 0 — Fondations  [██████████] 100%
@@ -27,7 +27,7 @@ Phase 1 — CVE Engine  [██████████] 100%
 Phase 2 — Security    [██████████] 100%
 Phase 3 — Settings    [██████████] 100%
 Phase 4 — Reports     [██████████] 100%
-Phase 5 — Validation  [█░░░░░░░░░]  10%
+Phase 5 — Validation  [███░░░░░░░]  30%
 
 ---
 
@@ -41,37 +41,37 @@ Phase 5 — Validation  [█░░░░░░░░░]  10%
 - [x] Consolidation globale des rapports de scan
 - [x] Correction et stabilisation du build Docker (Full Stack)
 - [x] Activation du polling automatique CVE via APScheduler
+- [x] Renforcement des clients OSINT (Rate-limiting dynamique, gestion d'erreurs HTTP)
 
 ---
 
 ## CHANGELOG
 
-### Itération 18 — 2026-05-17 (Gemini CLI)
+### Itération 19 — 2026-05-17 (Gemini CLI)
 
-**Objectif de l'itération** : Activation du polling automatique des CVE et finalisation de l'intégration du Scheduler.
+**Objectif de l'itération** : Robustesse des connecteurs OSINT et gestion centralisée des erreurs HTTP.
 
 #### Fichiers créés/modifiés
 
 | Fichier | Nature | Description |
 |---|---|---|
-| `backend/app/engine/scheduler.py` | Modification | Support du polling CVE par intervalle et callback dédié. |
-| `backend/app/core/config.py` | Modification | Ajout de `cve_polling_interval` (défaut: 60 min). |
-| `backend/app/main.py` | Modification | Définition du `_cve_callback` et branchement au scheduler dans le cycle de vie. |
-| `backend/app/main.py` | Fix | Correction de la troncature des routeurs et ajout du routeur `reports`. |
-| `TODO.md` | Modification | Phase 1.4 marquée comme terminée. |
+| `backend/app/clients/base.py` | Modification | Ajout de `_safe_request` pour centraliser le retry et le logging d'erreurs (429, 500+). |
+| `backend/app/clients/hibp.py` | Modification | Support du rate-limit dynamique injecté par l'orchestrateur. |
+| `backend/app/clients/intelx.py` | Modification | Passage à `_safe_request` pour les appels POST/GET. |
+| `backend/app/engine/orchestrator.py` | Modification | Injection de `hibp_rate_limit_ms` depuis les settings lors de l'initialisation des clients. |
+| `TODO.md` | Modification | Phase 5.1 marquée comme terminée. |
 
 #### Décisions techniques
 
-1. **Callback Isolation** : Le callback CVE gère sa propre session DB et la fermeture du client HTTP `CVEMonitor` pour garantir l'indépendance vis-à-vis des scans de domaine.
-2. **Default Categories** : Surveillance par défaut de Windows, Linux, PyPI, npm et Go pour couvrir les stacks courantes.
-3. **Cron Persistence** : Utilisation de `getattr` pour une compatibilité ascendante avec les futurs `SystemSettings` stockés en base.
+1. **Centralized Error Handling** : Utilisation de `_safe_request` dans la classe de base pour garantir que tous les clients bénéficient du retry exponentiel et du logging d'erreurs sans duplication de code.
+2. **Dynamic Rate Limit** : HIBP peut désormais avoir un délai configurable sans redémarrage (via modification future des settings en DB).
 
-#### ✅ Phase 1.4 — Tâches complétées
-- [x] Intégration complète du polling CVE automatique.
+#### ✅ Phase 5.1 — Tâches complétées
+- [x] Validation et renforcement des connecteurs OSINT (HIBP, IntelX, LeakCheck, Dehashed).
 
 ---
 
-### Itération 17
+### Itération 18 — 2026-05-17 (Gemini CLI)
 
 ### Itération 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 

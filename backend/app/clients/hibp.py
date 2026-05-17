@@ -31,18 +31,24 @@ class HIBPClient(BaseLeakClient):
     """
 
     name = "hibp"
-    rate_limit_delay = 1.5  # 1500ms entre les requêtes (rate limit HIBP)
 
-    def __init__(self, api_key: str, sanitizer: DataSanitizer | None = None) -> None:
+    def __init__(
+        self, 
+        api_key: str, 
+        sanitizer: DataSanitizer | None = None,
+        rate_limit_delay: float = 1.5
+    ) -> None:
         """
         Args:
             api_key: Clé API HaveIBeenPwned
             sanitizer: DataSanitizer (optionnel, mais recommandé)
+            rate_limit_delay: Délai en secondes entre requêtes (défaut: 1.5)
         """
         super().__init__()
         self.api_key = api_key
         self.base_url = "https://haveibeenpwned.com/api/v3"
         self.sanitizer = sanitizer or DataSanitizer()
+        self.rate_limit_delay = rate_limit_delay
 
     async def check_email(self, email: str) -> list[LeakFinding]:
         """

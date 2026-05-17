@@ -43,7 +43,11 @@ class ScanOrchestrator:
         clients: list[BaseLeakClient] = []
 
         if "hibp" in active_sources:
-            clients.append(HIBPClient(api_key=self.settings.hibp_api_key, sanitizer=self.sanitizer))
+            clients.append(HIBPClient(
+                api_key=self.settings.hibp_api_key, 
+                sanitizer=self.sanitizer,
+                rate_limit_delay=self.settings.hibp_rate_limit_ms / 1000.0
+            ))
 
         if "github" in active_sources:
             clients.append(GitHubClient(token=self.settings.github_token, sanitizer=self.sanitizer))

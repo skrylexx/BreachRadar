@@ -51,8 +51,10 @@ class IntelXClient(BaseLeakClient):
                 "sort": 2, # Sort by date
                 "terminate": []
             }
-            search_resp = await client.post(f"{self.base_url}/intelligent/search", json=payload)
-            search_resp.raise_for_status()
+            search_resp = await self._safe_request(client, "POST", f"{self.base_url}/intelligent/search", json=payload)
+            if not search_resp:
+                return []
+                
             search_data = search_resp.json()
             search_id = search_data.get("id")
             
@@ -62,10 +64,16 @@ class IntelXClient(BaseLeakClient):
             # 2. Poller les résultats (On attend 2 secondes pour laisser le temps au backend IntelX)
             await asyncio.sleep(2.0)
             
-            result_resp = await client.get(f"{self.base_url}/intelligent/search/result", params={"id": search_id, "limit": 20})
-            result_resp.raise_for_status()
+            result_resp = await self._safe_request(
+                client, 
+                "GET", 
+                f"{self.base_url}/intelligent/search/result", 
+                params={"id": search_id, "limit": 20}
+            )
+            if not result_resp:
+                return []
+                
             result_data = result_resp.json()
-            
             records = result_data.get("records", [])
             
             findings = []
