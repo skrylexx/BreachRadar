@@ -6,13 +6,15 @@
  *           indicateur de langue (EN/FR), menu utilisateur.
  */
 
-import { Bell, Globe, LogOut, Settings, User } from "lucide-react";
+import { Bell, Globe, LogOut, Menu, Settings, User, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { useSidebarStore } from "@/lib/store";
 
 export function Header() {
   const pathname = usePathname();
   const t = useTranslations("Header");
+  const { isOpen, toggle } = useSidebarStore();
   
   const getPageTitle = (path: string) => {
     if (path === "/") return t("dashboard");
@@ -46,19 +48,29 @@ export function Header() {
   return (
     <header
       className="h-14 flex-shrink-0 flex items-center justify-between
-                 px-6 border-b border-border/50 bg-card/50 backdrop-blur-sm"
+                 px-4 sm:px-6 border-b border-border/50 bg-card/50 backdrop-blur-sm"
     >
-      {/* Titre de la page */}
+      {/* Titre de la page + Menu Mobile */}
       <div className="flex items-center gap-3">
-        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <button
+          onClick={toggle}
+          className="lg:hidden p-2 -ml-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+          aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
+        >
+          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+        
+        <h2 className="text-sm font-semibold text-foreground truncate max-w-[120px] sm:max-w-none">
+          {title}
+        </h2>
         {/* Breadcrumb minimaliste */}
-        <span className="text-xs text-muted-foreground/50 font-data hidden sm:block">
+        <span className="text-xs text-muted-foreground/50 font-data hidden md:block">
           breachradar / {title.toLowerCase()}
         </span>
       </div>
 
       {/* Actions droite */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
 
         {/* Sélecteur de langue */}
         <LanguageSelector />

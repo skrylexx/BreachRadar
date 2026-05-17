@@ -42,6 +42,7 @@ services:
     image: travishunting/ransomlook:latest
     container_name: ransomlook-app
     restart: unless-stopped
+    command: ["/bin/bash", "-c", "tr -d '\r' < /ransomlook/config/start_local.sh > /tmp/start.sh && bash /tmp/start.sh"]
     depends_on:
       ransomlook-redis:
         condition: service_healthy
@@ -59,7 +60,11 @@ services:
       - REFRESH_INTERVAL=3600   # Rafraîchissement toutes les heures
       - LOG_LEVEL=WARNING
     volumes:
-      - ransomlook_app_data:/app/data
+      - ransomlook_app_data:/ransomlook/data
+      - ./ransomlook_config/generic.json:/ransomlook/config/generic.json
+      - ./ransomlook_config/start_local.sh:/ransomlook/config/start_local.sh
+      - ./ransomlook_config/patch_redis.py:/ransomlook/config/patch_redis.py
+      - ./ransomlook_config/patch_api.py:/ransomlook/config/patch_api.py
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/api/v1/stats"]
       interval: 30s

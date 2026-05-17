@@ -7,17 +7,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  /**
-   * Lecture côté SERVEUR (Server Component) — process.env a toujours
-   * accès aux variables injectées par Docker / dotenv au démarrage.
-   *
-   * Priorité :
-   *   1. TARGET_DOMAIN              (variable sans préfixe, serveur uniquement)
-   *   2. NEXT_PUBLIC_TARGET_DOMAIN  (fallback si définie avec préfixe)
-   *
-   * La valeur est passée en prop à DomainBanner (Client Component)
-   * — on évite ainsi tout appel à process.env côté client.
-   */
   const domain =
     process.env.TARGET_DOMAIN ||
     process.env.NEXT_PUBLIC_TARGET_DOMAIN ||
@@ -25,11 +14,14 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
+      {/* Sidebar - Fixe sur desktop, overlay sur mobile */}
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      
+      {/* Contenu principal */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative">
         <Header />
         <DomainBanner domain={domain} />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-4 sm:p-6 pb-20 sm:pb-6">{children}</main>
       </div>
     </div>
   );

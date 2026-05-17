@@ -1,27 +1,34 @@
 "use client";
 
-import { Lock, Play } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Lock, Play, Search } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ToolPageLayout } from "@/components/layout/ToolPageLayout";
 import { type DataTableColumn } from "@/components/ui/data-table";
 import { scansApi, type PaginatedResponse, type RansomwareAlert } from "@/lib/api";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function RansomLookClient({
   initialData,
   chartData,
   initialPage,
   period,
+  search: initialSearch,
   isMock,
+  isConfigured,
 }: {
   initialData: PaginatedResponse<RansomwareAlert> | null;
   chartData: any[];
   initialPage: number;
   period: string;
+  search: string;
   isMock?: boolean;
+  isConfigured?: boolean;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isScanning, setIsScanning] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
 
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleString("en-GB", {
@@ -69,7 +76,21 @@ export function RansomLookClient({
   ];
 
   const handlePageChange = (page: number) => {
-    router.push(`/tools/ransomlook?period=${period}&page=${page}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.push(`/tools/ransomlook?${params.toString()}`);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+    params.set("page", "1");
+    router.push(`/tools/ransomlook?${params.toString()}`);
   };
 
   const handleTriggerScan = async () => {
@@ -110,17 +131,39 @@ export function RansomLookClient({
         onPageChange: handlePageChange,
       } : undefined}
       actions={
-        <button
-          onClick={handleTriggerScan}
-          disabled={isScanning}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md
-                     bg-radar/10 hover:bg-radar/20 border border-radar/30
-                     text-radar text-xs font-semibold transition-colors duration-200
-                     disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Play className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
-          {isScanning ? "Scanning..." : "Rescan"}
-        </button>
+        <div className="flex items-center gap-3">
+          {isConfigured && (
+            <form onSubmit={handleSearch} className="relative hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search domain..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-3 py-1.5 bg-card border border-border/50 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-radar/50 w-48 transition-all"
+              />
+            </form>
+          )}
+          <button
+            onClick={handleTriggerScan}
+            disabled={isScanning || !isConfigured}
+            className={cn(
+              "inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 disabled:cursor-not-allowed",
+              isConfigured 
+                ? "bg-radar/10 hover:bg-radar/20 border border-radar/30 text-radar"
+                : "bg-muted text-muted-foreground border border-border opacity-70"
+            )}
+          >
+            {isConfigured ? (
+              <>
+                <Play className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
+                {isScanning ? "Scanning..." : "Rescan"}
+              </>
+            ) : (
+              "Activez le connecteur d'abord"
+            )}
+          </button>
+        </div>
       }
     />
   );

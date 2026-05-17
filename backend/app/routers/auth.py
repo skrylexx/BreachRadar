@@ -56,10 +56,10 @@ COOKIE_SECURE = settings.environment == "production"
 COOKIE_SAMESITE = "lax"
 
 
-def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str) -> None:
+def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: str) -> None:
     """Pose les cookies HttpOnly JWT (access + refresh)."""
     jti = secrets.token_urlsafe(16)
-    access_token = create_access_token({"sub": str(user_id), "email": email, "jti": jti})
+    access_token = create_access_token({"sub": str(user_id), "email": email, "role": role, "jti": jti})
     refresh_token = create_refresh_token({"sub": str(user_id), "email": email})
 
     response.set_cookie(
@@ -149,7 +149,7 @@ async def login(
         return TokenResponse(requires_mfa=True, mfa_challenge_token=challenge_token)
 
     # Connexion directe (pas de MFA)
-    _set_auth_cookies(response, user.id, user.email)
+    _set_auth_cookies(response, user.id, user.email, user.role.value)
     user.last_login_at = datetime.now(timezone.utc)
     await _log_action(db, "auth.login.success", request, user.email)
     return TokenResponse()
@@ -201,7 +201,7 @@ async def mfa_verify(
     # Succès : Nettoyage challenge et pose cookies
     await request.app.state.redis.delete(f"mfa_challenge:{user.id}")
     
-    _set_auth_cookies(response, user.id, user.email)
+    _set_auth_cookies(response, user.id, user.email, user.role.value)
     user.last_login_at = datetime.now(timezone.utc)
     await _log_action(db, "auth.mfa.success", request, user.email)
     

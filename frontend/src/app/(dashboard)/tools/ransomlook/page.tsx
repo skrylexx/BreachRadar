@@ -16,10 +16,11 @@ export default async function RansomLookPage({
   const resolvedParams = await searchParams;
   const page = typeof resolvedParams.page === "string" ? parseInt(resolvedParams.page, 10) : 1;
   const period = typeof resolvedParams.period === "string" ? resolvedParams.period : "7d";
+  const search = typeof resolvedParams.search === "string" ? resolvedParams.search : "";
   const limit = 25;
   const offset = (page - 1) * limit;
 
-  const domain = process.env.TARGET_DOMAIN || "";
+  const domain = search || process.env.TARGET_DOMAIN || "";
 
   // Appels parallèles
   const [alertsData, chartData, connectors] = await Promise.all([
@@ -28,7 +29,9 @@ export default async function RansomLookPage({
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
   ]);
 
-  const isMock = Array.isArray(connectors) && connectors.find(c => c.name.toLowerCase() === "ransomlook")?.is_mock;
+  const connector = Array.isArray(connectors) ? connectors.find(c => c.name.toLowerCase() === "ransomlook") : undefined;
+  const isMock = connector?.is_mock;
+  const isConfigured = connector?.configured;
 
   return (
     <RansomLookClient
@@ -36,7 +39,9 @@ export default async function RansomLookPage({
       chartData={chartData || []}
       initialPage={page}
       period={period}
+      search={search}
       isMock={isMock}
+      isConfigured={isConfigured}
     />
   );
 }

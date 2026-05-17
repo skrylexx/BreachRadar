@@ -34,12 +34,19 @@ async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
 
-def _ransomlook_active() -> bool:
-    """RansomLook local = toujours actif (service Docker interne). SaaS = clé requise."""
-    return (
-        settings.ransomlook_mode == "local"
-        or bool(settings.ransomlook_saas_api_key)
-    )
+async def _ransomlook_active() -> bool:
+    """Vérifie si RansomLook est réellement joignable."""
+    if settings.ransomlook_mode == "saas":
+        return bool(settings.ransomlook_saas_api_key)
+    
+    # Mode local : test réel de connectivité
+    try:
+        from app.clients.ransomlook import RansomLookClient
+        client = RansomLookClient()
+        stats = await client.check_health()
+        return stats.is_healthy
+    except Exception:
+        return False
 
 def _source_to_type(source: str) -> str:
     mapping = {
@@ -173,7 +180,7 @@ async def connectors_status(
     État de TOUS les connecteurs disponibles dans l'application.
     Ajoute un flag 'is_mock' si le connecteur n'est pas configuré mais que le mode mock est activé.
     """
-    ransomlook_ok = _ransomlook_active()
+    ransomlook_ok = await _ransomlook_active()
     mock_enabled = await _get_mock_data_enabled(db)
 
     def _get_status(configured: bool):
@@ -182,8 +189,8 @@ async def connectors_status(
 
     connectors = [
         {
-            "service_name": "ransomlook",
-            "service_label": "RansomLook",
+            "name": "ransomlook",
+            "label": "RansomLook",
             "configured": ransomlook_ok,
             "is_active": ransomlook_ok or mock_enabled,
             "is_mock": not ransomlook_ok and mock_enabled,
@@ -191,8 +198,8 @@ async def connectors_status(
             "last_test_success": True if settings.ransomlook_mode == "local" else (True if ransomlook_ok else None),
         },
         {
-            "service_name": "hibp",
-            "service_label": "HIBP",
+            "name": "hibp",
+            "label": "HIBP",
             "configured": settings.hibp_configured,
             "is_active": settings.hibp_configured or mock_enabled,
             "is_mock": not settings.hibp_configured and mock_enabled,
@@ -200,8 +207,8 @@ async def connectors_status(
             "last_test_success": True if settings.hibp_configured else None,
         },
         {
-            "service_name": "leakcheck",
-            "service_label": "LeakCheck",
+            "name": "leakcheck",
+            "label": "LeakCheck",
             "configured": settings.leakcheck_configured,
             "is_active": settings.leakcheck_configured or mock_enabled,
             "is_mock": not settings.leakcheck_configured and mock_enabled,
@@ -209,8 +216,8 @@ async def connectors_status(
             "last_test_success": True if settings.leakcheck_configured else None,
         },
         {
-            "service_name": "github",
-            "service_label": "GitHub",
+            "name": "github",
+            "label": "GitHub",
             "configured": settings.github_configured,
             "is_active": settings.github_configured or mock_enabled,
             "is_mock": not settings.github_configured and mock_enabled,
@@ -218,8 +225,8 @@ async def connectors_status(
             "last_test_success": True if settings.github_configured else None,
         },
         {
-            "service_name": "urlscan",
-            "service_label": "URLScan.io",
+            "name": "urlscan",
+            "label": "URLScan.io",
             "configured": settings.urlscan_configured,
             "is_active": settings.urlscan_configured or mock_enabled,
             "is_mock": not settings.urlscan_configured and mock_enabled,
@@ -227,8 +234,8 @@ async def connectors_status(
             "last_test_success": True if settings.urlscan_configured else None,
         },
         {
-            "service_name": "dehashed",
-            "service_label": "Dehashed",
+            "name": "dehashed",
+            "label": "Dehashed",
             "configured": settings.dehashed_configured,
             "is_active": settings.dehashed_configured or mock_enabled,
             "is_mock": not settings.dehashed_configured and mock_enabled,
@@ -236,8 +243,8 @@ async def connectors_status(
             "last_test_success": True if settings.dehashed_configured else None,
         },
         {
-            "service_name": "intelx",
-            "service_label": "IntelX",
+            "name": "intelx",
+            "label": "IntelX",
             "configured": settings.intelx_configured,
             "is_active": settings.intelx_configured or mock_enabled,
             "is_mock": not settings.intelx_configured and mock_enabled,
@@ -245,8 +252,8 @@ async def connectors_status(
             "last_test_success": True if settings.intelx_configured else None,
         },
         {
-            "service_name": "otx",
-            "service_label": "AlienVault OTX",
+            "name": "otx",
+            "label": "AlienVault OTX",
             "configured": settings.otx_configured,
             "is_active": settings.otx_configured or mock_enabled,
             "is_mock": not settings.otx_configured and mock_enabled,
@@ -254,8 +261,8 @@ async def connectors_status(
             "last_test_success": True if settings.otx_configured else None,
         },
         {
-            "service_name": "shodan",
-            "service_label": "Shodan",
+            "name": "shodan",
+            "label": "Shodan",
             "configured": settings.shodan_configured,
             "is_active": settings.shodan_configured or mock_enabled,
             "is_mock": not settings.shodan_configured and mock_enabled,
@@ -263,8 +270,8 @@ async def connectors_status(
             "last_test_success": True if settings.shodan_configured else None,
         },
         {
-            "service_name": "gitlab",
-            "service_label": "GitLab",
+            "name": "gitlab",
+            "label": "GitLab",
             "configured": settings.gitlab_configured,
             "is_active": settings.gitlab_configured or mock_enabled,
             "is_mock": not settings.gitlab_configured and mock_enabled,

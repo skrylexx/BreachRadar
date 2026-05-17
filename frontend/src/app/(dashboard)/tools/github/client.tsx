@@ -7,6 +7,7 @@ import { type DataTableColumn } from "@/components/ui/data-table";
 import { SeverityBadge, type SeverityLevel } from "@/components/ui/severity-badge";
 import { scansApi, type PaginatedResponse, type Finding } from "@/lib/api";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function GitHubClient({
   initialData,
@@ -14,12 +15,14 @@ export function GitHubClient({
   initialPage,
   period,
   isMock,
+  isConfigured,
 }: {
   initialData: PaginatedResponse<Finding> | null;
   chartData: any[];
   initialPage: number;
   period: string;
   isMock?: boolean;
+  isConfigured?: boolean;
 }) {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState(false);
@@ -108,14 +111,22 @@ export function GitHubClient({
       actions={
         <button
           onClick={handleTriggerScan}
-          disabled={isScanning}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md
-                     bg-radar/10 hover:bg-radar/20 border border-radar/30
-                     text-radar text-xs font-semibold transition-colors duration-200
-                     disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isScanning || !isConfigured}
+          className={cn(
+            "inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 disabled:cursor-not-allowed",
+            isConfigured 
+              ? "bg-radar/10 hover:bg-radar/20 border border-radar/30 text-radar"
+              : "bg-muted text-muted-foreground border border-border opacity-70"
+          )}
         >
-          <Play className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
-          {isScanning ? "Scanning..." : "Rescan"}
+          {isConfigured ? (
+            <>
+              <Play className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`} />
+              {isScanning ? "Scanning..." : "Rescan"}
+            </>
+          ) : (
+            "Activez le connecteur d'abord"
+          )}
         </button>
       }
     />

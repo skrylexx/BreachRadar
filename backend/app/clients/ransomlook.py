@@ -112,8 +112,9 @@ class RansomLookClient(BaseLeakClient):
 
     async def check_health(self) -> RansomStats:
         """Vérifie que l'instance RansomLook est opérationnelle."""
+        path = "/api/v1/stats" if self.mode == "saas" else "/api/stats"
         try:
-            data = await self._get("/api/v1/stats")
+            data = await self._get(path)
             return RansomStats(
                 groups_tracked=data.get("groups", 0),
                 total_posts=data.get("posts", 0),
@@ -147,11 +148,12 @@ class RansomLookClient(BaseLeakClient):
         seen: set[tuple[str, str, str | None]] = set()
 
         all_terms = list({domain, *self.search_terms})
+        path = "/api/v1/victim" if self.mode == "saas" else "/api/victim"
 
         for term in all_terms:
             await self._apply_rate_limit()
             try:
-                results = await self._get("/api/v1/victim", params={"name": term})
+                results = await self._get(path, params={"name": term})
 
                 if not isinstance(results, list):
                     logger.warning(
@@ -197,8 +199,11 @@ class RansomLookClient(BaseLeakClient):
 
     async def get_recent_victims(self, days: int = 7) -> list[dict]:
         """Retourne les victimes récentes pour enrichissement de contexte."""
+        path = "/api/v1/recent" if self.mode == "saas" else "/api/recent"
         try:
-            return await self._get("/api/v1/recent", params={"days": days})
+            # Note: Local API doesn't support 'days' param yet, it returns last 100
+            params = {"days": days} if self.mode == "saas" else {}
+            return await self._get(path, params=params)
         except Exception as e:
             logger.error("Erreur récupération victimes récentes RansomLook : %s", e)
             return []
