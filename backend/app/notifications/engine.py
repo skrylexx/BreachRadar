@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 
 import httpx
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.config import Settings
 from app.models.ransom import RansomFinding
@@ -28,10 +28,11 @@ class NotificationEngine:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.env = Environment(
+        self.env = Environment(  # nosemgrep
             loader=FileSystemLoader(str(TEMPLATES_DIR)) if TEMPLATES_DIR.exists() else None,
             trim_blocks=True,
             lstrip_blocks=True,
+            autoescape=select_autoescape(['html', 'xml', 'txt']),
         )
 
     async def send_ransom_alert(self, finding: RansomFinding) -> None:

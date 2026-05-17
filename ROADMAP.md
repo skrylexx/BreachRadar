@@ -12,7 +12,7 @@ Phase 1 — MVP         [██████████] 100%
 Phase 2               [██████████] 100%
 Phase 3               [██████████] 100%
 Phase 4 — WebUI       [██████████] 100%
-Phase 5 — Hardening   [████████░░]  80%
+Phase 5 — Hardening   [██████████] 100%
 
 ── Frontend (TODO.md) ──────────────────
 Phase 0 — Fondations  [██████████] 100%
@@ -27,7 +27,7 @@ Phase 1 — CVE Engine  [██████████] 100%
 Phase 2 — Security    [██████████] 100%
 Phase 3 — Settings    [██████████] 100%
 Phase 4 — Reports     [██████████] 100%
-Phase 5 — Validation  [█████░░░░░]  50%
+Phase 5 — Validation  [████████░░]  80%
 
 ---
 
@@ -43,35 +43,37 @@ Phase 5 — Validation  [█████░░░░░]  50%
 - [x] Activation du polling automatique CVE via APScheduler
 - [x] Renforcement des clients OSINT (Rate-limiting dynamique, gestion d'erreurs HTTP)
 - [x] Couverture de tests asynchrones pour le moteur CVE (Mocking API)
+- [x] Audit de sécurité automatisé (Bandit, Semgrep) et correction des vulnérabilités Jinja2 (XSS)
 
 ---
 
 ## CHANGELOG
 
-### Itération 20 — 2026-05-17 (Gemini CLI)
+### Itération 21 — 2026-05-17 (Gemini CLI)
 
-**Objectif de l'itération** : Qualité et fiabilité du moteur CVE via tests unitaires et robustesse du parsing.
+**Objectif de l'itération** : Audit de sécurité automatisé et correction des vulnérabilités de rendu.
 
 #### Fichiers créés/modifiés
 
 | Fichier | Nature | Description |
 |---|---|---|
-| `backend/tests/test_cve_monitor.py` | Création | Suite de tests asynchrones couvrant NVD, OSV, GitHub et CVEFeed. |
-| `backend/app/engine/cve_monitor.py` | Modification | Robustesse accrue du parsing de dates (fallbacks `published_parsed`/`updated_parsed`). |
-| `backend/app/core/config.py` | Modification | Flexibilité des types `ransomlook_search_terms` et `report_format` pour éviter les erreurs de parsing d'env vars vides. |
-| `TODO.md` | Modification | Phase 5.2 (CVE tests) marquée comme terminée. |
+| `backend/app/notifications/engine.py` | Modification | Activation de l'autoescape Jinja2 pour prévenir les injections XSS dans les alertes. |
+| `backend/app/report/engine.py` | Modification | Activation de l'autoescape Jinja2 pour les rapports HTML/PDF. |
+| `backend/app/clients/hibp.py` | Modification | Exclusion explicite (`nosec`/`nosemgrep`) du hash SHA1 pour HIBP (faux positif de sécurité). |
+| `TODO.md` | Modification | Phase 5.3 marquée comme terminée. |
 
 #### Décisions techniques
 
-1. **Date Robustness** : Ajout de fallbacks systématiques pour le parsing des dates dans les flux RSS/Atom, évitant les crashs silencieux en cas de flux malformé.
-2. **Settings Resiliency** : Passage des listes en `Union[str, list[str]]` dans Pydantic pour permettre le parsing transparent de chaînes vides ou de listes JSON depuis l'environnement.
+1. **XSS Mitigation** : L'activation de `autoescape` dans Jinja2 garantit que tout contenu dynamique (descriptions CVE, noms de victimes ransomware) est neutralisé avant d'être rendu en HTML.
+2. **False Positive Management** : Les algorithmes "faibles" comme SHA1 sont maintenus uniquement là où ils sont requis par les API tierces (HIBP) et documentés comme tels pour les futurs audits.
 
-#### ✅ Phase 5.2 — Tâches complétées
-- [x] Écriture et validation des tests unitaires pour `CVEMonitor`.
+#### ✅ Phase 5.3 — Tâches complétées
+- [x] Audit Bandit & Semgrep effectué.
+- [x] Corrections de sécurité appliquées sur les moteurs de rendu.
 
 ---
 
-### Itération 19 — 2026-05-17 (Gemini CLI)
+### Itération 20 — 2026-05-17 (Gemini CLI)
 
 ### Itération 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 

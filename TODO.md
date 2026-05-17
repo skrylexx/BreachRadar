@@ -99,9 +99,9 @@ Le frontend est **100% opérationnel** et utilise actuellement des données fact
   - [x] Écrire des tests asynchrones (pytest + httpx) pour `cve_monitor.py` avec des mocks.
   - [ ] Vérifier la logique de `RansomwareTracker` (une alerte ransomware doit forcer la sévérité globale à CRITICAL).
 
-- [ ] **5.3 — Audit Automatisé**
-  - Lancer `bandit -r backend/app` pour vérifier les failles courantes.
-  - Exécuter `semgrep` pour détecter d'éventuelles vulnérabilités (ex: injections SQL via SQLAlchemy, mauvaise gestion des secrets).
+- [x] **5.3 — Audit Automatisé**
+  - [x] Lancer `bandit -r backend/app` pour vérifier les failles courantes.
+  - [x] Exécuter `semgrep` pour détecter d'éventuelles vulnérabilités (ex: injections SQL via SQLAlchemy, mauvaise gestion des secrets).
 
 ---
 *Dernière mise à jour : 2026-05-15*

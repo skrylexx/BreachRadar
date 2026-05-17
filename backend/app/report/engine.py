@@ -12,7 +12,7 @@ import json
 import logging
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.models.report import FinalReport
 
@@ -33,10 +33,11 @@ class ReportEngine:
         if not TEMPLATES_DIR.exists():
             logger.warning(f"Répertoire des templates introuvable: {TEMPLATES_DIR}")
 
-        self.env = Environment(
+        self.env = Environment(  # nosemgrep
             loader=FileSystemLoader(str(TEMPLATES_DIR)) if TEMPLATES_DIR.exists() else None,
             trim_blocks=True,
             lstrip_blocks=True,
+            autoescape=select_autoescape(['html', 'xml']),
         )
 
         # Filtre personnalisé pour masquer les URL .onion

@@ -116,7 +116,8 @@ class HIBPClient(BaseLeakClient):
             Le nombre de fois où le mot de passe a été vu dans les fuites (0 = safe)
         """
         # Hachage SHA-1 local (RÈGLE DE SÉCURITÉ : on n'envoie JAMAIS le mot de passe)
-        sha1 = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()
+        # HIBP k-anonymity REQUIERT SHA-1.
+        sha1 = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()  # nosec # nosemgrep
         prefix = sha1[:5]
         suffix = sha1[5:]
 
