@@ -6,7 +6,7 @@ Fusionne la config de la WebUI et l'ancienne config du CLI.
 """
 
 from functools import lru_cache
-from typing import List, Literal
+from typing import Any, List, Literal
 import os
 
 from pydantic import EmailStr, Field, field_validator
@@ -207,17 +207,22 @@ class Settings(BaseSettings):
             raise ValueError("INITIAL_ADMIN_PASSWORD must not exceed 72 bytes (bcrypt limit)")
         return v
 
-    @field_validator("target_domain")
+    @field_validator("cors_origins", mode="before")
     @classmethod
-    def validate_domain(cls, v: str) -> str:
-        v = v.strip().lower()
-        if not v:
-            raise ValueError("TARGET_DOMAIN est obligatoire")
-        if " " in v:
-            raise ValueError(f"Le domaine ne doit pas contenir d'espaces : {v}")
-        if "." not in v:
-            raise ValueError(f"Format de domaine invalide : {v}")
-        return v.lstrip("@")
+    def parse_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return ["http://localhost:3000", "http://127.0.0.1:3000"]
+            try:
+                import json
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return parsed
+            except Exception:
+                # Fallback to comma separated
+                return [item.strip() for item in v.split(",") if item.strip()]
+        return v
 
     @field_validator("ransomlook_search_terms", mode="before")
     @classmethod

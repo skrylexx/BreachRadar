@@ -112,19 +112,21 @@ app = FastAPI(
 
 # ─── Middleware ───────────────────────────────────────────────────────────────
 
+# Trusted Host — protection contre les Host header attacks
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.allowed_hosts if settings.environment == "production" else ["*"],
+)
+
 # CORS — autoriser uniquement les origines configurées
+# NOTE: Ajouté APRÈS TrustedHost pour être exécuté AVANT (LIFO)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,  # Requis pour HttpOnly Cookies
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-)
-
-# Trusted Host — protection contre les Host header attacks
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.allowed_hosts,
+    expose_headers=["*"],
 )
 
 # Rate limiting

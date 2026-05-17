@@ -19,9 +19,11 @@ export default async function RansomLookPage({
   const limit = 25;
   const offset = (page - 1) * limit;
 
+  const domain = process.env.TARGET_DOMAIN || "";
+
   // Appels parallèles
   const [alertsData, chartData, connectors] = await Promise.all([
-    fetchJSON<PaginatedResponse<RansomwareAlert>>(`/api/v1/ransomlook/alerts?limit=${limit}&offset=${offset}&period=${period}`),
+    fetchJSON<PaginatedResponse<RansomwareAlert>>(`/api/v1/ransomlook/alerts?limit=${limit}&offset=${offset}&period=${period}${domain ? `&domain=${domain}` : ""}`),
     fetchJSON<any[]>(`/api/v1/dashboard/chart?source=ransomlook&period=${period}`),
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
   ]);
