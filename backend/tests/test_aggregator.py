@@ -4,7 +4,7 @@ Tests unitaires pour l'agrégateur (ResultAggregator).
 import pytest
 from datetime import date, datetime
 
-from app.core.aggregator import ResultAggregator
+from app.engine.aggregator import ResultAggregator
 from app.models.finding import LeakFinding, Severity
 from app.models.ransom import RansomFinding, RansomStatus
 from app.models.report import ReportMetadata

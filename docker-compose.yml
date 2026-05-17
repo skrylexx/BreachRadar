@@ -111,6 +111,7 @@ services:
 
   # ─── WebUI — Backend FastAPI ─────────────────────────────────────────────────
   breachradar-api:
+    image: breachradar-api:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -162,6 +163,7 @@ services:
 
   # ─── WebUI — Frontend Next.js ────────────────────────────────────────────────
   breachradar-ui:
+    image: breachradar-ui:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile

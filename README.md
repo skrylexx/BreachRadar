@@ -178,6 +178,7 @@ BreachRadar intègre une gestion des rôles stricte pour répondre aux exigences
 - ✅ Sanitizer appliqué sur toutes les données brutes avant l'affichage ou le stockage en base.
 - ✅ Données temporaires purgées en mémoire après traitement.
 - ✅ Clés API uniquement dans `.env` ou chiffrées en base (Fernet).
+- ✅ **Mode Démonstration** : Possibilité d'afficher des données fictives sécurisées (Mocks) pour tester l'interface sans clés API réelles.
 - ✅ RansomLook exposé uniquement sur le réseau Docker interne (jamais `0.0.0.0`).
 - ✅ Authentification forte (JWT HttpOnly + MFA obligatoire pour Admin).
 

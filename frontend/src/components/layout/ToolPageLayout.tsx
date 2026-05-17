@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { RiskHeatmap } from "@/components/dashboard/RiskHeatmap";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -16,6 +16,7 @@ interface ToolPageLayoutProps<T> {
   tableEmptyMessage?: string;
   actions?: ReactNode;
   children?: ReactNode;
+  isMock?: boolean;
   pagination?: {
     page: number;
     pageSize: number;
@@ -37,10 +38,21 @@ export function ToolPageLayout<T>({
   tableEmptyMessage,
   actions,
   children,
+  isMock,
   pagination,
 }: ToolPageLayoutProps<T>) {
   return (
     <div className="space-y-6">
+      {isMock && (
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center gap-3 text-orange-400 animate-pulse">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="text-sm">
+            <span className="font-bold uppercase mr-2">Mode Démonstration :</span>
+            Ce connecteur n'est pas configuré. Les données affichées ci-dessous sont des exemples (Mocks).
+          </div>
+        </div>
+      )}
+
       <PageHeader
         title={title}
         description={description}

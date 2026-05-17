@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import encrypt_secret
 from app.dependencies.auth import AdminUser
 from app.models.api_key import APIKey
 from app.models.audit_log import AuditLog
@@ -96,13 +97,13 @@ async def upsert_api_key(
     existing = result.scalar_one_or_none()
 
     if existing:
-        existing.encrypted_key = body.api_key  # TODO: Fernet encrypt
+        existing.encrypted_key = encrypt_secret(body.api_key)
         existing.is_active = True
         existing.last_test_success = None
     else:
         key = APIKey(
             service_name=service_name,
-            encrypted_key=body.api_key,  # TODO: Fernet encrypt
+            encrypted_key=encrypt_secret(body.api_key),
         )
         db.add(key)
 

@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 import { HIBPClient } from "./client";
 import { fetchJSON } from "@/lib/fetch";
-import { PaginatedResponse, Finding } from "@/lib/api";
+import { PaginatedResponse, Finding, ConnectorStatus } from "@/lib/api";
 
 export const metadata: Metadata = {
-  title: "HIBP & Breaches | BreachRadar",
+  title: "Have I Been Pwned | BreachRadar",
   description: "Monitor compromised emails and data breaches via HaveIBeenPwned.",
 };
 
@@ -20,10 +20,13 @@ export default async function HIBPPage({
   const offset = (page - 1) * limit;
 
   // Appels parallèles
-  const [findingsData, chartData] = await Promise.all([
+  const [findingsData, chartData, connectors] = await Promise.all([
     fetchJSON<PaginatedResponse<Finding>>(`/api/v1/findings?source=hibp&limit=${limit}&offset=${offset}&period=${period}`),
     fetchJSON<any[]>(`/api/v1/dashboard/chart?source=hibp&period=${period}`),
+    fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
   ]);
+
+  const isMock = Array.isArray(connectors) && connectors.find(c => c.name.toLowerCase() === "hibp")?.is_mock;
 
   return (
     <HIBPClient
@@ -31,6 +34,7 @@ export default async function HIBPPage({
       chartData={chartData || []}
       initialPage={page}
       period={period}
+      isMock={isMock}
     />
   );
 }

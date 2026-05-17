@@ -18,15 +18,22 @@ class TestRansomLookClient:
 
     @pytest.fixture
     def client(self) -> RansomLookClient:
-        return RansomLookClient(base_url="http://localhost:8888", search_terms=["extra_term"])
+        # RansomLookClient prend ses paramètres depuis les settings globaux.
+        # En test, on mocke les attributs après coup pour éviter de dépendre d'env vars réelles.
+        with patch("app.clients.ransomlook.settings") as mock_settings:
+            mock_settings.ransomlook_mode = "local"
+            mock_settings.ransomlook_local_url = "http://localhost:8888"
+            mock_settings.all_ransomlook_terms = ["extra_term"]
+            mock_settings.request_timeout_seconds = 30
+            c = RansomLookClient()
+            return c
 
     @pytest.mark.asyncio
     async def test_check_health_healthy(self, client: RansomLookClient) -> None:
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"groups": 10, "posts": 100, "last_update": "2025-01-01T00:00:00Z"}
+        mock_data = {"groups": 10, "posts": 100, "last_update": "2025-01-01T00:00:00Z"}
         
         with patch.object(client, "_get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = mock_response.json.return_value
+            mock_get.return_value = mock_data
             
             stats = await client.check_health()
             assert stats.is_healthy is True

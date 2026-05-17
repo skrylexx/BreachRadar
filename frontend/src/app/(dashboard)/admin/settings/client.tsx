@@ -21,6 +21,7 @@ import {
   Shield,
   ChevronRight,
   RefreshCw,
+  Loader2,
   CheckCircle2,
   XCircle,
   Trash2,
@@ -441,17 +442,63 @@ function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "succ
   const [sources, setSources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [newSource, setNewSource] = useState({ name: "", url: "", category: "General" });
   const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null);
+
+  const fetchSources = async () => {
+    setLoading(true);
+    try {
+      const data = await api.get<any[]>("/api/v1/settings/custom-sources");
+      setSources(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // api.get("/api/v1/settings/custom-sources").then(setSources).finally(() => setLoading(false));
-    setSources([]); // Mock for now
-    setLoading(false);
+    fetchSources();
   }, []);
 
   const handleAdd = async () => {
-    showToast("Source ajoutée (simulation).");
-    setDialogOpen(false);
+    if (!newSource.name || !newSource.url) return;
+    try {
+      await api.post("/api/v1/settings/custom-sources", newSource);
+      showToast("Source ajoutée avec succès.");
+      setDialogOpen(false);
+      setNewSource({ name: "", url: "", category: "General" });
+      setTestResult(null);
+      fetchSources();
+    } catch (err: any) {
+      showToast(err.message || "Erreur lors de l'ajout.", "error");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/api/v1/settings/custom-sources/${id}`);
+      showToast("Source supprimée.");
+      fetchSources();
+    } catch (err: any) {
+      showToast("Erreur lors de la suppression.", "error");
+    }
+  };
+
+  const handleTest = async () => {
+    if (!newSource.url) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await api.post<any>("/api/v1/settings/custom-sources/test", { url: newSource.url });
+      setTestResult(res);
+      if (!res.ok) showToast(res.message || "Test échoué.", "error");
+    } catch (err) {
+      showToast("Erreur réseau lors du test.", "error");
+    } finally {
+      setTesting(false);
+    }
   };
 
   return (
@@ -471,14 +518,35 @@ function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "succ
           </Button>
         </div>
 
-        {sources.length === 0 ? (
+        {loading ? (
+          <div className="py-8 text-center text-muted-foreground animate-pulse">Chargement...</div>
+        ) : sources.length === 0 ? (
           <div className="py-12 text-center space-y-3">
             <LinkIcon className="w-8 h-8 text-muted-foreground/20 mx-auto" />
             <p className="text-xs text-muted-foreground">Aucune source personnalisée configurée.</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {/* Table or list would go here */}
+            {sources.map((src) => (
+              <div key={src.id} className="flex items-center justify-between p-3 rounded-md bg-secondary/30 border border-border/40">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{src.name}</span>
+                  <span className="text-[10px] text-muted-foreground font-data truncate max-w-xs">{src.url}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-radar/10 text-radar px-1.5 py-0.5 rounded border border-radar/20">
+                    {src.category}
+                  </span>
+                  <button
+                    onClick={() => handleDelete(src.id)}
+                    className="p-1.5 text-muted-foreground hover:text-red-400 transition-colors"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -495,19 +563,62 @@ function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "succ
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label htmlFor="src-name" className="text-xs">Nom de la source</Label>
-              <Input id="src-name" placeholder="ex: CERT-FR Avis" className="bg-secondary border-border/50" />
+              <Input
+                id="src-name"
+                placeholder="ex: CERT-FR Avis"
+                value={newSource.name}
+                onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
+                className="bg-secondary border-border/50"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="src-url" className="text-xs">URL du flux</Label>
-              <Input id="src-url" placeholder="https://..." className="bg-secondary border-border/50 font-data" />
+              <div className="flex gap-2">
+                <Input
+                  id="src-url"
+                  placeholder="https://..."
+                  value={newSource.url}
+                  onChange={(e) => setNewSource({ ...newSource, url: e.target.value })}
+                  className="bg-secondary border-border/50 font-data flex-1"
+                />
+                <Button
+                  variant="outline"
+                  onClick={handleTest}
+                  disabled={testing || !newSource.url}
+                  className="border-border/50 h-9"
+                >
+                  {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Tester"}
+                </Button>
+              </div>
             </div>
+
+            {testResult && (
+              <div className={`p-3 rounded-md border text-[10px] space-y-2 ${testResult.ok ? "bg-green-500/5 border-green-500/20" : "bg-red-500/5 border-red-500/20"}`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">{testResult.ok ? "Test Réussi" : "Test Échoué"}</span>
+                  {testResult.ok && <span className="text-muted-foreground">{testResult.item_count} items trouvés</span>}
+                </div>
+                {!testResult.ok && <p className="text-red-400">{testResult.message}</p>}
+                {testResult.ok && testResult.preview && (
+                  <ul className="space-y-1 list-disc list-inside text-muted-foreground">
+                    {testResult.preview.map((item: any, i: number) => (
+                      <li key={i} className="truncate">{item.title}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">
               Annuler
             </Button>
-            <Button onClick={handleAdd} className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30">
+            <Button
+              onClick={handleAdd}
+              disabled={!newSource.name || !newSource.url || (testResult && !testResult.ok)}
+              className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30"
+            >
               Ajouter
             </Button>
           </DialogFooter>
@@ -522,6 +633,7 @@ function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "succ
 function TabAdvanced({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [pollingInterval, setPollingInterval] = useState(60);
   const [includeUnscored, setIncludeUnscored] = useState(false);
+  const [mockData, setMockData] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -585,6 +697,20 @@ function TabAdvanced({ showToast }: { showToast: (msg: string, type?: "success" 
               <p className="text-xs text-muted-foreground mt-0.5">Désactivé par défaut.</p>
             </div>
             <Switch id="include-unscored" checked={includeUnscored} onCheckedChange={setIncludeUnscored} />
+          </div>
+
+          <Separator className="bg-border/30" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="mock-data" className="text-sm text-foreground">
+                Données de démonstration (Mocks)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Affiche des données factices pour les connecteurs non configurés.
+              </p>
+            </div>
+            <Switch id="mock-data" checked={mockData} onCheckedChange={setMockData} />
           </div>
         </div>
 

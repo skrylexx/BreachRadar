@@ -51,7 +51,14 @@ Nous avons unifié l'intégralité de l'infrastructure WebUI, l'API Backend et l
 2. Connectez-vous avec les identifiants `UI_ADMIN_EMAIL` et `UI_ADMIN_PASSWORD` configurés.
 3. L'interface principale vous donne désormais accès à la surveillance continue de votre domaine, à la configuration des sources, et à l'historique des alertes (Ransomware, Secret Scanning, etc).
 
-## Étape 4 : Tests manuels de validation
+## Étape 4 : Mode Démonstration (Mock Data)
+
+Si vous n'avez pas encore de clés API (HIBP, LeakCheck, etc.), vous pouvez activer le mode démonstration pour explorer l'interface :
+1. Allez dans **Admin** > **Paramètres**.
+2. Dans l'onglet **Avancé**, cochez **"Données de démonstration (Mocks)"** et cliquez sur **Sauvegarder**.
+3. Le dashboard et les pages d'outils afficheront alors des données fictives d'exemple avec une mention explicite "MOCK DATA".
+
+## Étape 5 : Tests manuels de validation
 
 ### Test A : Le webhook GitHub
 L'API écoute désormais sur l'endpoint `/webhooks/github` pour intercepter les événements (ex. Secret Scanning). 

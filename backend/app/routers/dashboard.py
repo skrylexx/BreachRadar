@@ -20,11 +20,42 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.dependencies.auth import ViewerUser
 from app.models.scan import ScanResult, ScanSeverity, ScanStatus
+from app.models.settings import SystemSettings
 from app.schemas.common import PaginatedResponse
 from app.schemas.finding import FindingRead
 
 router = APIRouter()
 
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async def _get_mock_data_enabled(db: AsyncSession) -> bool:
+    """Vérifie si l'affichage des données de démonstration est activé."""
+    result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
+    setting = result.scalar_one_or_none()
+    return setting.value if setting else False
+
+def _ransomlook_active() -> bool:
+    """RansomLook local = toujours actif (service Docker interne). SaaS = clé requise."""
+    return (
+        settings.ransomlook_mode == "local"
+        or bool(settings.ransomlook_saas_api_key)
+    )
+
+def _source_to_type(source: str) -> str:
+    mapping = {
+        "hibp": "Breach",
+        "leakcheck": "Breach",
+        "dehashed": "Breach",
+        "intelx": "Breach",
+        "ransomlook": "Ransomware",
+        "github": "Github",
+        "gitlab": "GitLab",
+        "urlscan": "Phishing",
+        "otx": "Threat Intel",
+        "shodan": "Exposure",
+        "telegram": "Telegram",
+    }
+    return mapping.get(source.lower(), "Other")
 
 # ─── /dashboard/stats ─────────────────────────────────────────────────────────
 
@@ -43,6 +74,15 @@ async def dashboard_stats(
         .order_by(ScanResult.started_at.desc())
     )
     scans = result.scalars().all()
+
+    if not scans and await _get_mock_data_enabled(db):
+        return {
+            "scans_7d": 12,
+            "critical_count": 2,
+            "total_findings": 145,
+            "last_scan_at": (datetime.now(timezone.utc) - timedelta(hours=4)).isoformat(),
+            "is_mock": True
+        }
 
     last_scan = scans[0] if scans else None
 
@@ -67,10 +107,10 @@ async def dashboard_chart(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
     period: str = Query("7d", pattern="^(7d|1m|6m|12m)$"),
+    source: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """
     Données pour le graphique Detection Volume (stacked bar chart).
-    Retourne une liste de {date, critical, high, medium, low, total}.
     """
     period_days = {"7d": 7, "1m": 30, "6m": 180, "12m": 365}[period]
     since = datetime.now(timezone.utc) - timedelta(days=period_days)
@@ -82,6 +122,9 @@ async def dashboard_chart(
         .order_by(ScanResult.started_at.asc())
     )
     scans = result.scalars().all()
+
+    if not scans and await _get_mock_data_enabled(db):
+        return _get_mock_chart_data(period_days)
 
     daily: dict[str, dict[str, int]] = defaultdict(
         lambda: {"critical": 0, "high": 0, "medium": 0, "low": 0, "total": 0}
@@ -103,96 +146,130 @@ async def dashboard_chart(
 
     return [{"date": d, **v} for d, v in sorted(daily.items())]
 
+def _get_mock_chart_data(days: int) -> list[dict[str, Any]]:
+    now = datetime.now(timezone.utc)
+    data = []
+    for i in range(days, -1, -1):
+        date = now - timedelta(days=i)
+        data.append({
+            "date": date.strftime("%b %d"),
+            "critical": (i % 3),
+            "high": (i % 5),
+            "medium": (i % 7),
+            "low": (i % 4),
+            "total": (i % 3) + (i % 5) + (i % 7) + (i % 4)
+        })
+    return data
+
 
 # ─── /connectors/status ───────────────────────────────────────────────────────
 
-def _ransomlook_active() -> bool:
-    """RansomLook local = toujours actif (service Docker interne). SaaS = clé requise."""
-    return (
-        settings.ransomlook_mode == "local"
-        or bool(settings.ransomlook_saas_api_key)
-    )
-
-
 @router.get("/connectors/status")
-async def connectors_status(current_user: ViewerUser) -> list[dict[str, Any]]:
+async def connectors_status(
+    current_user: ViewerUser,
+    db: AsyncSession = Depends(get_db)
+) -> list[dict[str, Any]]:
     """
-    État de TOUS les connecteurs disponibles dans l'application,
-    qu'ils soient configurés ou non. Le frontend les affiche tous
-    (vert = actif, rouge = non configuré / inactif).
+    État de TOUS les connecteurs disponibles dans l'application.
+    Ajoute un flag 'is_mock' si le connecteur n'est pas configuré mais que le mode mock est activé.
     """
     ransomlook_ok = _ransomlook_active()
+    mock_enabled = await _get_mock_data_enabled(db)
+
+    def _get_status(configured: bool):
+        if configured: return "ok"
+        return "mock" if mock_enabled else "error"
 
     connectors = [
         {
             "service_name": "ransomlook",
             "service_label": "RansomLook",
             "configured": ransomlook_ok,
-            "is_active": ransomlook_ok,
-            "last_test_success": True if settings.ransomlook_mode == "local" else None,
+            "is_active": ransomlook_ok or mock_enabled,
+            "is_mock": not ransomlook_ok and mock_enabled,
+            "status": _get_status(ransomlook_ok),
+            "last_test_success": True if settings.ransomlook_mode == "local" else (True if ransomlook_ok else None),
         },
         {
             "service_name": "hibp",
             "service_label": "HIBP",
             "configured": settings.hibp_configured,
-            "is_active": settings.hibp_configured,
-            "last_test_success": True if settings.hibp_configured else False,
+            "is_active": settings.hibp_configured or mock_enabled,
+            "is_mock": not settings.hibp_configured and mock_enabled,
+            "status": _get_status(settings.hibp_configured),
+            "last_test_success": True if settings.hibp_configured else None,
         },
         {
             "service_name": "leakcheck",
             "service_label": "LeakCheck",
             "configured": settings.leakcheck_configured,
-            "is_active": settings.leakcheck_configured,
-            "last_test_success": True if settings.leakcheck_configured else False,
+            "is_active": settings.leakcheck_configured or mock_enabled,
+            "is_mock": not settings.leakcheck_configured and mock_enabled,
+            "status": _get_status(settings.leakcheck_configured),
+            "last_test_success": True if settings.leakcheck_configured else None,
         },
         {
             "service_name": "github",
             "service_label": "GitHub",
             "configured": settings.github_configured,
-            "is_active": settings.github_configured,
-            "last_test_success": True if settings.github_configured else False,
+            "is_active": settings.github_configured or mock_enabled,
+            "is_mock": not settings.github_configured and mock_enabled,
+            "status": _get_status(settings.github_configured),
+            "last_test_success": True if settings.github_configured else None,
         },
         {
             "service_name": "urlscan",
             "service_label": "URLScan.io",
             "configured": settings.urlscan_configured,
-            "is_active": settings.urlscan_configured,
-            "last_test_success": True if settings.urlscan_configured else False,
+            "is_active": settings.urlscan_configured or mock_enabled,
+            "is_mock": not settings.urlscan_configured and mock_enabled,
+            "status": _get_status(settings.urlscan_configured),
+            "last_test_success": True if settings.urlscan_configured else None,
         },
         {
             "service_name": "dehashed",
             "service_label": "Dehashed",
             "configured": settings.dehashed_configured,
-            "is_active": settings.dehashed_configured,
-            "last_test_success": True if settings.dehashed_configured else False,
+            "is_active": settings.dehashed_configured or mock_enabled,
+            "is_mock": not settings.dehashed_configured and mock_enabled,
+            "status": _get_status(settings.dehashed_configured),
+            "last_test_success": True if settings.dehashed_configured else None,
         },
         {
             "service_name": "intelx",
             "service_label": "IntelX",
             "configured": settings.intelx_configured,
-            "is_active": settings.intelx_configured,
-            "last_test_success": True if settings.intelx_configured else False,
+            "is_active": settings.intelx_configured or mock_enabled,
+            "is_mock": not settings.intelx_configured and mock_enabled,
+            "status": _get_status(settings.intelx_configured),
+            "last_test_success": True if settings.intelx_configured else None,
         },
         {
             "service_name": "otx",
             "service_label": "AlienVault OTX",
             "configured": settings.otx_configured,
-            "is_active": settings.otx_configured,
-            "last_test_success": True if settings.otx_configured else False,
+            "is_active": settings.otx_configured or mock_enabled,
+            "is_mock": not settings.otx_configured and mock_enabled,
+            "status": _get_status(settings.otx_configured),
+            "last_test_success": True if settings.otx_configured else None,
         },
         {
             "service_name": "shodan",
             "service_label": "Shodan",
             "configured": settings.shodan_configured,
-            "is_active": settings.shodan_configured,
-            "last_test_success": True if settings.shodan_configured else False,
+            "is_active": settings.shodan_configured or mock_enabled,
+            "is_mock": not settings.shodan_configured and mock_enabled,
+            "status": _get_status(settings.shodan_configured),
+            "last_test_success": True if settings.shodan_configured else None,
         },
         {
             "service_name": "gitlab",
             "service_label": "GitLab",
             "configured": settings.gitlab_configured,
-            "is_active": settings.gitlab_configured,
-            "last_test_success": True if settings.gitlab_configured else False,
+            "is_active": settings.gitlab_configured or mock_enabled,
+            "is_mock": not settings.gitlab_configured and mock_enabled,
+            "status": _get_status(settings.gitlab_configured),
+            "last_test_success": True if settings.gitlab_configured else None,
         },
     ]
 
@@ -213,9 +290,9 @@ async def list_findings(
 ) -> PaginatedResponse[FindingRead]:
     """
     Dernières trouvailles pour la table Latest Findings du dashboard.
-    Chaque ScanResult est "explosé" par source via findings_by_source.
+    Génère des données mockées si configuré et pas de données réelles.
     """
-    # Count total scans to handle pagination
+    # 1. Vérification données réelles
     count_query = select(func.count(ScanResult.id)).where(ScanResult.status == ScanStatus.COMPLETED).where(ScanResult.total_findings > 0)
     total_result = await db.execute(count_query)
     total_scans = total_result.scalar_one()
@@ -231,6 +308,7 @@ async def list_findings(
     scans = result.scalars().all()
 
     rows: list[FindingRead] = []
+    
     for scan in scans:
         if scan.findings_by_source:
             for src, count in scan.findings_by_source.items():
@@ -262,6 +340,10 @@ async def list_findings(
                     discovered_at=scan.started_at,
                 ))
 
+    # 2. Si aucune donnée et mock activé
+    if not rows and await _get_mock_data_enabled(db):
+        return _get_mock_findings(source, limit, offset)
+
     return PaginatedResponse(
         items=rows,
         total=total_scans,
@@ -269,19 +351,26 @@ async def list_findings(
         page_size=limit
     )
 
-
-def _source_to_type(source: str) -> str:
-    mapping = {
-        "hibp": "Breach",
-        "leakcheck": "Breach",
-        "dehashed": "Breach",
-        "intelx": "Breach",
-        "ransomlook": "Ransomware",
-        "github": "Github",
-        "gitlab": "GitLab",
-        "urlscan": "Phishing",
-        "otx": "Threat Intel",
-        "shodan": "Exposure",
-        "telegram": "Telegram",
-    }
-    return mapping.get(source.lower(), "Other")
+def _get_mock_findings(source: Optional[str], limit: int, offset: int) -> PaginatedResponse[FindingRead]:
+    """Génère des données factices réalistes."""
+    sources = [source] if source else ["hibp", "leakcheck", "github", "ransomlook", "urlscan"]
+    mock_items = []
+    
+    for i in range(limit):
+        src = sources[i % len(sources)]
+        mock_items.append(FindingRead(
+            id=f"mock-{offset + i}",
+            severity="HIGH" if i % 3 == 0 else "MEDIUM" if i % 2 == 0 else "LOW",
+            source=src,
+            domain="example-demo.com",
+            type=_source_to_type(src),
+            count=(i + 1) * 10,
+            discovered_at=datetime.now(timezone.utc) - timedelta(hours=i * 2),
+        ))
+        
+    return PaginatedResponse(
+        items=mock_items,
+        total=100, # Mock total
+        page=(offset // limit) + 1,
+        page_size=limit
+    )

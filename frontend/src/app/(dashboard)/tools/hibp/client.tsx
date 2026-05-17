@@ -13,11 +13,13 @@ export function HIBPClient({
   chartData,
   initialPage,
   period,
+  isMock,
 }: {
   initialData: PaginatedResponse<Finding> | null;
   chartData: any[];
   initialPage: number;
   period: string;
+  isMock?: boolean;
 }) {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState(false);
@@ -40,18 +42,18 @@ export function HIBPClient({
       accessor: (row) => row.discovered_at,
     },
     {
-      key: "domain",
-      header: "Compromised Email",
+      key: "title",
+      header: "Breach Source",
       className: "font-data font-medium text-foreground",
       sortable: false,
-      accessor: (row) => row.domain, // Email is likely stored here or in metadata
+      accessor: (row) => row.title,
     },
     {
-      key: "title",
-      header: "Breach Name",
-      className: "text-xs truncate max-w-[200px]",
+      key: "domain",
+      header: "Target (Email/Domain)",
+      className: "font-data text-muted-foreground",
       sortable: false,
-      accessor: (row) => row.title,
+      accessor: (row) => row.domain,
     },
     {
       key: "severity",
@@ -83,7 +85,7 @@ export function HIBPClient({
   return (
     <ToolPageLayout
       icon={Key}
-      title="HIBP & Breaches"
+      title="Have I Been Pwned"
       description="Monitor compromised emails and data breaches via HaveIBeenPwned."
       breadcrumb={[
         { label: "Dashboard", href: "/" },
@@ -95,6 +97,7 @@ export function HIBPClient({
       tableData={initialData?.items || []}
       tableColumns={columns}
       tableEmptyMessage="No compromised emails detected in this period."
+      isMock={isMock}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

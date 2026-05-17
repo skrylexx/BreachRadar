@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { LeakCheckClient } from "./client";
 import { fetchJSON } from "@/lib/fetch";
-import { PaginatedResponse, Finding } from "@/lib/api";
+import { PaginatedResponse, Finding, ConnectorStatus } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "LeakCheck | BreachRadar",
@@ -20,10 +20,13 @@ export default async function LeakCheckPage({
   const offset = (page - 1) * limit;
 
   // Appels parallèles
-  const [findingsData, chartData] = await Promise.all([
+  const [findingsData, chartData, connectors] = await Promise.all([
     fetchJSON<PaginatedResponse<Finding>>(`/api/v1/findings?source=leakcheck&limit=${limit}&offset=${offset}&period=${period}`),
     fetchJSON<any[]>(`/api/v1/dashboard/chart?source=leakcheck&period=${period}`),
+    fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
   ]);
+
+  const isMock = Array.isArray(connectors) && connectors.find(c => c.name.toLowerCase() === "leakcheck")?.is_mock;
 
   return (
     <LeakCheckClient
@@ -31,6 +34,7 @@ export default async function LeakCheckPage({
       chartData={chartData || []}
       initialPage={page}
       period={period}
+      isMock={isMock}
     />
   );
 }

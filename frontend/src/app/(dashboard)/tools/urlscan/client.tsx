@@ -13,11 +13,13 @@ export function URLScanClient({
   chartData,
   initialPage,
   period,
+  isMock,
 }: {
   initialData: PaginatedResponse<Finding> | null;
   chartData: any[];
   initialPage: number;
   period: string;
+  isMock?: boolean;
 }) {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState(false);
@@ -95,6 +97,7 @@ export function URLScanClient({
       tableData={initialData?.items || []}
       tableColumns={columns}
       tableEmptyMessage="No malicious URLs detected in this period."
+      isMock={isMock}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

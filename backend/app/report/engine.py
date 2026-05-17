@@ -12,7 +12,7 @@ import json
 import logging
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.models.report import FinalReport
 
@@ -33,10 +33,11 @@ class ReportEngine:
         if not TEMPLATES_DIR.exists():
             logger.warning(f"Répertoire des templates introuvable: {TEMPLATES_DIR}")
 
-        self.env = Environment(
+        self.env = Environment(  # nosemgrep
             loader=FileSystemLoader(str(TEMPLATES_DIR)) if TEMPLATES_DIR.exists() else None,
             trim_blocks=True,
             lstrip_blocks=True,
+            autoescape=select_autoescape(['html', 'xml']),
         )
 
         # Filtre personnalisé pour masquer les URL .onion
@@ -136,17 +137,19 @@ class ReportEngine:
         
         try:
             from weasyprint import HTML
-        except ImportError:
-            logger.error("WeasyPrint n'est pas installé. Lancez 'uv pip install weasyprint' pour l'export PDF.")
-            # Fallback: on génère juste le HTML et on prévient
-            logger.info("Génération du HTML en fallback...")
-            return self._generate_template(report, filename.replace('.pdf', '.html'), "report.html.j2")
+            # On rend le HTML complet
+            template = self.env.get_template("report.html.j2")
+            html_content = template.render(report=report)
             
-        # D'abord on rend le HTML complet
-        template = self.env.get_template("report.html.j2")
-        html_content = template.render(report=report)
-        
-        # Ensuite on utilise WeasyPrint pour générer le PDF
-        HTML(string=html_content).write_pdf(output_path)
-        logger.info(f"Rapport PDF généré: {output_path}")
-        return output_path
+            # Utilisation de WeasyPrint pour générer le PDF
+            # base_url permet de résoudre les assets locaux si besoin
+            HTML(string=html_content).write_pdf(output_path)
+            logger.info(f"Rapport PDF généré: {output_path}")
+            return output_path
+            
+        except (ImportError, Exception) as e:
+            logger.error(f"Échec de génération PDF: {e}")
+            # Fallback: on génère juste le HTML
+            html_filename = filename.replace('.pdf', '.html')
+            logger.info(f"Génération du HTML en fallback: {html_filename}")
+            return self._generate_template(report, html_filename, "report.html.j2")

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.config.source_registry import SourceRegistry
+from app.core.source_registry import SourceRegistry
 
 
 class TestSourceRegistryAvailability:

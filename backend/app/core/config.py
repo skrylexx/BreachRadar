@@ -6,7 +6,7 @@ Fusionne la config de la WebUI et l'ancienne config du CLI.
 """
 
 from functools import lru_cache
-from typing import List, Literal
+from typing import Any, List, Literal
 import os
 
 from pydantic import EmailStr, Field, field_validator
@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 15
     jwt_refresh_token_expire_days: int = 7
+
+    # ─── Chiffrement (Clés API, SMTP) ────────────────────────────────────────
+    encryption_key: str = Field(
+        default="",
+        description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",
+    )
 
     # ─── Admin initial ────────────────────────────────────────────────────────
     initial_admin_email: EmailStr
@@ -99,7 +105,7 @@ class Settings(BaseSettings):
         default="",
         description="Clé d'API pour l'instance SaaS RansomLook (header Authorization)",
     )
-    ransomlook_search_terms: list[str] = Field(
+    ransomlook_search_terms: str | list[str] = Field(
         default_factory=list,
         description="Termes de recherche supplémentaires (noms commerciaux, filiales)",
     )
@@ -122,7 +128,7 @@ class Settings(BaseSettings):
 
     # ─── Rapports ────────────────────────────────────────────────────────────
     report_output_dir: str = Field(default="./reports")
-    report_format: list[str] = Field(
+    report_format: str | list[str] = Field(
         default_factory=lambda: ["markdown", "json"],
         description="Formats de rapport : markdown, json, html, pdf",
     )
@@ -132,6 +138,10 @@ class Settings(BaseSettings):
     schedule_cron: str = Field(
         default="0 8 * * 1",
         description="Expression cron (défaut: tous les lundis à 8h)",
+    )
+    cve_polling_interval: int = Field(
+        default=60,
+        description="Intervalle de polling CVE en minutes (défaut: 60)",
     )
 
     # ─── Proxy ───────────────────────────────────────────────────────────────
@@ -197,17 +207,22 @@ class Settings(BaseSettings):
             raise ValueError("INITIAL_ADMIN_PASSWORD must not exceed 72 bytes (bcrypt limit)")
         return v
 
-    @field_validator("target_domain")
+    @field_validator("cors_origins", mode="before")
     @classmethod
-    def validate_domain(cls, v: str) -> str:
-        v = v.strip().lower()
-        if not v:
-            raise ValueError("TARGET_DOMAIN est obligatoire")
-        if " " in v:
-            raise ValueError(f"Le domaine ne doit pas contenir d'espaces : {v}")
-        if "." not in v:
-            raise ValueError(f"Format de domaine invalide : {v}")
-        return v.lstrip("@")
+    def parse_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return ["http://localhost:3000", "http://127.0.0.1:3000"]
+            try:
+                import json
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return parsed
+            except Exception:
+                # Fallback to comma separated
+                return [item.strip() for item in v.split(",") if item.strip()]
+        return v
 
     @field_validator("ransomlook_search_terms", mode="before")
     @classmethod
