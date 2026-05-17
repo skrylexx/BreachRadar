@@ -139,6 +139,10 @@ class Settings(BaseSettings):
         default="0 8 * * 1",
         description="Expression cron (défaut: tous les lundis à 8h)",
     )
+    cve_polling_interval: int = Field(
+        default=60,
+        description="Intervalle de polling CVE en minutes (défaut: 60)",
+    )
 
     # ─── Proxy ───────────────────────────────────────────────────────────────
     http_proxy: str = Field(default="")

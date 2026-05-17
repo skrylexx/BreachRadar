@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Démarrage du ScanScheduler en tâche de fond...")
         
         async def _scan_callback():
-            """Callback déclenché par le scheduler."""
+            """Callback déclenché par le scheduler pour un scan complet."""
             from app.core.database import AsyncSessionLocal
             from app.engine.logic import ScanManager
             from app.models.scan import ScanResult, ScanStatus
@@ -68,8 +68,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 # 2. Lancer le scan
                 scan_manager = ScanManager()
                 await scan_manager.run_full_scan(scan.id)
+
+        async def _cve_callback():
+            """Callback déclenché par le scheduler pour la veille CVE."""
+            from app.core.database import AsyncSessionLocal
+            from app.engine.cve_monitor import CVEMonitor
             
-        scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback)
+            # Catégories par défaut à surveiller
+            default_categories = ["nvd_windows", "nvd_linux", "osv_pypi", "osv_npm", "osv_go"]
+            
+            async with AsyncSessionLocal() as db:
+                monitor = CVEMonitor(db)
+                try:
+                    await monitor.poll_all(active_categories=default_categories)
+                finally:
+                    await monitor.close()
+            
+        scheduler = ScanScheduler(
+            settings=settings, 
+            scan_callback=_scan_callback,
+            cve_callback=_cve_callback
+        )
         scheduler.start()
 
     yield
@@ -136,5 +155,5 @@ app.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
 app.include_router(ransomlook.router, prefix="/api/v1/ransomlook", tags=["RansomLook"])
 app.include_router(cve.router, prefix="/api/v1/cve", tags=["CVE"])
 app.include_router(settings.router, prefix="/api/v1/settings", tags=["Settings"])
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
 app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"])
-nclude_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"])

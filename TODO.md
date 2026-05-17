@@ -35,6 +35,7 @@ Le frontend est **100% opérationnel** et utilise actuellement des données fact
   - [x] Connecter `routers/cve.py` à la base de données.
   - [x] Ajouter un job dans `scheduler.py` pour lancer le polling CVE toutes les X minutes (selon les settings).
 
+
 ---
 
 ## PHASE 2 — Chiffrement & Sécurité (Hardening)
