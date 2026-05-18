@@ -1,0 +1,9 @@
+branch : i18n config
+mettre à jour i18n
+
+branch : dependancies check
+check des dependances, framework et versions globales
+
+branch : security audit
+audit de securité
+pentest + lecture de logique
