@@ -1,6 +1,6 @@
 # 🔍 BreachRadar WebUI
 
-<img src="images/logo_full.png" alt="Logo BreachRadar" width="400">
+<img src="images/logo_full.png" alt="Logo BreachRadar">
 
 > **Plateforme Web de détection de fuites de données ciblée sur un domaine.**
 > Usage légal — surveillance défensive de votre propre domaine uniquement.
