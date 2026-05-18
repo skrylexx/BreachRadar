@@ -58,6 +58,7 @@ Phase 5 — Validation  [██████████] 100%
 
 | Fichier | Nature | Description |
 |---|---|---|
+| `README.md` | Modification | Réduction de la taille du logo via tag HTML `img`. |
 | `backend/README.md` | Modification | Ajout des technos, utilités, endpoints et guide d'installation locale (venv). |
 | `frontend/README.md` | Création | Ajout des technos, utilités et guide d'installation locale (npm). |
 | `QUICKSTART.md` | Modification | Fusion des guides Docker et Local Setup pour une mise en route rapide. |
