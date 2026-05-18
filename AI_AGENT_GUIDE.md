@@ -258,6 +258,23 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
   - Les boutons MFA et Password dans Profile sont visuels mais pas encore reliés au backend.
 - **Fichiers mis à jour** : TODO.md · ROADMAP.md · README.md · QUICKSTART.md · Tout le backend/app/...
 
+### Passation #4 — 2026-05-18
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - Génération de la documentation technique complète pour les sous-dossiers.
+  - Création de `backend/README.md` (FastAPI, Endpoints, Local Setup).
+  - Création de `frontend/README.md` (Next.js, Tech stack, Local Setup).
+  - Mise à jour majeure de `QUICKSTART.md` pour inclure le guide de développement local (sans Docker).
+  - Mise à jour du `ROADMAP.md` (Phase 5 Hardening marquée à 100%).
+- **Tâche suivante** : Voir section `Prochain Agent — Reprendre ici` dans ROADMAP.md (Focus sur le polling CVE réel et les actions profil).
+- **Points de vigilance** :
+  - Le guide local suppose que PostgreSQL et Redis sont accessibles nativement ou via des conteneurs isolés.
+  - Vérifier la cohérence du `.env` lors du switch Docker <-> Local.
+- **Fichiers mis à jour** : backend/README.md · frontend/README.md · QUICKSTART.md · ROADMAP.md · AI_AGENT_GUIDE.md
+
 ---
 
 ## 7. Instructions de Style & Qualité

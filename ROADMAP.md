@@ -27,7 +27,7 @@ Phase 1 — CVE Engine  [██████████] 100%
 Phase 2 — Security    [██████████] 100%
 Phase 3 — Settings    [██████████] 100%
 Phase 4 — Reports     [██████████] 100%
-Phase 5 — Validation  [████████░░]  80%
+Phase 5 — Validation  [██████████] 100%
 
 ---
 
@@ -44,10 +44,35 @@ Phase 5 — Validation  [████████░░]  80%
 - [x] Renforcement des clients OSINT (Rate-limiting dynamique, gestion d'erreurs HTTP)
 - [x] Couverture de tests asynchrones pour le moteur CVE (Mocking API)
 - [x] Audit de sécurité automatisé (Bandit, Semgrep) et correction des vulnérabilités Jinja2 (XSS)
+- [x] Documentation technique complète (Backend/Frontend READMEs + Local Setup)
 
 ---
 
 ## CHANGELOG
+
+### Itération 22 — 2026-05-18 (Gemini CLI)
+
+**Objectif de l'itération** : Génération de la documentation technique et guide de lancement local.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/README.md` | Modification | Ajout des technos, utilités, endpoints et guide d'installation locale (venv). |
+| `frontend/README.md` | Création | Ajout des technos, utilités et guide d'installation locale (npm). |
+| `QUICKSTART.md` | Modification | Fusion des guides Docker et Local Setup pour une mise en route rapide. |
+| `ROADMAP.md` | Modification | Phase 5 marquée comme 100% terminée. |
+
+#### Décisions techniques
+
+1. **Dual-Path Setup** : Le projet supporte désormais officiellement deux modes de lancement : Docker (production/iso) et Local (développement rapide).
+2. **Docs Isolation** : Chaque composant (backend/frontend) possède désormais son propre README détaillant sa stack spécifique, facilitant l'onboarding de nouveaux développeurs ou agents IA.
+
+#### ✅ Phase 5.5 — Tâches complétées
+- [x] Documentation technique Backend & Frontend générée.
+- [x] Guide Quickstart unifié et clarifié.
+
+---
 
 ### Itération 21 — 2026-05-17 (Gemini CLI)
 
