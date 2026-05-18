@@ -275,6 +275,18 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
   - Vérifier la cohérence du `.env` lors du switch Docker <-> Local.
 - **Fichiers mis à jour** : backend/README.md · frontend/README.md · QUICKSTART.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
+### Passation #5 — 2026-05-18
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - Création du fichier `ARCHITECTURE.md` détaillant la structure du repo, les configs et les fichiers IA.
+  - Mise à jour du `ROADMAP.md` (Itération 23).
+- **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) comme indiqué dans la ROADMAP.
+- **Points de vigilance** : Aucun nouveau point de vigilance technique introduit par cette itération de documentation.
+- **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
+
 ---
 
 ## 7. Instructions de Style & Qualité

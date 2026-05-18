@@ -50,6 +50,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 23 — 2026-05-18 (Gemini CLI)
+
+**Objectif de l'itération** : Documentation de l'architecture globale du projet.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `ARCHITECTURE.md` | Création | Document détaillé expliquant l'arborescence, les configurations et le rôle des fichiers IA/Changelog. |
+| `ROADMAP.md` | Modification | Ajout de l'itération 23. |
+
+#### Décisions techniques
+
+1. **Centralisation de la connaissance** : `ARCHITECTURE.md` devient la source de vérité pour comprendre l'organisation physique et logique du dépôt, complétant `AI_AGENT_GUIDE.md` qui se concentre sur le workflow.
+
+#### ✅ Documentation
+- [x] Architecture globale documentée dans `ARCHITECTURE.md`.
+
+---
+
 ### Itération 22 — 2026-05-18 (Gemini CLI)
 
 **Objectif de l'itération** : Génération de la documentation technique et guide de lancement local.
