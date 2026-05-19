@@ -31,9 +31,10 @@ class ScanOrchestrator:
     Chef d'orchestre : gère l'exécution parallèle des clients API.
     """
 
-    def __init__(self, settings: Settings, registry: SourceRegistry) -> None:
+    def __init__(self, settings: Settings, registry: SourceRegistry, api_keys: dict[str, str] | None = None) -> None:
         self.settings = settings
         self.registry = registry
+        self.api_keys = api_keys or {}
         self.sanitizer = DataSanitizer()
         self.clients: list[BaseLeakClient] = self._initialize_clients()
 
@@ -42,23 +43,40 @@ class ScanOrchestrator:
         active_sources = self.registry.active_sources
         clients: list[BaseLeakClient] = []
 
+        # Helper pour récupérer une clé (Priorité DB/Argument > Settings)
+        def _get_key(service: str, settings_val: str) -> str:
+            return self.api_keys.get(service) or settings_val
+
         if "hibp" in active_sources:
             clients.append(HIBPClient(
-                api_key=self.settings.hibp_api_key, 
+                api_key=_get_key("hibp", self.settings.hibp_api_key), 
                 sanitizer=self.sanitizer,
                 rate_limit_delay=self.settings.hibp_rate_limit_ms / 1000.0
             ))
 
         if "github" in active_sources:
-            clients.append(GitHubClient(token=self.settings.github_token, sanitizer=self.sanitizer))
+            clients.append(GitHubClient(
+                token=_get_key("github", self.settings.github_token), 
+                sanitizer=self.sanitizer
+            ))
 
         if "leakcheck" in active_sources:
-            clients.append(LeakCheckClient(api_key=self.settings.leakcheck_api_key, sanitizer=self.sanitizer))
+            clients.append(LeakCheckClient(
+                api_key=_get_key("leakcheck", self.settings.leakcheck_api_key), 
+                sanitizer=self.sanitizer
+            ))
 
         if "dehashed" in active_sources:
             clients.append(DehashedClient(
-                dehashed_email=self.settings.dehashed_email,
-                api_key=self.settings.dehashed_api_key,
+                dehashed_email=_get_key("dehashed_email", self.settings.dehashed_email),
+                api_key=_get_key("dehashed", self.settings.dehashed_api_key),
+                sanitizer=self.sanitizer
+            ))
+        
+        if "intelx" in active_sources:
+            from app.clients.intelx import IntelXClient
+            clients.append(IntelXClient(
+                api_key=_get_key("intelx", self.settings.intelx_api_key),
                 sanitizer=self.sanitizer
             ))
 

@@ -71,6 +71,9 @@ Phase 5 — Validation  [██████████] 100%
 - [x] Stack RansomLook opérationnelle (Tor + Redis + App).
 - [x] Client backend validé via script de test (Healthy: True).
 - [x] Affichage UI corrigé pour les statistiques.
+- [x] **Support complet SaaS** : La clé API SaaS est désormais récupérée depuis la base de données (Admin UI) si absente du `.env`.
+- [x] **Correctif moteur** : Correction du crash du `ScanManager` lors de l'initialisation de RansomLook.
+- [x] **Status Dashboard** : Le statut RansomLook dans le dashboard prend désormais en compte les clés configurées via l'interface Web.
 
 ---
 

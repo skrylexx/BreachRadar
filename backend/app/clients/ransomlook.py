@@ -70,22 +70,28 @@ class RansomLookClient(BaseLeakClient):
     name = "ransomlook"
     rate_limit_delay = 0.5  # Délai minimal entre requêtes
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        mode: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
+    ) -> None:
         super().__init__()
 
-        self.mode = settings.ransomlook_mode
+        self.mode = mode or settings.ransomlook_mode
 
         if self.mode == "local":
-            self.base_url = settings.ransomlook_local_url.rstrip("/")
+            self.base_url = base_url or settings.ransomlook_local_url.rstrip("/")
             self.headers: dict[str, str] = {}
         else:  # saas
-            self.base_url = settings.ransomlook_saas_api_url.rstrip("/")
-            if not settings.ransomlook_saas_api_key:
+            self.base_url = base_url or settings.ransomlook_saas_api_url.rstrip("/")
+            key = api_key or settings.ransomlook_saas_api_key
+            if not key:
                 raise RuntimeError(
                     "RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas"
                 )
             self.headers = {
-                "Authorization": settings.ransomlook_saas_api_key,
+                "Authorization": key,
             }
 
         self.search_terms = settings.all_ransomlook_terms

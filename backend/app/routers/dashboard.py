@@ -34,14 +34,27 @@ async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
 
-async def _ransomlook_active() -> bool:
+async def _ransomlook_active(db: AsyncSession) -> bool:
     """Vérifie si RansomLook est réellement joignable."""
-    if settings.ransomlook_mode == "saas":
-        return bool(settings.ransomlook_saas_api_key)
+    from app.models.api_key import APIKey
+    from app.clients.ransomlook import RansomLookClient
+    from app.core.security import decrypt_secret
+
+    mode = settings.ransomlook_mode
     
-    # Mode local : test réel de connectivité
+    # 1. SaaS Mode: check for key in .env or DB
+    if mode == "saas":
+        if settings.ransomlook_saas_api_key:
+            return True
+        
+        # Check database
+        result = await db.execute(select(APIKey).where(APIKey.service_name == "ransomlook_saas"))
+        key = result.scalar_one_or_none()
+        return key is not None and key.is_active
+
+    # 2. Local Mode: real connectivity test
     try:
-        from app.clients.ransomlook import RansomLookClient
+        # We use a default client that uses settings
         client = RansomLookClient()
         stats = await client.check_health()
         return stats.is_healthy
@@ -180,7 +193,7 @@ async def connectors_status(
     État de TOUS les connecteurs disponibles dans l'application.
     Ajoute un flag 'is_mock' si le connecteur n'est pas configuré mais que le mode mock est activé.
     """
-    ransomlook_ok = await _ransomlook_active()
+    ransomlook_ok = await _ransomlook_active(db)
     mock_enabled = await _get_mock_data_enabled(db)
 
     def _get_status(configured: bool):

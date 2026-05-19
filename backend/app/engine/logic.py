@@ -35,18 +35,25 @@ class ScanManager:
 
     def __init__(self) -> None:
         self.registry = SourceRegistry.load()
-        self.orchestrator = ScanOrchestrator(settings=settings, registry=self.registry)
-        
-        # Initialisation du client RansomLook
-        self.ransom_client = RansomLookClient(
-            instance_url=settings.ransomlook_url,
-            search_terms=settings.ransomlook_search_terms
-        )
-        
         self.notifier = NotificationEngine(settings=settings)
-        self.tracker = RansomwareTracker(client=self.ransom_client, notifier=self.notifier)
         self.aggregator = ResultAggregator()
         self.report_engine = ReportEngine(output_dir=settings.report_output_dir)
+
+    async def _get_api_keys(self, db) -> dict[str, str]:
+        """Charge toutes les clés API actives depuis la base de données."""
+        from app.models.api_key import APIKey
+        from app.core.security import decrypt_secret
+        from sqlalchemy import select
+
+        result = await db.execute(select(APIKey).where(APIKey.is_active == True))
+        keys = {}
+        for k in result.scalars().all():
+            try:
+                keys[k.service_name] = decrypt_secret(k.encrypted_key)
+            except Exception as e:
+                logger.error(f"Erreur déchiffrement clé {k.service_name}: {e}")
+                continue
+        return keys
 
     async def run_full_scan(self, scan_id: UUID, target_domain: str | None = None) -> None:
         """
@@ -60,14 +67,30 @@ class ScanManager:
 
         async with AsyncSessionLocal() as db:
             try:
-                # 1. Résolution des adresses email
+                # 0. Charger les clés API de la base
+                db_keys = await self._get_api_keys(db)
+                
+                # 1. Initialiser les clients avec les clés fraîches
+                orchestrator = ScanOrchestrator(settings=settings, registry=self.registry, api_keys=db_keys)
+                
+                # Client RansomLook (priorité SaaS key DB)
+                mode = settings.ransomlook_mode
+                api_key = db_keys.get("ransomlook_saas")
+                
+                ransom_client = RansomLookClient(
+                    mode=mode,
+                    api_key=api_key
+                )
+                tracker = RansomwareTracker(client=ransom_client, notifier=self.notifier)
+
+                # 2. Résolution des adresses email
                 resolver = EmailResolver(domain=domain)
                 emails = await resolver.resolve()
                 
-                # 2. Exécution des scans en parallèle
-                ransom_task = asyncio.create_task(self.tracker.run(domain))
-                leak_task = asyncio.create_task(self.orchestrator.scan_emails(emails))
-                domain_leak_task = asyncio.create_task(self.orchestrator.scan_domain(domain))
+                # 3. Exécution des scans en parallèle
+                ransom_task = asyncio.create_task(tracker.run(domain))
+                leak_task = asyncio.create_task(orchestrator.scan_emails(emails))
+                domain_leak_task = asyncio.create_task(orchestrator.scan_domain(domain))
 
                 # Attendre les résultats
                 ransom_findings = await ransom_task
@@ -76,7 +99,7 @@ class ScanManager:
                 
                 all_leak_findings = leak_findings + domain_findings
 
-                # 3. Agrégation des résultats
+                # 4. Agrégation des résultats
                 metadata = ReportMetadata(
                     target_domain=domain,
                     generated_at=datetime.now(timezone.utc),
