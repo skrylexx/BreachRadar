@@ -1,5 +1,5 @@
-branch : i18n config
-mettre à jour i18n
+branch : tech watch
+configuration et test de la veille numérique (orienté cyber), validation des configurations, de la flexibilité, de l'intégration de nouveaux flux...
 
 branch : dependancies check
 check des dependances, framework et versions globales
@@ -7,3 +7,6 @@ check des dependances, framework et versions globales
 branch : security audit
 audit de securité
 pentest + lecture de logique
+
+branch : i18n config
+mettre à jour i18n
