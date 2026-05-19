@@ -117,6 +117,7 @@ class RansomStats(BaseModel):
         description="Date du dernier cycle de scraping",
     )
     instance_url: str = Field(description="URL de l'instance RansomLook")
+    mode: str = Field(default="local", description="Mode d'utilisation (local ou saas)")
     is_healthy: bool = Field(
         default=False,
         description="True si l'instance est joignable et fonctionnelle",

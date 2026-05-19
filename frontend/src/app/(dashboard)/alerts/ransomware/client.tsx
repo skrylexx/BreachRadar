@@ -50,7 +50,7 @@ export function RansomwareAlertsClient({
   const mode = statusData.mode || "SaaS";
   const groupsTracked = statusData.groups_tracked || 0;
   const totalPosts = statusData.total_posts || 0;
-  const lastUpdated = statusData.last_updated ? formatDate(statusData.last_updated) : "Unknown";
+  const lastUpdated = statusData.last_update ? formatDate(statusData.last_update) : "Unknown";
 
   const columns: DataTableColumn<RansomwareAlert>[] = [
     {

@@ -9,6 +9,17 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.2.1",
+    date: "2026-05-19",
+    type: "Maintenance & Connectivity",
+    description: "Fiabilisation du connecteur RansomLook et synchronisation des métadonnées de statut.",
+    changes: [
+      { type: "feat", text: "Amélioration de la résilience du connecteur RansomLook (Healthcheck local)." },
+      { type: "fix", text: "Synchronisation des noms de champs entre l'API et la WebUI (Statut RansomLook)." },
+      { type: "feat", text: "Ajout de l'affichage du mode de connexion (Local/SaaS) dans le dashboard ransomware." },
+    ],
+  },
+  {
     version: "v0.2.0",
     date: "2026-05-17",
     type: "Feature Update",

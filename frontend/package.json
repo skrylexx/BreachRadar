@@ -1,6 +1,6 @@
 {
   "name": "breachradar-ui",
-  "version": "1.0.0",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "dev": "dotenv -e ../.env -- next dev --turbopack",

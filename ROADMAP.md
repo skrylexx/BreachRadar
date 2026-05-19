@@ -50,6 +50,30 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 24 — 2026-05-19 (Gemini CLI)
+
+**Objectif de l'itération** : Vérification et fiabilisation de la connexion RansomLook.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/models/ransom.py` | Modification | Ajout du champ `mode` au modèle `RansomStats`. |
+| `backend/app/clients/ransomlook.py` | Modification | Remplissage du champ `mode` lors du healthcheck. |
+| `frontend/src/app/(dashboard)/alerts/ransomware/client.tsx` | Modification | Correction du nom de champ `last_updated` -> `last_update` pour correspondre au backend. |
+
+#### Décisions techniques
+
+1. **Validation bout-en-bout** : Test de connectivité réussi entre le client backend et l'instance RansomLook Docker locale.
+2. **Harmonisation API/UI** : Correction d'une divergence de nommage sur les métadonnées de statut pour garantir l'affichage des statistiques dans la WebUI.
+
+#### ✅ Vérification RansomLook
+- [x] Stack RansomLook opérationnelle (Tor + Redis + App).
+- [x] Client backend validé via script de test (Healthy: True).
+- [x] Affichage UI corrigé pour les statistiques.
+
+---
+
 ### Itération 23 — 2026-05-18 (Gemini CLI)
 
 **Objectif de l'itération** : Documentation de l'architecture globale du projet.

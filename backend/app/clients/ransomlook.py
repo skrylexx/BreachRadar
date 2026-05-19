@@ -120,6 +120,7 @@ class RansomLookClient(BaseLeakClient):
                 total_posts=data.get("posts", 0),
                 last_update=data.get("last_update"),
                 instance_url=self.base_url,
+                mode=self.mode,
                 is_healthy=True,
             )
         except Exception as e:
