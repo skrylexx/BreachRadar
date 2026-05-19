@@ -1,3 +1,6 @@
+branch : mfa
+ameliorer la prise en charge du mfa en s'assurant que ca fonctionne une fois le login+mdp entré (pour le moment : http://localhost:3000/login?return_to=%2Fmfa et affiche pas d'endroit ou entrer le code)
+
 branch : tech watch
 configuration et test de la veille numérique (orienté cyber), validation des configurations, de la flexibilité, de l'intégration de nouveaux flux...
 

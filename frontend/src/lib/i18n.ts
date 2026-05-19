@@ -26,7 +26,7 @@ export const translations = {
     "auth.forgot_password": "Forgot password?",
     "auth.error.invalid_credentials": "Invalid email or password",
     "auth.error.account_disabled": "Account disabled",
-    "auth.error.password_expired": "Password expired — please reset",
+    "auth.error.password_expired": "Password expired - please reset",
 
     // Dashboard
     "dashboard.title": "Dashboard",
@@ -76,7 +76,7 @@ export const translations = {
     "auth.forgot_password": "Mot de passe oublié ?",
     "auth.error.invalid_credentials": "Email ou mot de passe incorrect",
     "auth.error.account_disabled": "Compte désactivé",
-    "auth.error.password_expired": "Mot de passe expiré — veuillez le renouveler",
+    "auth.error.password_expired": "Mot de passe expiré - veuillez le renouveler",
 
     // Dashboard
     "dashboard.title": "Tableau de bord",
