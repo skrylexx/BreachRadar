@@ -46,7 +46,17 @@ if insert_idx != -1:
         "            'groups': len(red_groups.keys()),\n",
         "            'posts': total_posts,\n",
         "            'last_update': datetime.now().isoformat()\n",
-        "        }\n"
+        "        }\n",
+        "\n",
+        "@api.route('/key')\n",
+        "@api.doc(description='Get the auto-generated API key (internal only)', tags=['generic'])\n",
+        "class GetLocalKey(Resource):\n",
+        "    def get(self):\n",
+        "        from website.web.helpers import build_keys_table\n",
+        "        keys = build_keys_table()\n",
+        "        if keys:\n",
+        "            return {'api_key': list(keys.keys())[0]}\n",
+        "        return {'api_key': None}\n"
     ]
     
     # Check if already patched

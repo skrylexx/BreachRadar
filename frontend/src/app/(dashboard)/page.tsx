@@ -15,6 +15,7 @@ import { ScansTableBlock } from "@/components/dashboard/ScansTableBlock";
 import { QuickAccessBlock } from "@/components/dashboard/QuickAccessBlock";
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
+import { fetchJSON } from "@/lib/fetch";
 
 export const metadata: Metadata = {
   title: "Dashboard — BreachRadar",
@@ -33,20 +34,7 @@ interface DashboardStats {
 }
 
 // ─── Helpers fetch ─────────────────────────────────────────────────────────────────────
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://breachradar-api:8000";
-
-async function fetchJSON<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(`${API}${path}`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return null;
-    return res.json() as Promise<T>;
-  } catch {
-    return null;
-  }
-}
+// On utilise fetchJSON du lib/fetch qui gère maintenant les cookies et l'URL interne
 
 // ─── Formatage "X ago" ────────────────────────────────────────────────────────────────────
 function timeAgo(iso: string | null): string {

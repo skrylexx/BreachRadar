@@ -101,12 +101,34 @@ class RansomLookClient(BaseLeakClient):
             "RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url
         )
 
+    async def _fetch_local_key(self) -> str | None:
+        """Récupère la clé API auto-générée depuis l'instance locale."""
+        if self.mode != "local":
+            return None
+        
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{self.base_url}/api/key")
+                if response.status_code == 200:
+                    key = response.json().get("api_key")
+                    if key:
+                        logger.info("Clé API RansomLook locale récupérée avec succès.")
+                        self.headers = {"Authorization": key}
+                        return key
+        except Exception as e:
+            logger.debug("Impossible de récupérer la clé RansomLook locale : %s", e)
+        return None
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
     )
     async def _get(self, path: str, params: dict | None = None) -> dict | list:
         """Requête GET vers l'API RansomLook avec retry automatique."""
+        # Si on est en local et qu'on n'a pas encore de clé, on tente de la récupérer
+        if self.mode == "local" and not self.headers.get("Authorization"):
+            await self._fetch_local_key()
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(
                 f"{self.base_url}{path}",
