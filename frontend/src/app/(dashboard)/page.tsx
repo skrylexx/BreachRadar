@@ -57,16 +57,19 @@ export default async function DashboardPage({
   const { period = "7d" } = await searchParams;
 
   // Appels parallèles vers le backend
-  const [stats, connectors, findings, chartData, ransomwareAlerts, cveAlerts, scansRes] = await Promise.all([
+  const [stats, connectors, findingsRes, chartData, ransomwareRes, cveRes, scansRes] = await Promise.all([
     fetchJSON<DashboardStats>("/api/v1/dashboard/stats"),
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
-    fetchJSON<any[]>("/api/v1/findings?limit=10&sort=discovered_at:desc"),
+    fetchJSON<any>("/api/v1/findings?limit=10&sort=discovered_at:desc"),
     fetchJSON<any[]>(`/api/v1/dashboard/chart?period=${period}`),
-    fetchJSON<any[]>("/api/v1/ransomlook/alerts?status=LISTED&limit=1"),
-    fetchJSON<any[]>("/api/v1/cve/alerts?limit=5"),
+    fetchJSON<any>("/api/v1/ransomlook/alerts?status=LISTED&limit=1"),
+    fetchJSON<any>("/api/v1/cve/alerts?limit=5"),
     fetchJSON<any>("/api/v1/scans?limit=10"),
   ]);
 
+  const findings = findingsRes?.items || [];
+  const ransomwareAlerts = ransomwareRes?.items || [];
+  const cveAlerts = cveRes?.items || [];
   const recentScans = scansRes?.items || [];
 
   // Au moins un connecteur actif ? → afficher le CTA "Premier scan"
