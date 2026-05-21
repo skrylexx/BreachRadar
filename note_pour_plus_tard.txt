@@ -20,6 +20,7 @@ http://localhost:3000/admin/users --> bloc utilisateurs charge en boucle
 branch : security audit
 audit de securité
 pentest + lecture de logique
+permissions
 
 branch : i18n config
 mettre à jour i18n + rendre fonctionnel le switch de langue
