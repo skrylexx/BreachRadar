@@ -50,6 +50,30 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 25 — 2026-05-21 (Gemini CLI)
+
+**Objectif de l'itération** : Restauration et population de données pour le connecteur RansomLook local.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `docker-compose.yml` | Modification | Mise à jour du healthcheck `ransomlook-app` pour utiliser `wget` (curl absent de l'image). |
+
+#### Décisions techniques
+
+1. **Maintenance Proactive** : Nettoyage manuel de la base Redis de RansomLook (DB 0, 2) pour éliminer les corruptions de données provoquant des crashes du scrapper.
+2. **Hydratation de Données** : Importation de plus de 16 000 entrées depuis le projet RansomWatch pour garantir que l'instance locale est immédiatement utile sans attendre un cycle de scraping complet.
+3. **Validation de Cible** : Vérification manuelle que la recherche sur le domaine cible (`olipes.com`) retourne désormais des résultats cohérents via l'API interne.
+
+#### ✅ RansomLook
+- [x] Correction du crash du scrapper (flush Redis).
+- [x] Importation massive de données (16k+ victimes).
+- [x] Correction du healthcheck Docker.
+- [x] Vérification fonctionnelle de la recherche de victimes.
+
+---
+
 ### Itération 24 — 2026-05-19 (Gemini CLI)
 
 **Objectif de l'itération** : Vérification et fiabilisation de la connexion RansomLook.

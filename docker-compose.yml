@@ -66,7 +66,7 @@ services:
       - ./ransomlook_config/patch_redis.py:/ransomlook/config/patch_redis.py
       - ./ransomlook_config/patch_api.py:/ransomlook/config/patch_api.py
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/api/stats"]
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8888/api/stats"]
       interval: 30s
       timeout: 10s
       retries: 5
