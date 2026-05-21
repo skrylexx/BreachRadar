@@ -405,15 +405,15 @@ export const auditApi = {
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<{ requires_mfa: boolean; challenge_token?: string }>(
-      "/auth/login",
+      "/api/v1/auth/login",
       { email, password },
       { skipAuth: true }
     ),
   mfaVerify: (challenge_token: string, code: string) =>
-    api.post<void>("/auth/mfa/verify", { challenge_token, code }, { skipAuth: true }),
-  logout: () => api.post<void>("/auth/logout"),
-  me: () => api.get<User>("/auth/me"),
-  passwordChange: (data: any) => api.post<void>("/auth/password/change", data),
-  mfaSetup: () => api.post<{ qrcode_base64: string; manual_entry_key: string }>("/auth/mfa/setup"),
-  mfaConfirm: (code: string) => api.post<void>("/auth/mfa/confirm", { totp_code: code }),
+    api.post<void>("/api/v1/auth/mfa/verify", { challenge_token, code }, { skipAuth: true }),
+  logout: () => api.post<void>("/api/v1/auth/logout"),
+  me: () => api.get<User>("/api/v1/auth/me"),
+  passwordChange: (data: any) => api.post<void>("/api/v1/auth/password/change", data),
+  mfaSetup: () => api.post<{ qrcode_base64: string; manual_entry_key: string }>("/api/v1/auth/mfa/setup"),
+  mfaConfirm: (code: string) => api.post<void>("/api/v1/auth/mfa/confirm", { totp_code: code }),
 };

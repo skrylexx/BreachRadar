@@ -27,6 +27,7 @@ SUPPORTED_SERVICES = {
     "hunter": "Hunter.io",
     "urlscan": "URLScan.io",
     "otx": "AlienVault OTX",
+    "ransomlook_saas": "RansomLook SaaS",
 }
 
 

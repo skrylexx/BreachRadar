@@ -10,7 +10,9 @@
  *     plutôt que de throw (pour ne pas bloquer le rendu SSR)
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import { headers } from "next/headers";
+
+const API_BASE = process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://breachradar-api:8000";
 
 /**
  * Fetch JSON côté serveur (Server Components).
@@ -24,6 +26,9 @@ export async function fetchJSON<T = unknown>(
   path: string,
   init?: RequestInit
 ): Promise<T | null> {
+  const headersList = await headers();
+  const cookie = headersList.get("cookie");
+
   // Construire l'URL complète si le chemin est relatif
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
 
@@ -31,9 +36,11 @@ export async function fetchJSON<T = unknown>(
     const res = await fetch(url, {
       // Pas de cache par défaut en SSR pour des données temps réel
       cache: "no-store",
+      signal: AbortSignal.timeout(5000),
       ...init,
       headers: {
         "Content-Type": "application/json",
+        ...(cookie ? { cookie } : {}),
         ...init?.headers,
       },
     });

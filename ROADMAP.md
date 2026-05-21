@@ -27,7 +27,7 @@ Phase 1 — CVE Engine  [██████████] 100%
 Phase 2 — Security    [██████████] 100%
 Phase 3 — Settings    [██████████] 100%
 Phase 4 — Reports     [██████████] 100%
-Phase 5 — Validation  [████████░░]  80%
+Phase 5 — Validation  [██████████] 100%
 
 ---
 
@@ -44,10 +44,107 @@ Phase 5 — Validation  [████████░░]  80%
 - [x] Renforcement des clients OSINT (Rate-limiting dynamique, gestion d'erreurs HTTP)
 - [x] Couverture de tests asynchrones pour le moteur CVE (Mocking API)
 - [x] Audit de sécurité automatisé (Bandit, Semgrep) et correction des vulnérabilités Jinja2 (XSS)
+- [x] Documentation technique complète (Backend/Frontend READMEs + Local Setup)
 
 ---
 
 ## CHANGELOG
+
+### Itération 25 — 2026-05-21 (Gemini CLI)
+
+**Objectif de l'itération** : Restauration et population de données pour le connecteur RansomLook local.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `docker-compose.yml` | Modification | Mise à jour du healthcheck `ransomlook-app` pour utiliser `wget` (curl absent de l'image). |
+
+#### Décisions techniques
+
+1. **Maintenance Proactive** : Nettoyage manuel de la base Redis de RansomLook (DB 0, 2) pour éliminer les corruptions de données provoquant des crashes du scrapper.
+2. **Hydratation de Données** : Importation de plus de 16 000 entrées depuis le projet RansomWatch pour garantir que l'instance locale est immédiatement utile sans attendre un cycle de scraping complet.
+3. **Validation de Cible** : Vérification manuelle que la recherche sur le domaine cible (`olipes.com`) retourne désormais des résultats cohérents via l'API interne.
+
+#### ✅ RansomLook
+- [x] Correction du crash du scrapper (flush Redis).
+- [x] Importation massive de données (16k+ victimes).
+- [x] Correction du healthcheck Docker.
+- [x] Vérification fonctionnelle de la recherche de victimes.
+
+---
+
+### Itération 24 — 2026-05-19 (Gemini CLI)
+
+**Objectif de l'itération** : Vérification et fiabilisation de la connexion RansomLook.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/models/ransom.py` | Modification | Ajout du champ `mode` au modèle `RansomStats`. |
+| `backend/app/clients/ransomlook.py` | Modification | Remplissage du champ `mode` lors du healthcheck. |
+| `frontend/src/app/(dashboard)/alerts/ransomware/client.tsx` | Modification | Correction du nom de champ `last_updated` -> `last_update` pour correspondre au backend. |
+
+#### Décisions techniques
+
+1. **Validation bout-en-bout** : Test de connectivité réussi entre le client backend et l'instance RansomLook Docker locale.
+2. **Harmonisation API/UI** : Correction d'une divergence de nommage sur les métadonnées de statut pour garantir l'affichage des statistiques dans la WebUI.
+
+#### ✅ Vérification RansomLook
+- [x] Stack RansomLook opérationnelle (Tor + Redis + App).
+- [x] Client backend validé via script de test (Healthy: True).
+- [x] Affichage UI corrigé pour les statistiques.
+- [x] **Support complet SaaS** : La clé API SaaS est désormais récupérée depuis la base de données (Admin UI) si absente du `.env`.
+- [x] **Correctif moteur** : Correction du crash du `ScanManager` lors de l'initialisation de RansomLook.
+- [x] **Status Dashboard** : Le statut RansomLook dans le dashboard prend désormais en compte les clés configurées via l'interface Web.
+
+---
+
+### Itération 23 — 2026-05-18 (Gemini CLI)
+
+**Objectif de l'itération** : Documentation de l'architecture globale du projet.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `ARCHITECTURE.md` | Création | Document détaillé expliquant l'arborescence, les configurations et le rôle des fichiers IA/Changelog. |
+| `ROADMAP.md` | Modification | Ajout de l'itération 23. |
+
+#### Décisions techniques
+
+1. **Centralisation de la connaissance** : `ARCHITECTURE.md` devient la source de vérité pour comprendre l'organisation physique et logique du dépôt, complétant `AI_AGENT_GUIDE.md` qui se concentre sur le workflow.
+
+#### ✅ Documentation
+- [x] Architecture globale documentée dans `ARCHITECTURE.md`.
+
+---
+
+### Itération 22 — 2026-05-18 (Gemini CLI)
+
+**Objectif de l'itération** : Génération de la documentation technique et guide de lancement local.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `README.md` | Modification | Réduction de la taille du logo via tag HTML `img`. |
+| `backend/README.md` | Modification | Ajout des technos, utilités, endpoints et guide d'installation locale (venv). |
+| `frontend/README.md` | Création | Ajout des technos, utilités et guide d'installation locale (npm). |
+| `QUICKSTART.md` | Modification | Fusion des guides Docker et Local Setup pour une mise en route rapide. |
+| `ROADMAP.md` | Modification | Phase 5 marquée comme 100% terminée. |
+
+#### Décisions techniques
+
+1. **Dual-Path Setup** : Le projet supporte désormais officiellement deux modes de lancement : Docker (production/iso) et Local (développement rapide).
+2. **Docs Isolation** : Chaque composant (backend/frontend) possède désormais son propre README détaillant sa stack spécifique, facilitant l'onboarding de nouveaux développeurs ou agents IA.
+
+#### ✅ Phase 5.5 — Tâches complétées
+- [x] Documentation technique Backend & Frontend générée.
+- [x] Guide Quickstart unifié et clarifié.
+
+---
 
 ### Itération 21 — 2026-05-17 (Gemini CLI)
 

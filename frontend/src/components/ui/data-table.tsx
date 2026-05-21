@@ -74,7 +74,7 @@ interface DataTableProps<T> {
 
 export function DataTable<T>({
   columns,
-  data,
+  data: rawData = [],
   rowKey,
   loading = false,
   emptyMessage = "Aucune donnée disponible.",
@@ -82,6 +82,7 @@ export function DataTable<T>({
   className,
   onRowClick,
 }: DataTableProps<T>) {
+  const data = Array.isArray(rawData) ? rawData : [];
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 

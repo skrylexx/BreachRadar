@@ -70,22 +70,28 @@ class RansomLookClient(BaseLeakClient):
     name = "ransomlook"
     rate_limit_delay = 0.5  # Délai minimal entre requêtes
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        mode: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
+    ) -> None:
         super().__init__()
 
-        self.mode = settings.ransomlook_mode
+        self.mode = mode or settings.ransomlook_mode
 
         if self.mode == "local":
-            self.base_url = settings.ransomlook_local_url.rstrip("/")
+            self.base_url = base_url or settings.ransomlook_local_url.rstrip("/")
             self.headers: dict[str, str] = {}
         else:  # saas
-            self.base_url = settings.ransomlook_saas_api_url.rstrip("/")
-            if not settings.ransomlook_saas_api_key:
+            self.base_url = base_url or settings.ransomlook_saas_api_url.rstrip("/")
+            key = api_key or settings.ransomlook_saas_api_key
+            if not key:
                 raise RuntimeError(
                     "RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas"
                 )
             self.headers = {
-                "Authorization": settings.ransomlook_saas_api_key,
+                "Authorization": key,
             }
 
         self.search_terms = settings.all_ransomlook_terms
@@ -95,12 +101,34 @@ class RansomLookClient(BaseLeakClient):
             "RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url
         )
 
+    async def _fetch_local_key(self) -> str | None:
+        """Récupère la clé API auto-générée depuis l'instance locale."""
+        if self.mode != "local":
+            return None
+        
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{self.base_url}/api/key")
+                if response.status_code == 200:
+                    key = response.json().get("api_key")
+                    if key:
+                        logger.info("Clé API RansomLook locale récupérée avec succès.")
+                        self.headers = {"Authorization": key}
+                        return key
+        except Exception as e:
+            logger.debug("Impossible de récupérer la clé RansomLook locale : %s", e)
+        return None
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
     )
     async def _get(self, path: str, params: dict | None = None) -> dict | list:
         """Requête GET vers l'API RansomLook avec retry automatique."""
+        # Si on est en local et qu'on n'a pas encore de clé, on tente de la récupérer
+        if self.mode == "local" and not self.headers.get("Authorization"):
+            await self._fetch_local_key()
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(
                 f"{self.base_url}{path}",
@@ -112,13 +140,15 @@ class RansomLookClient(BaseLeakClient):
 
     async def check_health(self) -> RansomStats:
         """Vérifie que l'instance RansomLook est opérationnelle."""
+        path = "/api/v1/stats" if self.mode == "saas" else "/api/stats"
         try:
-            data = await self._get("/api/v1/stats")
+            data = await self._get(path)
             return RansomStats(
                 groups_tracked=data.get("groups", 0),
                 total_posts=data.get("posts", 0),
                 last_update=data.get("last_update"),
                 instance_url=self.base_url,
+                mode=self.mode,
                 is_healthy=True,
             )
         except Exception as e:
@@ -147,11 +177,12 @@ class RansomLookClient(BaseLeakClient):
         seen: set[tuple[str, str, str | None]] = set()
 
         all_terms = list({domain, *self.search_terms})
+        path = "/api/v1/victim" if self.mode == "saas" else "/api/victim"
 
         for term in all_terms:
             await self._apply_rate_limit()
             try:
-                results = await self._get("/api/v1/victim", params={"name": term})
+                results = await self._get(path, params={"name": term})
 
                 if not isinstance(results, list):
                     logger.warning(
@@ -197,8 +228,11 @@ class RansomLookClient(BaseLeakClient):
 
     async def get_recent_victims(self, days: int = 7) -> list[dict]:
         """Retourne les victimes récentes pour enrichissement de contexte."""
+        path = "/api/v1/recent" if self.mode == "saas" else "/api/recent"
         try:
-            return await self._get("/api/v1/recent", params={"days": days})
+            # Note: Local API doesn't support 'days' param yet, it returns last 100
+            params = {"days": days} if self.mode == "saas" else {}
+            return await self._get(path, params=params)
         except Exception as e:
             logger.error("Erreur récupération victimes récentes RansomLook : %s", e)
             return []

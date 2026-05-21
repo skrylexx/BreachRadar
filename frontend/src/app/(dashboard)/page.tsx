@@ -15,6 +15,7 @@ import { ScansTableBlock } from "@/components/dashboard/ScansTableBlock";
 import { QuickAccessBlock } from "@/components/dashboard/QuickAccessBlock";
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
+import { fetchJSON } from "@/lib/fetch";
 
 export const metadata: Metadata = {
   title: "Dashboard — BreachRadar",
@@ -33,20 +34,7 @@ interface DashboardStats {
 }
 
 // ─── Helpers fetch ─────────────────────────────────────────────────────────────────────
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://breachradar-api:8000";
-
-async function fetchJSON<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(`${API}${path}`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return null;
-    return res.json() as Promise<T>;
-  } catch {
-    return null;
-  }
-}
+// On utilise fetchJSON du lib/fetch qui gère maintenant les cookies et l'URL interne
 
 // ─── Formatage "X ago" ────────────────────────────────────────────────────────────────────
 function timeAgo(iso: string | null): string {
@@ -69,16 +57,19 @@ export default async function DashboardPage({
   const { period = "7d" } = await searchParams;
 
   // Appels parallèles vers le backend
-  const [stats, connectors, findings, chartData, ransomwareAlerts, cveAlerts, scansRes] = await Promise.all([
+  const [stats, connectors, findingsRes, chartData, ransomwareRes, cveRes, scansRes] = await Promise.all([
     fetchJSON<DashboardStats>("/api/v1/dashboard/stats"),
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
-    fetchJSON<any[]>("/api/v1/findings?limit=10&sort=discovered_at:desc"),
+    fetchJSON<any>("/api/v1/findings?limit=10&sort=discovered_at:desc"),
     fetchJSON<any[]>(`/api/v1/dashboard/chart?period=${period}`),
-    fetchJSON<any[]>("/api/v1/ransomlook/alerts?status=LISTED&limit=1"),
-    fetchJSON<any[]>("/api/v1/cve/alerts?limit=5"),
+    fetchJSON<any>("/api/v1/ransomlook/alerts?status=LISTED&limit=1"),
+    fetchJSON<any>("/api/v1/cve/alerts?limit=5"),
     fetchJSON<any>("/api/v1/scans?limit=10"),
   ]);
 
+  const findings = findingsRes?.items || [];
+  const ransomwareAlerts = ransomwareRes?.items || [];
+  const cveAlerts = cveRes?.items || [];
   const recentScans = scansRes?.items || [];
 
   // Au moins un connecteur actif ? → afficher le CTA "Premier scan"

@@ -26,7 +26,9 @@ export default async function URLScanPage({
     fetchJSON<ConnectorStatus[]>("/api/v1/connectors/status"),
   ]);
 
-  const isMock = Array.isArray(connectors) && connectors.find(c => c.name.toLowerCase() === "urlscan")?.is_mock;
+  const connector = Array.isArray(connectors) ? connectors.find(c => c.name.toLowerCase() === "urlscan") : undefined;
+  const isMock = connector?.is_mock;
+  const isConfigured = connector?.configured;
 
   return (
     <URLScanClient
@@ -35,6 +37,7 @@ export default async function URLScanPage({
       initialPage={page}
       period={period}
       isMock={isMock}
+      isConfigured={isConfigured}
     />
   );
 }

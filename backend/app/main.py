@@ -149,11 +149,11 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # ─── Routeurs ────────────────────────────────────────────────────────────────
 app.include_router(health.router, tags=["Health"])
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(scans.router, prefix="/scans", tags=["Scans"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(scans.router, prefix="/api/v1/scans", tags=["Scans"])
 app.include_router(api_keys.router, prefix="/api/v1/settings/api-keys", tags=["API Keys"])
-app.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
+app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 app.include_router(ransomlook.router, prefix="/api/v1/ransomlook", tags=["RansomLook"])
 app.include_router(cve.router, prefix="/api/v1/cve", tags=["CVE"])
 app.include_router(settings_router.router, prefix="/api/v1/settings", tags=["Settings"])

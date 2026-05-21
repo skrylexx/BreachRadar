@@ -42,6 +42,7 @@ services:
     image: travishunting/ransomlook:latest
     container_name: ransomlook-app
     restart: unless-stopped
+    command: ["/bin/bash", "-c", "tr -d '\r' < /ransomlook/config/start_local.sh > /tmp/start.sh && bash /tmp/start.sh"]
     depends_on:
       ransomlook-redis:
         condition: service_healthy
@@ -59,9 +60,13 @@ services:
       - REFRESH_INTERVAL=3600   # Rafraîchissement toutes les heures
       - LOG_LEVEL=WARNING
     volumes:
-      - ransomlook_app_data:/app/data
+      - ransomlook_app_data:/ransomlook/data
+      - ./ransomlook_config/generic.json:/ransomlook/config/generic.json
+      - ./ransomlook_config/start_local.sh:/ransomlook/config/start_local.sh
+      - ./ransomlook_config/patch_redis.py:/ransomlook/config/patch_redis.py
+      - ./ransomlook_config/patch_api.py:/ransomlook/config/patch_api.py
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/api/v1/stats"]
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8888/api/stats"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -138,7 +143,8 @@ services:
       - INITIAL_ADMIN_EMAIL=${UI_ADMIN_EMAIL:?UI_ADMIN_EMAIL required}
       - INITIAL_ADMIN_PASSWORD=${UI_ADMIN_PASSWORD:?UI_ADMIN_PASSWORD required}
       # CORS — le frontend Next.js
-      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000"]}
+      - CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000", "http://breachradar-ui:3000"]
+      - ALLOWED_HOSTS=["localhost", "127.0.0.1", "breachradar-api", "breachradar-ui"]
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-production}
       # Communication avec RansomLook
@@ -169,9 +175,10 @@ services:
       dockerfile: Dockerfile
       args:
         # ── Variables injectées AU BUILD (résolues par next.config.ts) ──
+        # IMPORTANT: Utiliser l'URL accessible par le NAVIGATEUR de l'utilisateur
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-        - TARGET_DOMAIN=${TARGET_DOMAIN:-}
-        - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-}
+        - TARGET_DOMAIN=${TARGET_DOMAIN:-example.com}
+        - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-example.com}
     container_name: breachradar-ui
     restart: unless-stopped
     depends_on:
@@ -182,12 +189,13 @@ services:
     networks:
       - ui_net
     environment:
-      # ── Variables disponibles au RUNTIME (Server Components, rewrites) ──
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://breachradar-api:8000}
-      # TARGET_DOMAIN est lu côté serveur par le Server Component (dashboard/layout.tsx)
-      # Il DOIT être présent ici en plus du build arg pour être accessible au runtime.
-      - TARGET_DOMAIN=${TARGET_DOMAIN:-}
-      - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-}
+      # ── Variables disponibles au RUNTIME (Server Components) ──
+      # INTERNAL_API_URL est utilisé par fetchJSON (lib/fetch.ts) pour le SSR
+      - INTERNAL_API_URL=http://breachradar-api:8000
+      # NEXT_PUBLIC_API_URL est utilisé par apiFetch (lib/api.ts) côté navigateur
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - TARGET_DOMAIN=${TARGET_DOMAIN:-example.com}
+      - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-example.com}
       - NODE_ENV=production
 
 # ─── Volumes persistants ────────────────────────────────────────────────────
