@@ -50,6 +50,28 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 26 — 2026-05-21 (Gemini CLI)
+
+**Objectif de l'itération** : Planification détaillée et préparation des améliorations MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `TODO.md` | Création | Roadmap détaillée pour les améliorations MFA (Login flow, Admin management, Security hardening). |
+
+#### Décisions techniques
+
+1. **Approche par Roadmap** : Avant d'implémenter les changements complexes (migration DB, nouvelles routes), une planification exhaustive a été réalisée dans `TODO.md` pour couvrir les aspects Backend, Frontend et Sécurité.
+2. **Priorisation de la Vérification** : Identification d'une faille dans le flux actuel (page `/mfa` manquante et middleware bloquant) qui sera la première tâche technique.
+
+#### ✅ Planification MFA
+- [x] Création du `TODO.md` MFA complet.
+- [x] Définition des missions de durcissement (Security Hardening).
+- [x] Push sur la branche `feat/mfa`.
+
+---
+
 ### Itération 25 — 2026-05-21 (Gemini CLI)
 
 **Objectif de l'itération** : Restauration et population de données pour le connecteur RansomLook local.

@@ -361,7 +361,6 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 
 ### Passation #5 — 2026-05-18
 
-
 - **Agent sortant**            : Gemini CLI
 - **Agent entrant**            : indéfini
 - **Commit de fin de session** : *(voir commit associé à ce push)*
@@ -371,6 +370,21 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) comme indiqué dans la ROADMAP.
 - **Points de vigilance** : Aucun nouveau point de vigilance technique introduit par cette itération de documentation.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
+
+
+### Passation #6 — 2026-05-21
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : `92c060f`
+- **Tâches accomplies** :
+  - Analyse complète de l'implémentation MFA actuelle (Backend auth.py & Frontend login page).
+  - Création d'une roadmap d'implémentation détaillée dans `TODO.md` (MFA flow, Admin controls, Hardening).
+- **Tâche suivante** : Implémenter la page `/mfa` dans le frontend et mettre à jour le middleware pour autoriser son accès (voir `TODO.md`).
+- **Points de vigilance** :
+  - Le middleware Next.js redirige vers `/login` si `access_token` est absent, ce qui bloque `/mfa`.
+  - Le schéma `MFAVerifyRequest` côté backend ne contient pas d'identifiant utilisateur (nécessite email ou scan Redis du challenge token).
+- **Fichiers mis à jour** : TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
 ***
