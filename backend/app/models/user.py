@@ -54,7 +54,7 @@ class User(Base):
     # ─── MFA (TOTP) ────────────────────────────────────────────────────────
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     mfa_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    mfa_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mfa_backup_codes: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
     # ─── Gestion des mots de passe ─────────────────────────────────────────

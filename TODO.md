@@ -80,3 +80,8 @@ Ce document suit l'avancement des améliorations liées à l'authentification mu
     - [x] Interface de téléchargement/copie unique pour l'utilisateur.
 - [x] **Account Recovery Flow :** Documenter la procédure manuelle pour les admins (vérification d'identité) avant de procéder à un `MFA Reset`.
 
+---
+
+## 5. Bugfixes & Retours QA
+- [x] **Database Schema (Docker) :** Fix de l'erreur `StringDataRightTruncationError` au démarrage de l'API. La colonne `mfa_secret` a été augmentée de 64 à 255 caractères pour pouvoir stocker correctement le secret chiffré par Fernet.
+
