@@ -177,5 +177,40 @@ async def test_mfa_verify_rate_limiting(async_client):
     # Disable back for other tests
     app.state.limiter.enabled = False
 
+@pytest.mark.asyncio
+async def test_mfa_disable_success(async_client, mock_user):
+    """Teste la désactivation réussie du MFA par l'utilisateur."""
+    # Mocking CurrentUser dependency
+    from app.dependencies.auth import get_current_user
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    
+    totp = pyotp.TOTP(mock_user.mfa_secret)
+    valid_code = totp.now()
+    
+    disable_data = {"totp_code": valid_code}
+    
+    response = await async_client.post("/api/v1/auth/mfa/disable", json=disable_data)
+    
+    assert response.status_code == 200
+    assert mock_user.mfa_enabled is False
+    assert mock_user.mfa_secret is None
+    assert response.json()["message"] == "MFA disabled successfully"
+    del app.dependency_overrides[get_current_user]
+
+@pytest.mark.asyncio
+async def test_mfa_disable_invalid_code(async_client, mock_user):
+    """Teste l'échec de désactivation du MFA avec un mauvais code."""
+    from app.dependencies.auth import get_current_user
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    
+    disable_data = {"totp_code": "000000"}
+    
+    response = await async_client.post("/api/v1/auth/mfa/disable", json=disable_data)
+    
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid TOTP code"
+    assert mock_user.mfa_enabled is True # Toujours actif
+    del app.dependency_overrides[get_current_user]
+
 # Utilitaires pour mocker SQLAlchemy
 from unittest.mock import MagicMock

@@ -51,8 +51,8 @@ Ce document suit l'avancement des améliorations liées à l'authentification mu
 **Objectif :** Permettre à l'utilisateur de désactiver son propre MFA s'il est déjà connecté (nécessite la saisie du code actuel).
 
 ### Tasks
-- [ ] **API Endpoint :** `POST /api/v1/auth/mfa/disable` (requiert TOTP code ou mot de passe).
-- [ ] **Settings UI :** Bouton "Disable MFA" dans la page de profil.
+- [x] **API Endpoint :** `POST /api/v1/auth/mfa/disable` (requiert TOTP code ou mot de passe).
+- [x] **Settings UI :** Bouton "Disable MFA" dans la page de profil.
 
 ---
 

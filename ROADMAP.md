@@ -50,6 +50,27 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 29 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Implémentation du Self-Service MFA pour les utilisateurs.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/routers/auth.py` | Modification | Ajout de l'endpoint `mfa/disable` avec vérification TOTP. |
+| `frontend/src/lib/api.ts` | Modification | Ajout de la méthode `mfaDisable`. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout du bouton et du dialogue de désactivation MFA avec gestion du cas `mfa_required`. |
+| `backend/tests/test_mfa_functional.py` | Modification | Ajout des tests de désactivation MFA (Succès/Échec). |
+
+#### ✅ User Self-Service (Phase 3)
+- [x] Backend : Désactivation sécurisée par l'utilisateur.
+- [x] Frontend : Interface de gestion dans le profil.
+- [x] Sécurité : Blocage de la désactivation si MFA obligatoire (admin).
+- [x] Tests fonctionnels validés (6/6 passés).
+
+---
+
 ### Itération 28 — 2026-05-22 (Gemini CLI)
 
 **Objectif de l'itération** : Implémentation du pilotage Admin du MFA.

@@ -268,6 +268,30 @@ async def mfa_confirm(
     return {"message": "MFA enabled successfully"}
 
 
+@router.post("/mfa/disable")
+async def mfa_disable(
+    request: Request,
+    body: dict,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Désactive le MFA de l'utilisateur (requiert code TOTP)."""
+    if not current_user.mfa_enabled:
+        raise HTTPException(status_code=400, detail="MFA is not enabled")
+
+    code = body.get("totp_code")
+    if not code or not verify_totp(current_user.mfa_secret, code):
+        await _log_action(db, "auth.mfa.disable.failure", request, current_user.email)
+        raise HTTPException(status_code=400, detail="Invalid TOTP code")
+
+    current_user.mfa_enabled = False
+    current_user.mfa_secret = None
+    
+    await _log_action(db, "auth.mfa.disable.success", request, current_user.email)
+    await db.commit()
+    return {"message": "MFA disabled successfully"}
+
+
 # ─── POST /auth/password/change ───────────────────────────────────────────────
 @router.post("/password/change")
 async def change_password(

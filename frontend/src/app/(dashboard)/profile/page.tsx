@@ -36,6 +36,10 @@ export default function ProfilePage() {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaLoading, setMfaLoading] = useState(false);
 
+  // MFA Disable State
+  const [mfaDisableDialogOpen, setMfaDisableDialogOpen] = useState(false);
+  const [mfaDisableCode, setMfaDisableCode] = useState("");
+
   const fetchUser = async () => {
     try {
       const data = await authApi.me();
@@ -112,6 +116,21 @@ export default function ProfilePage() {
       alert("MFA activé avec succès !");
     } catch (err: any) {
       alert("Code invalide. Veuillez réessayer.");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleMfaDisable = async () => {
+    setMfaLoading(true);
+    try {
+      await authApi.mfaDisable(mfaDisableCode);
+      setMfaDisableDialogOpen(false);
+      setMfaDisableCode("");
+      await fetchUser();
+      alert("MFA désactivé avec succès.");
+    } catch (err: any) {
+      alert(err.message || "Code invalide. Impossible de désactiver le MFA.");
     } finally {
       setMfaLoading(false);
     }
@@ -245,6 +264,30 @@ export default function ProfilePage() {
                   Activer le MFA
                 </Button>
               )}
+
+              {user.mfa_enabled && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="w-full">
+                        <Button
+                          variant="outline"
+                          onClick={() => setMfaDisableDialogOpen(true)}
+                          disabled={user.mfa_required}
+                          className="w-full border-destructive/20 text-destructive hover:bg-destructive/5 disabled:opacity-50"
+                        >
+                          Désactiver le MFA
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {user.mfa_required && (
+                      <TooltipContent side="top" className="text-xs bg-destructive text-destructive-foreground">
+                        Le MFA est obligatoire pour votre compte (politique admin).
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </Card>
 
@@ -369,6 +412,54 @@ export default function ProfilePage() {
               </DialogFooter>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* ─── Dialog Désactivation MFA ────────────────────────────────────────── */}
+      <Dialog open={mfaDisableDialogOpen} onOpenChange={setMfaDisableDialogOpen}>
+        <DialogContent className="card-soc border-border/60 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Désactiver le MFA
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              La désactivation du MFA réduit la sécurité de votre compte.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Pour confirmer la désactivation, veuillez saisir le code TOTP actuel de votre application.
+            </p>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Code de vérification (6 chiffres)</Label>
+              <Input
+                placeholder="000000"
+                maxLength={6}
+                value={mfaDisableCode}
+                onChange={(e) => setMfaDisableCode(e.target.value)}
+                className="bg-secondary/50 border-border/50 text-center text-lg tracking-[0.5em] font-data"
+              />
+            </div>
+            
+            <div className="p-3 rounded-md bg-yellow-500/5 border border-yellow-500/20">
+              <p className="text-[11px] text-yellow-500/80 leading-relaxed">
+                <strong>Accès perdu ?</strong> Si vous n'avez plus accès à votre application TOTP, 
+                veuillez contacter un administrateur pour réinitialiser votre MFA manuellement.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setMfaDisableDialogOpen(false)}>Annuler</Button>
+            <Button
+              onClick={handleMfaDisable}
+              disabled={mfaLoading || mfaDisableCode.length !== 6}
+              className="bg-destructive/20 text-destructive border border-destructive/30"
+            >
+              {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Confirmer la désactivation"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
