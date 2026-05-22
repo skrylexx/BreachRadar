@@ -16,8 +16,10 @@ import {
   UserPlus,
   ShieldCheck,
   ShieldOff,
+  ShieldAlert,
   KeyRound,
   Smartphone,
+  SmartphoneNfc,
   AlertTriangle,
   CheckCircle2,
   XCircle,
@@ -356,6 +358,20 @@ export function UsersClient() {
     });
   };
 
+  const handleRequireMfa = (user: User) => {
+    setConfirmAction({
+      title: "Forcer le MFA",
+      description: `L'utilisateur ${user.email} devra obligatoirement configurer et valider son MFA lors de sa prochaine connexion.`,
+      label: "Forcer le MFA",
+      fn: async () => {
+        await usersApi.requireMfa(user.id);
+        showToast(`MFA désormais requis pour ${user.email}.`);
+        setConfirmAction(null);
+        fetchUsers();
+      },
+    });
+  };
+
   // ─── Colonnes ─────────────────────────────────────────────────────────────
 
   const columns: DataTableColumn<User>[] = [
@@ -403,13 +419,15 @@ export function UsersClient() {
               <span className="flex items-center gap-1">
                 {u.mfa_enabled ? (
                   <ShieldCheck className="w-4 h-4 text-green-400" />
+                ) : u.mfa_required ? (
+                  <ShieldAlert className="w-4 h-4 text-yellow-400 animate-pulse" />
                 ) : (
                   <ShieldOff className="w-4 h-4 text-muted-foreground" />
                 )}
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
-              {u.mfa_enabled ? "MFA activé" : "MFA désactivé"}
+              {u.mfa_enabled ? "MFA activé" : u.mfa_required ? "MFA Obligatoire (En attente)" : "MFA désactivé"}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -457,6 +475,20 @@ export function UsersClient() {
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Reset MDP</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger>
+            <button
+              id={`require-mfa-${u.id}`}
+              onClick={(e) => { e.stopPropagation(); handleRequireMfa(u); }}
+              className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-yellow-400 transition-colors"
+              disabled={u.mfa_enabled || u.mfa_required}
+            >
+              <SmartphoneNfc className="w-3.5 h-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Forcer MFA</TooltipContent>
         </Tooltip>
 
         <Tooltip>

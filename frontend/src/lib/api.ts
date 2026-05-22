@@ -222,6 +222,7 @@ export interface User {
   email: string;
   role: "admin" | "viewer";
   mfa_enabled: boolean;
+  mfa_required: boolean;
   last_login_at: string | null;
   password_expires_at: string | null;
   is_active: boolean;
@@ -367,6 +368,7 @@ export const usersApi = {
   resetPassword: (id: string) =>
     api.post<void>(`/api/v1/users/${id}/reset-password`),
   resetMfa: (id: string) => api.post<void>(`/api/v1/users/${id}/reset-mfa`),
+  requireMfa: (id: string) => api.post<void>(`/api/v1/users/${id}/require-mfa`),
 };
 
 // API Keys (Admin)
@@ -409,8 +411,8 @@ export const authApi = {
       { email, password },
       { skipAuth: true }
     ),
-  mfaVerify: (challenge_token: string, code: string) =>
-    api.post<void>("/api/v1/auth/mfa/verify", { challenge_token, code }, { skipAuth: true }),
+  mfaVerify: (challenge_token: string, totp_code: string) =>
+    api.post<void>("/api/v1/auth/mfa/verify", { challenge_token, totp_code }, { skipAuth: true }),
   logout: () => api.post<void>("/api/v1/auth/logout"),
   me: () => api.get<User>("/api/v1/auth/me"),
   passwordChange: (data: any) => api.post<void>("/api/v1/auth/password/change", data),

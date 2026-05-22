@@ -50,6 +50,59 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 28 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Implémentation du pilotage Admin du MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/models/user.py` | Modification | Ajout de la colonne `mfa_required`. |
+| `backend/app/routers/users.py` | Modification | Ajout des endpoints `reset-mfa` et `require-mfa` avec logs d'audit. |
+| `backend/app/routers/auth.py` | Modification | Enforcement de l'obligation MFA lors du login. |
+| `backend/app/schemas/user.py` | Modification | Exposition de `mfa_required` via l'API `UserRead`. |
+| `frontend/src/lib/api.ts` | Modification | Intégration des nouvelles méthodes `resetMfa` et `requireMfa`. |
+| `frontend/src/app/(dashboard)/admin/users/client.tsx` | Modification | Mise à jour du tableau SOC : colonnes et actions MFA. |
+| `backend/tests/test_admin_mfa.py` | Création | Tests fonctionnels validant le reset et l'obligation MFA. |
+
+#### ✅ Admin MFA Management (Phase 2)
+- [x] Backend : Endpoints de gestion opérationnels.
+- [x] Frontend : Dashboard Admin synchronisé.
+- [x] Sécurité : Interdiction de reset son propre MFA.
+- [x] Tests fonctionnels validés (3/3 passés).
+
+---
+
+### Itération 27 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Implémentation complète du flux de vérification MFA (Login -> Challenge -> Verify).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/core/redis.py` | Modification | Optimisation du stockage des challenges MFA (O(1) lookup via token). |
+| `backend/app/routers/auth.py` | Modification | Refactoring de `mfa_verify` pour utiliser le nouveau lookup Redis et ajout de logs d'audit. |
+| `frontend/src/lib/api.ts` | Modification | Alignement du paramètre `totp_code` avec le schéma backend. |
+| `frontend/src/middleware.ts` | Modification | Autorisation de l'accès à `/mfa` sans session active. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Création | Page de vérification MFA avec design SOC-radar et gestion des erreurs. |
+| `backend/tests/test_mfa_functional.py` | Création | Tests fonctionnels automatisés du flux MFA complet. |
+
+#### Décisions techniques
+
+1. **Efficacité Redis** : Inversion de la paire Clé/Valeur dans Redis (`mfa_challenge:{token} -> user_id`) pour supprimer les scans linéaires coûteux lors de la vérification.
+2. **Continuité Design** : Réutilisation des composants et du fond radar SVG de la page login pour une expérience utilisateur fluide.
+3. **Sécurité par l'Audit** : Traçabilité systématique des tentatives MFA (réussies/échouées) dans les logs d'audit SQLAlchemy.
+
+#### ✅ Flux MFA (Phase 1)
+- [x] Optimisation Backend (Redis + Router).
+- [x] Middleware Frontend mis à jour.
+- [x] Page `/mfa` opérationnelle.
+- [x] Tests fonctionnels validés (3/3 passés).
+
+---
+
 ### Itération 26 — 2026-05-21 (Gemini CLI)
 
 **Objectif de l'itération** : Planification détaillée et préparation des améliorations MFA.

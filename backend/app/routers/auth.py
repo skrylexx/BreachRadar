@@ -142,7 +142,7 @@ async def login(
         )
 
     # MFA requis ?
-    if user.mfa_enabled:
+    if user.mfa_enabled or user.mfa_required:
         challenge_token = secrets.token_urlsafe(32)
         await store_mfa_challenge(str(user.id), challenge_token)
         await _log_action(db, "auth.mfa.challenge_issued", request, user.email)
@@ -155,7 +155,6 @@ async def login(
     return TokenResponse()
 
 
-# ─── POST /auth/mfa/verify ────────────────────────────────────────────────────
 @router.post("/mfa/verify", response_model=TokenResponse)
 @limiter.limit("10/minute")
 async def mfa_verify(
@@ -166,44 +165,36 @@ async def mfa_verify(
 ) -> TokenResponse:
     """Valide le code TOTP après le challenge password."""
     # Retrouver l'utilisateur via le challenge token (Redis)
-    # Note: On a besoin du user_id associé au challenge_token.
-    # Pour simplifier sans changer Redis, on attend que le frontend envoie le user_id ? 
-    # Non, par sécurité on scanne ou on utilise un token JWT temporaire pour le challenge.
-    
-    # Approche actuelle : Le challenge token est stocké dans Redis avec user_id comme clé.
-    # On doit donc chercher quel user_id a ce challenge_token ou le passer dans le body.
-    
-    # Pour l'instant, on suppose que le frontend passe l'email ou l'id ? 
-    # Le schéma MFAVerifyRequest n'a pas de user identifier.
-    # Ajoutons l'email au schéma par sécurité ou utilisons le challenge_token comme clé.
-    
-    # Solution : On cherche dans Redis la clé mfa_challenge:* qui contient la valeur body.challenge_token
-    user_id = None
-    async for key in request.app.state.redis.scan_iter("mfa_challenge:*"):
-        stored_token = await request.app.state.redis.get(key)
-        if stored_token == body.challenge_token:
-            user_id = key.split(":")[-1]
-            break
+    user_id = await verify_mfa_challenge(body.challenge_token)
 
     if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid or expired challenge token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired challenge token",
+        )
 
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
     if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive",
+        )
 
     if not verify_totp(user.mfa_secret, body.totp_code):
         await _log_action(db, "auth.mfa.failure", request, user.email)
-        raise HTTPException(status_code=401, detail="Invalid TOTP code")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid TOTP code",
+        )
 
-    # Succès : Nettoyage challenge et pose cookies
-    await request.app.state.redis.delete(f"mfa_challenge:{user.id}")
-    
+    # Succès : Pose cookies JWT
     _set_auth_cookies(response, user.id, user.email, user.role.value)
     user.last_login_at = datetime.now(timezone.utc)
+    
     await _log_action(db, "auth.mfa.success", request, user.email)
+    await db.commit()
     
     return TokenResponse()
 

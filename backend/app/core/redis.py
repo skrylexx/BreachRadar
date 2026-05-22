@@ -28,12 +28,14 @@ async def is_token_blacklisted(jti: str) -> bool:
 async def store_mfa_challenge(user_id: str, challenge_token: str, expire_seconds: int = 300) -> None:
     """
     Stocke un token de challenge MFA temporaire (5 min).
-    Utilisé entre la validation password et la validation TOTP.
+    Clé : mfa_challenge:{token} -> Valeur : user_id
     """
-    await redis_client.setex(f"mfa_challenge:{user_id}", expire_seconds, challenge_token)
+    await redis_client.setex(f"mfa_challenge:{challenge_token}", expire_seconds, user_id)
 
 
-async def verify_mfa_challenge(user_id: str, challenge_token: str) -> bool:
-    """Vérifie et consomme le challenge MFA (usage unique)."""
-    stored = await redis_client.getdel(f"mfa_challenge:{user_id}")
-    return stored == challenge_token
+async def verify_mfa_challenge(challenge_token: str) -> str | None:
+    """
+    Vérifie et consomme le challenge MFA (usage unique).
+    Retourne le user_id si valide, None sinon.
+    """
+    return await redis_client.getdel(f"mfa_challenge:{challenge_token}")

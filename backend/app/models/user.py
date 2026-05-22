@@ -52,6 +52,7 @@ class User(Base):
 
     # ─── MFA (TOTP) ────────────────────────────────────────────────────────
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    mfa_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     # ─── Gestion des mots de passe ─────────────────────────────────────────

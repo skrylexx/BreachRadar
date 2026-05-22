@@ -139,3 +139,64 @@ async def delete_user(
         details={"target_email": user.email},
         ip_address=request.client.host if request.client else None,
     ))
+
+
+@router.post("/{user_id}/reset-mfa")
+async def reset_mfa(
+    request: Request,
+    user_id: str,
+    current_user: AdminUser,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Désactive le MFA pour un utilisateur (Admin uniquement)."""
+    import uuid
+    target_id = uuid.UUID(user_id)
+    if target_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot reset your own MFA")
+
+    result = await db.execute(select(User).where(User.id == target_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.mfa_enabled = False
+    user.mfa_secret = None
+    
+    db.add(AuditLog(
+        user_email=current_user.email,
+        action="user.mfa.reset",
+        details={"target_email": user.email},
+        ip_address=request.client.host if request.client else None,
+    ))
+    
+    await db.commit()
+    return {"message": f"MFA has been reset for user {user.email}"}
+
+
+@router.post("/{user_id}/require-mfa")
+async def require_mfa(
+    request: Request,
+    user_id: str,
+    current_user: AdminUser,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Force l'activation du MFA pour un utilisateur (Admin uniquement)."""
+    import uuid
+    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.mfa_required = True
+    
+    db.add(AuditLog(
+        user_email=current_user.email,
+        action="user.mfa.require",
+        details={"target_email": user.email},
+        ip_address=request.client.host if request.client else None,
+    ))
+    
+    await db.commit()
+    return {"message": f"MFA is now required for user {user.email}"}
