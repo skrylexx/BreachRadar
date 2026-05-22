@@ -162,6 +162,7 @@ async def reset_mfa(
 
     user.mfa_enabled = False
     user.mfa_secret = None
+    user.token_version += 1
     
     db.add(AuditLog(
         user_email=current_user.email,
@@ -190,6 +191,7 @@ async def require_mfa(
         raise HTTPException(status_code=404, detail="User not found")
 
     user.mfa_required = True
+    user.token_version += 1
     
     db.add(AuditLog(
         user_email=current_user.email,

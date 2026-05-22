@@ -50,6 +50,33 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 30 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Durcissement de la sécurité (Security Hardening) de l'implémentation MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/models/user.py` | Modification | Ajout de `token_version` pour la révocation de session et `mfa_backup_codes` (JSON). |
+| `backend/app/core/security.py` | Modification | Implémentation du chiffrement `Fernet` déterministe et de la génération des backup codes. |
+| `backend/app/core/redis.py` | Modification | Ajout des helpers pour le tracking des échecs MFA (Brute-force protection). |
+| `backend/app/routers/auth.py` | Modification | Chiffrement at-rest, enforcement lockout (5 essais), invalidation de session, vérification backup codes. |
+| `backend/app/routers/users.py` | Modification | Invalidation de session lors d'une action admin sur le MFA. |
+| `backend/app/dependencies/auth.py` | Modification | Vérification de la `token_version` pour interdire les sessions révoquées. |
+| `backend/app/schemas/auth.py` | Modification | Support des backup codes dans le schéma de vérification. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout de l'étape de téléchargement des codes de secours lors du setup MFA. |
+| `backend/tests/test_mfa_ratelimit.py` | Création | Test isolé pour valider le verrouillage du compte. |
+
+#### ✅ Security Hardening (Phase 4)
+- [x] **Encryption at Rest** : Secrets MFA chiffrés en base de données.
+- [x] **Session Revocation** : Invalidation immédiate des tokens lors d'un changement de sécurité (MFA/Mot de passe).
+- [x] **Account Lockout** : Protection anti brute-force (15min de blocage après 5 échecs TOTP).
+- [x] **Backup & Recovery** : Génération, stockage haché et utilisation de 10 codes de secours à usage unique.
+- [x] Tests fonctionnels validés (10/10 passés).
+
+---
+
 ### Itération 29 — 2026-05-22 (Gemini CLI)
 
 **Objectif de l'itération** : Implémentation du Self-Service MFA pour les utilisateurs.

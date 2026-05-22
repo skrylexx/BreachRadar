@@ -39,3 +39,25 @@ async def verify_mfa_challenge(challenge_token: str) -> str | None:
     Retourne le user_id si valide, None sinon.
     """
     return await redis_client.getdel(f"mfa_challenge:{challenge_token}")
+
+
+# ─── Brute-force protection (MFA) ───────────────────────────────────────────
+
+async def increment_mfa_failures(user_id: str) -> int:
+    """Incrémente le compteur d'échecs MFA et retourne la nouvelle valeur."""
+    key = f"mfa_failures:{user_id}"
+    count = await redis_client.incr(key)
+    if count == 1:
+        await redis_client.expire(key, 900)  # 15 minutes de blocage
+    return count
+
+
+async def get_mfa_failures(user_id: str) -> int:
+    """Récupère le nombre d'échecs MFA actuels."""
+    val = await redis_client.get(f"mfa_failures:{user_id}")
+    return int(val) if val else 0
+
+
+async def reset_mfa_failures(user_id: str) -> None:
+    """Réinitialise le compteur d'échecs MFA."""
+    await redis_client.delete(f"mfa_failures:{user_id}")

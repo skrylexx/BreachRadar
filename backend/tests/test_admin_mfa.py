@@ -21,9 +21,12 @@ os.environ["INITIAL_ADMIN_EMAIL"] = "admin@example.com"
 os.environ["INITIAL_ADMIN_PASSWORD"] = "CHANGE_ME_AdminPassword1!"
 os.environ["TELEGRAM_API_ID"] = "0"
 
+from app.core.config import get_settings
+get_settings.cache_clear()
+
 from app.main import app
 from app.models.user import User, UserRole
-from app.core.security import hash_password
+from app.core.security import hash_password, encrypt_secret
 from app.core.database import get_db
 
 # Disable rate limiting
@@ -38,22 +41,31 @@ from app.dependencies.auth import require_admin
 
 async def override_require_admin():
     print("DEBUG: override_require_admin CALLED")
-    return User(id=uuid.uuid4(), email="admin@example.com", role=UserRole.ADMIN, is_active=True)
+    return User(id=uuid.uuid4(), email="admin@example.com", role=UserRole.ADMIN, is_active=True, token_version=1)
+
+@pytest.fixture(autouse=True)
+def mock_redis_helpers():
+    """Mock automatique des helpers Redis."""
+    with patch("app.routers.auth.increment_mfa_failures", new_callable=AsyncMock) as m1, \
+         patch("app.routers.auth.get_mfa_failures", new_callable=AsyncMock) as m2, \
+         patch("app.routers.auth.reset_mfa_failures", new_callable=AsyncMock) as m3:
+        m2.return_value = 0
+        yield (m1, m2, m3)
 
 @pytest.mark.asyncio
 async def test_admin_reset_mfa_success(async_client):
     """Teste le reset MFA par un admin."""
     app.dependency_overrides[require_admin] = override_require_admin
-    print(f"DEBUG: overrides={app.dependency_overrides}")
-    
+
     target_user_id = uuid.uuid4()
     target_user = User(
         id=target_user_id,
         email="viewer@example.com",
         role=UserRole.VIEWER,
         mfa_enabled=True,
-        mfa_secret="SECRET",
-        is_active=True
+        mfa_secret=encrypt_secret("SECRET"),
+        is_active=True,
+        token_version=1
     )
     
     mock_db = AsyncMock()
@@ -82,7 +94,8 @@ async def test_admin_require_mfa_success(async_client):
         role=UserRole.VIEWER,
         mfa_enabled=False,
         mfa_required=False,
-        is_active=True
+        is_active=True,
+        token_version=1
     )
     
     mock_db = AsyncMock()
@@ -110,6 +123,7 @@ async def test_login_with_mfa_required(async_client):
         mfa_required=True,
         is_active=True,
         password_length=12,
+        token_version=1,
         last_password_change=datetime.now(timezone.utc)
     )
     

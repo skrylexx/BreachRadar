@@ -145,14 +145,36 @@ def verify_totp(secret: str, code: str) -> bool:
     return totp.verify(code, valid_window=1)
 
 
+# ─── Backup Codes ────────────────────────────────────────────────────────────
+
+def generate_backup_codes(count: int = 10) -> list[str]:
+    """Génère une liste de codes de secours aléatoires."""
+    import secrets
+    import string
+    codes = []
+    for _ in range(count):
+        # Format: 12 caractères alphanumériques (ex: ABCD-EFGH-IJKL)
+        code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(12))
+        codes.append(code)
+    return codes
+
+
 # ─── Chiffrement Fernet (Secrets en base) ────────────────────────────────────
 
 def _get_fernet() -> Fernet:
-    """Initialise Fernet avec la clé de configuration."""
-    if not settings.encryption_key:
-        # Fallback pour le développement uniquement — NE PAS UTILISER EN PROD
-        return Fernet(Fernet.generate_key())
-    return Fernet(settings.encryption_key.encode())
+    """
+    Initialise le client Fernet avec la clé des settings.
+    Si settings.encryption_key n'est pas configuré, on dérive une clé déterministe
+    depuis jwt_secret_key (utile pour le dev/test).
+    """
+    if settings.encryption_key:
+        return Fernet(settings.encryption_key.encode())
+    
+    # Dérivation déterministe simple
+    import hashlib
+    import base64
+    key_bytes = hashlib.sha256(settings.jwt_secret_key.encode()).digest()
+    return Fernet(base64.urlsafe_b64encode(key_bytes))
 
 
 def encrypt_secret(value: str) -> str:

@@ -23,6 +23,9 @@ from app.core.redis import (
     is_token_blacklisted,
     store_mfa_challenge,
     verify_mfa_challenge,
+    increment_mfa_failures,
+    get_mfa_failures,
+    reset_mfa_failures,
 )
 from app.core.security import (
     create_access_token,
@@ -30,11 +33,14 @@ from app.core.security import (
     decode_token,
     generate_totp_qrcode_base64,
     generate_totp_secret,
+    generate_backup_codes,
     hash_password,
     is_password_rotation_required,
     validate_password_strength,
     verify_password,
     verify_totp,
+    encrypt_secret,
+    decrypt_secret,
 )
 from app.dependencies.auth import CurrentUser, ViewerUser
 from app.models.audit_log import AuditLog
@@ -56,11 +62,21 @@ COOKIE_SECURE = settings.environment == "production"
 COOKIE_SAMESITE = "lax"
 
 
-def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: str) -> None:
+def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: str, token_version: int) -> None:
     """Pose les cookies HttpOnly JWT (access + refresh)."""
     jti = secrets.token_urlsafe(16)
-    access_token = create_access_token({"sub": str(user_id), "email": email, "role": role, "jti": jti})
-    refresh_token = create_refresh_token({"sub": str(user_id), "email": email})
+    access_token = create_access_token({
+        "sub": str(user_id),
+        "email": email,
+        "role": role,
+        "jti": jti,
+        "v": token_version
+    })
+    refresh_token = create_refresh_token({
+        "sub": str(user_id),
+        "email": email,
+        "v": token_version
+    })
 
     response.set_cookie(
         key="access_token",
@@ -149,7 +165,7 @@ async def login(
         return TokenResponse(requires_mfa=True, mfa_challenge_token=challenge_token)
 
     # Connexion directe (pas de MFA)
-    _set_auth_cookies(response, user.id, user.email, user.role.value)
+    _set_auth_cookies(response, user.id, user.email, user.role.value, user.token_version)
     user.last_login_at = datetime.now(timezone.utc)
     await _log_action(db, "auth.login.success", request, user.email)
     return TokenResponse()
@@ -173,6 +189,14 @@ async def mfa_verify(
             detail="Invalid or expired challenge token",
         )
 
+    # Protection contre le brute-force TOTP
+    fail_count = await get_mfa_failures(user_id)
+    if fail_count >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Too many failed MFA attempts. Please try again in 15 minutes.",
+        )
+
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
@@ -182,18 +206,40 @@ async def mfa_verify(
             detail="User not found or inactive",
         )
 
-    if not verify_totp(user.mfa_secret, body.totp_code):
+    # Vérification du code (TOTP standard ou Backup Code de secours)
+    is_valid = False
+    is_backup_used = False
+
+    if len(body.totp_code) == 12:
+        # Tentative via code de secours
+        if user.mfa_backup_codes:
+            for i, hashed in enumerate(user.mfa_backup_codes):
+                if verify_password(body.totp_code, hashed):
+                    user.mfa_backup_codes.pop(i)
+                    from sqlalchemy.orm.attributes import flag_modified
+                    flag_modified(user, "mfa_backup_codes")
+                    is_valid = True
+                    is_backup_used = True
+                    break
+    else:
+        # Tentative via TOTP standard
+        is_valid = verify_totp(decrypt_secret(user.mfa_secret), body.totp_code)
+
+    if not is_valid:
+        await increment_mfa_failures(user_id)
         await _log_action(db, "auth.mfa.failure", request, user.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid TOTP code",
+            detail="Invalid verification code",
         )
 
-    # Succès : Pose cookies JWT
-    _set_auth_cookies(response, user.id, user.email, user.role.value)
+    # Succès : Nettoyage brute-force et pose cookies JWT
+    await reset_mfa_failures(user_id)
+    _set_auth_cookies(response, user.id, user.email, user.role.value, user.token_version)
     user.last_login_at = datetime.now(timezone.utc)
     
-    await _log_action(db, "auth.mfa.success", request, user.email)
+    audit_action = "auth.mfa.backup_success" if is_backup_used else "auth.mfa.success"
+    await _log_action(db, audit_action, request, user.email)
     await db.commit()
     
     return TokenResponse()
@@ -243,12 +289,19 @@ async def mfa_setup(
     """
     secret = generate_totp_secret()
     # Stocker temporairement dans l'utilisateur (non activé)
-    current_user.mfa_secret = secret
-    # Note: mfa_enabled reste False jusqu'à confirmation
+    current_user.mfa_secret = encrypt_secret(secret)
+    
+    # Générer 10 codes de secours (backup codes)
+    backup_codes = generate_backup_codes(10)
+    # Stocker hachés (usage unique)
+    current_user.mfa_backup_codes = [hash_password(c) for c in backup_codes]
+    
+    await db.flush()
 
     return MFASetupResponse(
         qrcode_base64=generate_totp_qrcode_base64(secret, current_user.email),
         manual_entry_key=secret,
+        backup_codes=backup_codes,
     )
 
 
@@ -260,10 +313,11 @@ async def mfa_confirm(
 ) -> dict:
     """Valide le premier code TOTP pour activer définitivement le MFA."""
     code = body.get("totp_code")
-    if not code or not verify_totp(current_user.mfa_secret, code):
+    if not code or not verify_totp(decrypt_secret(current_user.mfa_secret), code):
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = True
+    current_user.token_version += 1
     await db.commit()
     return {"message": "MFA enabled successfully"}
 
@@ -280,12 +334,13 @@ async def mfa_disable(
         raise HTTPException(status_code=400, detail="MFA is not enabled")
 
     code = body.get("totp_code")
-    if not code or not verify_totp(current_user.mfa_secret, code):
+    if not code or not verify_totp(decrypt_secret(current_user.mfa_secret), code):
         await _log_action(db, "auth.mfa.disable.failure", request, current_user.email)
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = False
     current_user.mfa_secret = None
+    current_user.token_version += 1
     
     await _log_action(db, "auth.mfa.disable.success", request, current_user.email)
     await db.commit()
@@ -312,6 +367,7 @@ async def change_password(
     current_user.hashed_password = hash_password(body.new_password)
     current_user.last_password_change = datetime.now(timezone.utc)
     current_user.password_length = len(body.new_password)
+    current_user.token_version += 1
 
     await _log_action(db, "auth.password.changed", request, current_user.email)
     return {"message": "Password changed successfully"}

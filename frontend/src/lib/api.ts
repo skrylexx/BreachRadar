@@ -416,7 +416,8 @@ export const authApi = {
   logout: () => api.post<void>("/api/v1/auth/logout"),
   me: () => api.get<User>("/api/v1/auth/me"),
   passwordChange: (data: any) => api.post<void>("/api/v1/auth/password/change", data),
-  mfaSetup: () => api.post<{ qrcode_base64: string; manual_entry_key: string }>("/api/v1/auth/mfa/setup"),
+  mfaSetup: () =>
+    api.post<{ qrcode_base64: string; manual_entry_key: string; backup_codes: string[] }>("/api/v1/auth/mfa/setup"),
   mfaConfirm: (code: string) => api.post<void>("/api/v1/auth/mfa/confirm", { totp_code: code }),
   mfaDisable: (code: string) => api.post<void>("/api/v1/auth/mfa/disable", { totp_code: code }),
 };

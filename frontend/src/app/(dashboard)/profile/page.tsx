@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle } from "lucide-react";
+import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle, DownloadCloud, Copy } from "lucide-react";
 import { authApi, User as UserType } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -31,8 +37,8 @@ export default function ProfilePage() {
 
   // MFA State
   const [mfaDialogOpen, setMfaDialogOpen] = useState(false);
-  const [mfaStep, setMfaStep] = useState<"setup" | "confirm">("setup");
-  const [mfaSetupData, setMfaSetupData] = useState<{ qrcode_base64: string; manual_entry_key: string } | null>(null);
+  const [mfaStep, setMfaStep] = useState<"setup" | "confirm" | "backup">("setup");
+  const [mfaSetupData, setMfaSetupData] = useState<{ qrcode_base64: string; manual_entry_key: string; backup_codes: string[] } | null>(null);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaLoading, setMfaLoading] = useState(false);
 
@@ -109,16 +115,25 @@ export default function ProfilePage() {
     setMfaLoading(true);
     try {
       await authApi.mfaConfirm(mfaCode);
-      setMfaDialogOpen(false);
-      setMfaStep("setup");
+      setMfaStep("backup"); // Passer à l'étape des backup codes
       setMfaCode("");
       await fetchUser();
-      alert("MFA activé avec succès !");
     } catch (err: any) {
       alert("Code invalide. Veuillez réessayer.");
     } finally {
       setMfaLoading(false);
     }
+  };
+
+  const downloadBackupCodes = () => {
+    if (!mfaSetupData?.backup_codes) return;
+    const content = `BREACHRADAR - CODES DE SECOURS MFA\nGénéré le: ${new Date().toLocaleString()}\n\n${mfaSetupData.backup_codes.join("\n")}\n\nGardez ces codes précieusement. Chaque code est à usage unique.`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `breachradar-backup-codes-${user?.email}.txt`;
+    link.click();
   };
 
   const handleMfaDisable = async () => {
@@ -361,12 +376,20 @@ export default function ProfilePage() {
       </Dialog>
 
       {/* ─── Dialog Activation MFA ─────────────────────────────────────────── */}
-      <Dialog open={mfaDialogOpen} onOpenChange={setMfaDialogOpen}>
+      <Dialog open={mfaDialogOpen} onOpenChange={(open) => {
+        if (!open && mfaStep === "backup") {
+          // Si on ferme alors qu'on est aux backup codes, on reset tout
+          setMfaStep("setup");
+        }
+        setMfaDialogOpen(open);
+      }}>
         <DialogContent className="card-soc border-border/60 max-w-md">
           <DialogHeader>
-            <DialogTitle>Configuration Double Authentification</DialogTitle>
+            <DialogTitle>
+              {mfaStep === "backup" ? "Sauvegardez vos codes de secours" : "Configuration Double Authentification"}
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              Renforcez la sécurité de votre compte avec TOTP.
+              {mfaStep === "backup" ? "C'est votre seule chance de les voir." : "Renforcez la sécurité de votre compte avec TOTP."}
             </DialogDescription>
           </DialogHeader>
 
@@ -380,7 +403,7 @@ export default function ProfilePage() {
                 {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Générer ma clé secrète"}
               </Button>
             </div>
-          ) : (
+          ) : mfaStep === "confirm" ? (
             <div className="space-y-6 py-4">
               <div className="flex justify-center bg-white p-4 rounded-lg">
                 <img src={mfaSetupData?.qrcode_base64} alt="MFA QR Code" className="w-48 h-48" />
@@ -408,6 +431,39 @@ export default function ProfilePage() {
                 >
                   {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                   Vérifier et Activer
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-6 py-4">
+              <div className="p-4 rounded-md bg-green-500/5 border border-green-500/20 text-center">
+                <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                <h4 className="text-sm font-semibold text-green-400">MFA Activé avec succès !</h4>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Codes de secours</Label>
+                  <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={downloadBackupCodes}>
+                    <DownloadCloud className="w-3 h-3 mr-1" /> Télécharger (.txt)
+                  </Button>
+                </div>
+                
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Conservez ces codes en lieu sûr. Ils vous permettront d'accéder à votre compte si vous perdez votre appareil.
+                  <strong> Chaque code n'est utilisable qu'une seule fois.</strong>
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 bg-secondary/30 p-3 rounded border border-border/40 font-data text-xs">
+                  {mfaSetupData?.backup_codes.map(code => (
+                    <div key={code} className="p-1 select-all hover:text-radar transition-colors">{code}</div>
+                  ))}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button className="w-full bg-radar text-background font-bold hover:bg-radar-glow" onClick={() => { setMfaDialogOpen(false); setMfaStep("setup"); }}>
+                  J'ai enregistré mes codes
                 </Button>
               </DialogFooter>
             </div>
