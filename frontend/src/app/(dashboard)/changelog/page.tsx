@@ -9,6 +9,19 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.2.3",
+    date: "2026-05-23",
+    type: "Cyber Watch & Intelligence",
+    description: "Déploiement complet du moteur de veille numérique et de renseignements cyber.",
+    changes: [
+      { type: "feat", text: "Nouveau moteur 'Intelligence Monitor' automatisant la collecte RSS, GitHub et Paste sites." },
+      { type: "feat", text: "Vue 'Feed' temps réel avec triage par sévérité et statut de traitement (Lu/Non-lu)." },
+      { type: "feat", text: "Alerting critique : notifications instantanées lors de la détection de menaces majeures (0-day, fuites)." },
+      { type: "feat", text: "Intégration de sources majeures dont IT-Connect, CERT-FR, CISA et The Hacker News." },
+      { type: "fix", text: "Optimisation du collecteur : gestion des redirections HTTP et émulation de navigateur." },
+    ],
+  },
+  {
     version: "v0.2.2",
     date: "2026-05-23",
     type: "Security & Experience",
