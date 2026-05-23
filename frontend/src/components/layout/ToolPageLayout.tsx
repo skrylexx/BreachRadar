@@ -17,6 +17,7 @@ interface ToolPageLayoutProps<T> {
   actions?: ReactNode;
   children?: ReactNode;
   isMock?: boolean;
+  isConfigured?: boolean;
   pagination?: {
     page: number;
     pageSize: number;
@@ -39,8 +40,11 @@ export function ToolPageLayout<T>({
   actions,
   children,
   isMock,
+  isConfigured = true,
   pagination,
 }: ToolPageLayoutProps<T>) {
+  const status = isMock ? "mock" : !isConfigured ? "down" : "up";
+
   return (
     <div className="space-y-6">
       {isMock && (
@@ -58,6 +62,7 @@ export function ToolPageLayout<T>({
         description={description}
         icon={icon}
         breadcrumb={breadcrumb}
+        status={status}
       >
         {actions}
       </PageHeader>

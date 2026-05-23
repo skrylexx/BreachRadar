@@ -9,6 +9,28 @@
     "admin_api_keys": "Clés API",
     "profile": "Mon Profil"
   },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "intelligence": "Veille Numérique",
+    "scans": "Scans",
+    "reports": "Rapports",
+    "ransomware": "Ransomware",
+    "cve": "CVE & Exploits",
+    "hibp": "HIBP",
+    "github": "GitHub",
+    "ransomlook": "RansomLook",
+    "leakcheck": "LeakCheck",
+    "urlscan": "URLScan",
+    "administration": "Administration",
+    "users": "Utilisateurs",
+    "api_keys": "Clés API",
+    "smtp": "SMTP",
+    "scheduling": "Scheduling",
+    "audit": "Audit trail",
+    "settings": "Paramètres",
+    "changelog": "Changelog",
+    "profile": "Mon profil"
+  },
   "Dashboard": {
     "title": "Aperçu Global",
     "total_scans": "Scans 7j",

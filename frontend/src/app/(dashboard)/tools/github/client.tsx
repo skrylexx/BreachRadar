@@ -101,6 +101,7 @@ export function GitHubClient({
       tableColumns={columns}
       tableEmptyMessage="No exposed secrets detected in this period."
       isMock={isMock}
+      isConfigured={isConfigured}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

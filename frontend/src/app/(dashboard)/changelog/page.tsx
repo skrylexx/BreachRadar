@@ -9,6 +9,22 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.3.0",
+    date: "2026-05-23",
+    type: "Major Fixes & UX Overhaul",
+    description: "Correction massive des bugs de navigation, stabilisation de l'admin et améliorations visuelles du dashboard.",
+    changes: [
+      { type: "fix", text: "Résolution de la boucle de déconnexion infinie sur la page changelog via middleware intelligent." },
+      { type: "feat", text: "Nouveau centre de notifications interactif basé sur le flux de veille numérique." },
+      { type: "feat", text: "Traduction intégrale de la Sidebar (i18n) et fiabilisation du changement de langue." },
+      { type: "fix", text: "Correction d'un bug critique bloquant la finalisation des scans et la génération de rapports." },
+      { type: "fix", text: "Stabilisation des interfaces Admin : suppression des boucles infinies de re-chargement." },
+      { type: "ui", text: "Alignement et harmonisation du Dashboard (Grille 50/50 pour connecteurs et volumes)." },
+      { type: "ui", text: "Indicateurs visuels de statut dynamiques (Vert/Rouge/Orange) sur les en-têtes d'outils." },
+      { type: "ui", text: "Refonte de la mise en page des paramètres (Tabs) pour une meilleure lisibilité." },
+    ],
+  },
+  {
     version: "v0.2.3",
     date: "2026-05-23",
     type: "Cyber Watch & Intelligence",

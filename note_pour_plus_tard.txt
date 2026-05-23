@@ -4,7 +4,6 @@ version de breachradar (en bas à gauche du menu de gauche) pas coordonnée sur 
 mettre a jour (dashboard pour le moment) pour mettre la section connecteurs et "Detection Volume" a la meme taille (grandir le detection ?)
 switch de langue pas très fonctionnel
 bouton notification non fonctionnel
-menu ouvert au hover de la photo de profil qui passe derrière les blocs du dashboard
 modifier la couleur des cadenas sur les pages d'outils pour faire correspondre avec le status (rouge au lieu de bleu si down & vert si up)
 http://localhost:3000/admin/users --> bloc utilisateurs charge en boucle avec une erreur
 scans non fonctionnels, rapports donc pas possible

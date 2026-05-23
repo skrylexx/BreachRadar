@@ -13,7 +13,7 @@
  * Phase 10 du TODO.md.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Settings,
   Globe,
@@ -76,16 +76,14 @@ const CVE_CATEGORIES = [
 const CVE_GROUPS = ["NVD", "OSV.dev", "GitHub Advisories", "CVEFeed.io"];
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
-
 function useToast() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const show = (message: string, type: "success" | "error" = "success") => {
+  const show = useCallback((message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
+    setTimeout(() => setToast(null), 3500);
+  }, []);
   return { toast, show };
 }
-
 // ─── Tab Général ─────────────────────────────────────────────────────────────
 
 function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
@@ -108,7 +106,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-6">
+    <form onSubmit={handleSave} className="space-y-6 max-w-3xl">
       <div className="card-soc p-6 space-y-6">
         {/* TARGET_DOMAIN */}
         <div className="space-y-2">
@@ -121,7 +119,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
             placeholder="example.com"
-            className="bg-secondary border-border/50 focus:border-radar/50 font-data"
+            className="bg-secondary border-border/50 focus:border-radar/50 font-data max-w-md"
           />
           <p className="text-xs text-muted-foreground">
             Utilisé dans les rapports et la bannière de l'interface.
@@ -130,39 +128,39 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
 
         <Separator className="bg-border/30" />
 
-        {/* Langue */}
-        <div className="space-y-2">
-          <Label htmlFor="default-lang" className="text-xs text-muted-foreground uppercase tracking-wider">
-            Langue par défaut
-          </Label>
-          <Select value={lang} onValueChange={(value) => setLang(value ?? "fr")}>
-            <SelectTrigger id="default-lang" className="w-40 bg-secondary border-border/50">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="card-soc border-border/60">
-              <SelectItem value="fr">Français</SelectItem>
-              <SelectItem value="en">English</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Separator className="bg-border/30" />
-
-        {/* Mode maintenance */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Label htmlFor="maintenance-mode" className="text-sm text-foreground">
-              Mode maintenance
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Langue */}
+          <div className="space-y-2">
+            <Label htmlFor="default-lang" className="text-xs text-muted-foreground uppercase tracking-wider">
+              Langue par défaut
             </Label>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Affiche une bannière d'avertissement à tous les utilisateurs.
-            </p>
+            <Select value={lang} onValueChange={(value) => setLang(value ?? "fr")}>
+              <SelectTrigger id="default-lang" className="w-40 bg-secondary border-border/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="card-soc border-border/60">
+                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Switch
-            id="maintenance-mode"
-            checked={maintenance}
-            onCheckedChange={setMaintenance}
-          />
+
+          {/* Mode maintenance */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 border border-border/30">
+            <div>
+              <Label htmlFor="maintenance-mode" className="text-sm font-medium text-foreground">
+                Mode maintenance
+              </Label>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Bannière d'avertissement globale.
+              </p>
+            </div>
+            <Switch
+              id="maintenance-mode"
+              checked={maintenance}
+              onCheckedChange={setMaintenance}
+            />
+          </div>
         </div>
       </div>
 
@@ -233,15 +231,12 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       {/* Clé NVD */}
-      <div className="card-soc p-4 flex items-start gap-3 border-l-2 border-l-radar/40">
+      <div className="card-soc p-4 flex items-start gap-3 border-l-2 border-l-radar/40 max-w-2xl">
         <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
           <p className="text-xs font-medium text-foreground/80 mb-1">Clé API NVD (optionnelle)</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Sans clé : 5 requêtes / 30s. Avec clé : 50 requêtes / 30s.
-          </p>
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Input
@@ -250,8 +245,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
                 value={nvdKey}
                 onChange={(e) => setNvdKey(e.target.value)}
                 placeholder="Nouvelle valeur…"
-                autoComplete="off"
-                className="bg-secondary border-border/50 focus:border-radar/50 font-data pr-10 text-sm"
+                className="bg-secondary border-border/50 focus:border-radar/50 font-data pr-10 text-sm h-8"
               />
               <button
                 type="button"
@@ -266,7 +260,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
               onClick={handleSaveNvdKey}
               disabled={savingKey || !nvdKey.trim()}
               size="sm"
-              className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30"
+              className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30 h-8"
             >
               {savingKey ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Enregistrer"}
             </Button>
@@ -275,41 +269,43 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
       </div>
 
       {/* Catégories */}
-      <div className="card-soc p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Catégories actives
+      <div className="card-soc p-6 space-y-8">
+        <div className="flex items-center justify-between border-b border-border/30 pb-4">
+          <h2 className="text-xs font-bold text-foreground uppercase tracking-widest">
+            Catégories de surveillance actives
           </h2>
-          <span className="text-xs text-muted-foreground">
-            <span className="text-foreground font-medium">{activeCount}</span> / {CVE_CATEGORIES.length} active{activeCount !== 1 ? "s" : ""}
+          <span className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground border border-border/50">
+            <span className="text-radar font-bold">{activeCount}</span> / {CVE_CATEGORIES.length} actives
           </span>
         </div>
 
-        {CVE_GROUPS.map((group) => (
-          <div key={group}>
-            <p className="text-xs text-radar/70 font-medium mb-3 flex items-center gap-1">
-              <ChevronRight className="w-3 h-3" />
-              {group}
-            </p>
-            <div className="space-y-2 ml-4">
-              {CVE_CATEGORIES.filter((c) => c.group === group).map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between py-2">
-                  <Label htmlFor={`cve-cat-${cat.id}`} className="text-sm text-foreground cursor-pointer">
-                    {cat.label}
-                  </Label>
-                  <Switch
-                    id={`cve-cat-${cat.id}`}
-                    checked={settings?.active_categories.includes(cat.id) ?? false}
-                    onCheckedChange={() => toggleCategory(cat.id)}
-                  />
-                </div>
-              ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+          {CVE_GROUPS.map((group) => (
+            <div key={group} className="space-y-4">
+              <p className="text-[10px] text-radar font-bold uppercase tracking-widest flex items-center gap-2 opacity-80">
+                <ChevronRight className="w-3 h-3" />
+                {group}
+              </p>
+              <div className="space-y-1">
+                {CVE_CATEGORIES.filter((c) => c.group === group).map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-secondary/30 transition-colors">
+                    <Label htmlFor={`cve-cat-${cat.id}`} className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                      {cat.label}
+                    </Label>
+                    <Switch
+                      id={`cve-cat-${cat.id}`}
+                      className="scale-75 origin-right"
+                      checked={settings?.active_categories.includes(cat.id) ?? false}
+                      onCheckedChange={() => toggleCategory(cat.id)}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-            <Separator className="bg-border/20 mt-4" />
-          </div>
-        ))}
+          ))}
+        </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4 border-t border-border/30">
           <Button
             id="save-cve-categories"
             onClick={handleSaveCategories}
@@ -317,7 +313,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
             className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30"
           >
             {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            Sauvegarder
+            Sauvegarder les modifications
           </Button>
         </div>
       </div>

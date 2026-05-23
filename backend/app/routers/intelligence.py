@@ -25,6 +25,7 @@ async def list_intelligence_findings(
     finding_type: Optional[str] = None,
     severity: Optional[Severity] = None,
     source: Optional[str] = None,
+    is_read: Optional[bool] = None,
 ):
     """
     Liste les trouvailles de la veille numérique avec pagination et filtres.
@@ -37,6 +38,8 @@ async def list_intelligence_findings(
         stmt = stmt.where(CyberFinding.severity == severity)
     if source:
         stmt = stmt.where(CyberFinding.source == source)
+    if is_read is not None:
+        stmt = stmt.where(CyberFinding.is_read == is_read)
         
     # Count total
     count_stmt = select(func.count()).select_from(stmt.subquery())
@@ -68,4 +71,15 @@ async def mark_as_read(
     if item:
         item.is_read = True
         await db.commit()
+    return {"status": "ok"}
+
+@router.post("/read-all")
+async def mark_all_as_read(
+    current_user: ViewerUser,
+    db: AsyncSession = Depends(get_db)
+):
+    """Marque toutes les trouvailles comme lues."""
+    from sqlalchemy import update
+    await db.execute(update(CyberFinding).where(CyberFinding.is_read == False).values(is_read=True))
+    await db.commit()
     return {"status": "ok"}

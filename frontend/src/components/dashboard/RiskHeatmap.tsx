@@ -60,7 +60,7 @@ function CustomTooltip({ active, payload, label }: any) {
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyChart() {
   return (
-    <div className="h-48 flex flex-col items-center justify-center gap-2">
+    <div className="h-64 flex flex-col items-center justify-center gap-2">
       <BarChart2 className="w-8 h-8 text-muted-foreground/30" strokeWidth={1} />
       <p className="text-xs text-muted-foreground">No detection data yet</p>
     </div>
@@ -75,7 +75,7 @@ export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d"
   };
 
   return (
-    <div className="card-soc p-4 space-y-4">
+    <div className="card-soc p-4 space-y-4 h-full">
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
@@ -89,13 +89,13 @@ export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d"
 
       {/* Graphique ou empty state */}
       {isLoading ? (
-        <div className="h-48 flex items-center justify-center">
+        <div className="h-64 flex items-center justify-center">
           <p className="text-xs text-muted-foreground font-data animate-pulse">Loading data...</p>
         </div>
       ) : data.length === 0 ? (
         <EmptyChart />
       ) : (
-        <div className="h-48">
+        <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}

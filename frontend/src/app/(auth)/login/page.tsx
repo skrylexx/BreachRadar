@@ -49,15 +49,19 @@ export default function LoginPage() {
         return;
       }
 
-      // MFA requis → rediriger vers la page MFA
+      // Récupérer le paramètre return_to
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnTo = searchParams.get("return_to") || "/";
+
+      // MFA requis → rediriger vers la page MFA en passant le return_to
       if (json.requires_mfa) {
         sessionStorage.setItem("mfa_challenge", json.mfa_challenge_token);
-        router.push("/mfa");
+        router.push(`/mfa?return_to=${encodeURIComponent(returnTo)}`);
         return;
       }
 
-      // Connexion directe → dashboard
-      router.push("/");
+      // Connexion directe → rediriger vers return_to ou dashboard
+      router.push(returnTo);
     } catch {
       setError("Network error. Please try again.");
     }

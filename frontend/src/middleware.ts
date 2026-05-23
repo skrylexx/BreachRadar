@@ -48,9 +48,8 @@ function isTokenExpired(payload: Record<string, unknown>): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Laisser passer les routes publiques et les assets
+  // 1. Laisser passer les assets et l'API
   if (
-    PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/") ||
     pathname.includes(".")  // fichiers statiques (.ico, .png, etc.)
@@ -58,29 +57,38 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Lire le cookie JWT
+  // 2. Lire le cookie JWT
   const token = request.cookies.get("access_token")?.value;
+  const payload = token ? decodeJwtPayload(token) : null;
+  const isAuth = payload && !isTokenExpired(payload);
 
-  if (!token) {
-    // Pas de token → redirect login avec return_to
+  // 3. Gestion des routes publiques
+  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+
+  // Si on est sur /login (ou autre public) mais déjà authentifié → dashboard
+  if (isPublicPath && isAuth && pathname === "/login") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
+
+  // 4. Protection des routes privées
+  if (!isAuth) {
+    // Pas de token ou expiré → redirect login avec return_to
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("return_to", pathname);
+    // Éviter de mettre /login ou /mfa en return_to
+    if (!isPublicPath) {
+      loginUrl.searchParams.set("return_to", pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
-  // Décoder le payload
-  const payload = decodeJwtPayload(token);
-
-  if (!payload || isTokenExpired(payload)) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("return_to", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Guard admin : routes /admin/*
+  // 5. Guard admin : routes /admin/*
   const isAdminRoute = ADMIN_PATHS.some((p) => pathname.startsWith(p));
   if (isAdminRoute) {
-    const role = payload.role as string | undefined;
+    const role = payload?.role as string | undefined;
     if (role !== "admin") {
       return NextResponse.redirect(new URL("/403", request.url));
     }

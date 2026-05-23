@@ -9,7 +9,7 @@
  *   - Indicateur de statut de la configuration
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Mail,
   Save,
@@ -43,16 +43,14 @@ interface SmtpConfig {
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
-
 function useToast() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const show = (message: string, type: "success" | "error" = "success") => {
+  const show = useCallback((message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
+    setTimeout(() => setToast(null), 3500);
+  }, []);
   return { toast, show };
 }
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function SmtpClient() {

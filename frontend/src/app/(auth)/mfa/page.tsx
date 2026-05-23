@@ -64,7 +64,12 @@ export default function MFAPage() {
       
       // Succès : Nettoyer le challenge et rediriger
       sessionStorage.removeItem("mfa_challenge");
-      router.push("/");
+      
+      // Récupérer le paramètre return_to
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnTo = searchParams.get("return_to") || "/";
+      
+      router.push(returnTo);
     } catch (err: any) {
       setError(err.message || "Invalid or expired verification code");
     }

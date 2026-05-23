@@ -123,6 +123,7 @@ export function RansomLookClient({
       tableColumns={columns}
       tableEmptyMessage="No ransomware alerts detected in this period."
       isMock={isMock}
+      isConfigured={isConfigured}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

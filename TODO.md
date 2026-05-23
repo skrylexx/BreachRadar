@@ -1,29 +1,14 @@
-# TODO — Mission : Audit des Versions & Dépendances
+# TODO — Missions de la Branche
 
-Ce document définit les étapes pour auditer, sécuriser et mettre à jour la stack technologique de BreachRadar.
+Liste des correctifs et améliorations à réaliser :
 
-## 1. Inventaire & Synchronisation
-- [ ] **Audit de Réalité** : Comparer `TECH_STACK.md` avec les fichiers de verrouillage (`package-lock.json`, `pyproject.toml`) pour corriger les versions déclarées.
-- [ ] **Documentation des Outils** : Recenser les versions des outils système (Docker, PostgreSQL, Redis, Python, Node) et les figer dans `TECH_STACK.md`.
-
-## 2. Analyse de Sécurité (Backend)
-- [ ] **SCA Python** : Lancer un scan de vulnérabilités sur les dépendances Python (ex: `safety` ou `pip-audit`).
-- [ ] **Analyse de Drift** : Identifier les packages critiques ayant plus de 2 versions majeures de retard.
-- [ ] **Vérification des Images** : Vérifier les vulnérabilités connues des images de base Docker (`python:3.12-slim`).
-
-## 3. Analyse de Sécurité (Frontend)
-- [ ] **SCA Node.js** : Exécuter `npm audit` et analyser les rapports de vulnérabilités.
-- [ ] **Framework Next.js** : Vérifier si la version actuelle (15.1.3) nécessite des patchs de sécurité critiques.
-- [ ] **Audit des Librairies UI** : Vérifier la sécurité des dépendances Tailwind, Lucide-react et Shadcn.
-
-## 4. Livrables & Procédures
-- [ ] **PROCEDURE_CHECKS.md** : Finaliser le guide de check réutilisable pour les futures itérations.
-- [ ] **Rapport de Drift** : Documenter les recommandations de mise à jour (Priorité Haute / Moyenne / Basse).
-- [ ] **Mise à jour TECH_STACK.md** : S'assurer que le fichier est la source de vérité post-audit.
-
-## 5. Remédiation (Phase Active)
-- [x] **Surgical Updates** : Appliquer les mises à jour de sécurité critiques n'introduisant pas de breaking changes.
-- [ ] **Next.js Upgrade** : Passer de 15.1.3 à 15.1.7+ (Correction des CVE critiques).
-- [ ] **Backend Hardening** : Mettre à jour `idna` et `urllib3` dans `pyproject.toml`.
-- [ ] **Lockfile Sync** : Régénérer `package-lock.json` et valider les versions finales.
-- [ ] **Full Documentation Update** : Refléter les nouvelles versions dans tous les fichiers .md.
+- [x] **Changelog & Auth** : Fix de la page changelog non accessible (logout en boucle)
+- [x] **Cohérence Version** : Coordonner la version de BreachRadar (menu) avec la page Changelog (v0.2.3)
+- [x] **UI Dashboard** : Harmoniser la taille des sections "Connecteurs" et "Detection Volume"
+- [x] **i18n** : Améliorer le switch de langue (actuellement peu fonctionnel)
+- [x] **Notifications** : Rendre le bouton notification fonctionnel
+- [x] **UX Outils** : Modifier la couleur des cadenas selon le statut (Rouge = Down / Vert = Up)
+- [x] **Admin Users** : Fix du bloc utilisateurs qui charge en boucle avec erreur (`/admin/users`)
+- [x] **Scans & Rapports** : Rétablir le fonctionnement des scans et la génération de rapports
+- [x] **Admin API Keys** : Supprimer l'erreur en boucle dans le menu `/admin/api-keys`
+- [x] **Admin Settings** : Améliorer la lisibilité du bloc d'options (affichage en ligne illisible)

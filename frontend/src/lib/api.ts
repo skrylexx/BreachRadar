@@ -404,6 +404,29 @@ export const auditApi = {
   },
 };
 
+// Intelligence
+export const intelligenceApi = {
+  list: (params?: {
+    page?: number;
+    page_size?: number;
+    finding_type?: string;
+    severity?: Severity;
+    source?: string;
+    is_read?: boolean;
+  }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.page_size) qs.set("page_size", String(params.page_size));
+    if (params?.finding_type) qs.set("finding_type", params.finding_type);
+    if (params?.severity) qs.set("severity", params.severity);
+    if (params?.source) qs.set("source", params.source);
+    if (params?.is_read !== undefined) qs.set("is_read", String(params.is_read));
+    return api.get<PaginatedResponse<any>>(`/api/v1/intelligence?${qs}`);
+  },
+  markAsRead: (id: string) => api.post<void>(`/api/v1/intelligence/${id}/read`),
+  markAllAsRead: () => api.post<void>("/api/v1/intelligence/read-all"),
+};
+
 // Auth
 export const authApi = {
   login: (email: string, password: string) =>

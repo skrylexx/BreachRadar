@@ -99,8 +99,9 @@ export function LeakCheckClient({
       chartData={chartData}
       tableData={initialData?.items || []}
       tableColumns={columns}
-      tableEmptyMessage="No compromised credentials detected in this period."
+      tableEmptyMessage="No compromised emails detected in this period."
       isMock={isMock}
+      isConfigured={isConfigured}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,
