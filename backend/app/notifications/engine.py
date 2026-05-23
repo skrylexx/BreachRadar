@@ -15,6 +15,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.config import Settings
 from app.models.ransom import RansomFinding
+from app.models.finding import CyberFinding
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,28 @@ class NotificationEngine:
         # Envoi via Email (Stub pour l'instant - implémentation SMTP à faire)
         if self.settings.ransomlook_alert_email:
             await self.send_email(self.settings.ransomlook_alert_email, "ALERTE CRITIQUE RANSOMWARE", message)
+
+    async def send_intel_alert(self, finding: CyberFinding) -> None:
+        """
+        Envoie une alerte de veille cyber critique.
+        """
+        if not self.settings.ransomlook_alert_configured: # On réutilise les mêmes canaux pour l'instant
+            return
+
+        message = (
+            f"⚠️ ALERTE VEILLE CYBER - {finding.severity.value}\n"
+            f"Source: {finding.source}\n"
+            f"Type: {finding.finding_type}\n"
+            f"Titre: {finding.title}\n"
+            f"Description: {finding.description[:200] if finding.description else 'N/A'}...\n"
+            f"Lien: {finding.url or 'N/A'}"
+        )
+
+        if self.settings.ransomlook_alert_webhook:
+            await self.send_webhook(self.settings.ransomlook_alert_webhook, message)
+
+        if self.settings.ransomlook_alert_email:
+            await self.send_email(self.settings.ransomlook_alert_email, f"ALERTE VEILLE: {finding.title[:50]}", message)
 
     async def send_webhook(self, url: str, message: str) -> None:
         """Envoie une notification via Webhook (Discord, Slack, etc.)."""

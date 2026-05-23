@@ -376,19 +376,21 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 
 - **Agent sortant**            : Gemini CLI
 - **Agent entrant**            : indéfini
-- **Commit de fin de session** : `4a8858b` (base) + modifications locales
+- **Commit de fin de session** : `77a21a7` (base) + v0.2.3
 - **Tâches accomplies** :
-  - Diagnostic et correction du crash backend lié à un schéma DB obsolète (migration SQL manuelle effectuée).
-  - **Refonte MFA & Session** :
-    - Correction du bug de déconnexion prématurée via `suppressRedirect` dans l'API client et mise à jour locale du state dans `ProfilePage.tsx` (évite l'appel `/me` avec un ancien token).
-    - Implémentation du **mode de secours** : lien "Device not available" sur la page MFA permettant d'utiliser un code de secours (12 caractères).
-    - **Forçage Reset MFA** : L'utilisation d'un code de secours désactive le MFA et force sa reconfiguration au prochain accès (`mfa_required`).
-    - **Améliorations UX** : Auto-focus sur les champs TOTP/Password et support complet des backup codes.
+  - **Refonte MFA & Session** : Fix logout prématuré, ajout backup codes, mode secours, auto-focus UX.
+  - **Veille Numérique (v0.2.3)** :
+    - Implémentation du moteur `IntelligenceMonitor` (RSS, GitHub, Pastebin stub).
+    - Système d'alerting `CRITICAL` via Webhook/Email intégré au collecteur.
+    - Interface `/intelligence` avec filtres dynamiques (Sévérité, Lu/Non-lu).
+    - Ajout de 5 sources cyber majeures dont IT-Connect.
+  - Diagnostic et correction du crash backend lié au schéma DB (migration SQL effectuée).
   - Validation de l'ensemble de la stack Docker (tous les services sont healthy).
-- **Tâche suivante** : Reprendre le polling CVE réel et les actions profil (voir ROADMAP).
+- **Tâche suivante** : Liaison NotificationEngine avancée (Templating) et actions de masse sur le Feed.
 - **Points de vigilance** :
-  - Le `token_version` est incrémenté à chaque changement de sécurité. Le frontend doit utiliser le `suppressRedirect` sur ces appels pour laisser le temps au navigateur de mettre à jour les cookies.
-- **Fichiers mis à jour** : ROADMAP.md · AI_AGENT_GUIDE.md · auth.py · api.ts · profile/page.tsx · mfa/page.tsx
+  - Le `cyber_findings.extra_metadata` est un JSONB flexible, idéal pour stocker les spécificités de chaque source.
+  - Le dédoublonnage est basé sur un hash SHA256 de l'URL/external_id.
+- **Fichiers mis à jour** : ROADMAP.md · AI_AGENT_GUIDE.md · README.md · TODO.md · changelog/page.tsx
 
 ***
 

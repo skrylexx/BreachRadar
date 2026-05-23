@@ -13,6 +13,7 @@ import { RansomwareAlertBlock } from "@/components/dashboard/RansomwareAlertBloc
 import { CVEAlertsBlock } from "@/components/dashboard/CVEAlertsBlock";
 import { ScansTableBlock } from "@/components/dashboard/ScansTableBlock";
 import { QuickAccessBlock } from "@/components/dashboard/QuickAccessBlock";
+import { IntelligenceWidget } from "@/components/dashboard/IntelligenceWidget";
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 import { fetchJSON } from "@/lib/fetch";
@@ -178,7 +179,8 @@ export default async function DashboardPage({
         <div className="xl:col-span-2">
           <ScansTableBlock scans={recentScans} />
         </div>
-        <div>
+        <div className="flex flex-col gap-4">
+          <IntelligenceWidget />
           <QuickAccessBlock />
         </div>
       </div>

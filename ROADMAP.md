@@ -50,6 +50,29 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 32 — 2026-05-23 (Gemini CLI)
+
+**Objectif de l'itération** : Mise en place du moteur de Veille Numérique & Intelligence Cyber.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/engine/intelligence_monitor.py` | Nouveau | Moteur de veille global (RSS, GitHub, Pastebin, Telegram). |
+| `backend/app/routers/intelligence.py` | Nouveau | API REST pour la gestion du flux de veille. |
+| `frontend/src/app/(dashboard)/intelligence/page.tsx` | Nouveau | Vue "Feed" temps réel avec filtres avancés. |
+| `backend/app/models/finding.py` | Modification | Modèle `CyberFinding` générique et flexible (JSONB). |
+| `backend/app/notifications/engine.py` | Modification | Alerting temps réel pour les menaces critiques. |
+
+#### ✅ Intelligence & Veille
+- [x] **Moteur RSS/Atom** : Support des redirections et contournement 403 (User-Agent).
+- [x] **Connecteur GitHub** : Surveillance automatisée des mentions du domaine.
+- [x] **Système d'Alerte** : Notifications immédiates (Webhook/Email) pour les `CRITICAL`.
+- [x] **Expérience UI** : Flux temps réel, dédoublonnage strict, et triage par statut (lu/non-lu).
+- [x] **Sources** : Intégration de BleepingComputer, The Hacker News, CERT-FR, CISA et IT-Connect.
+
+---
+
 ### Itération 31 — 2026-05-23 (Gemini CLI)
 
 **Objectif de l'itération** : Maintenance de la stack et refonte du flux MFA (UX + Résilience).

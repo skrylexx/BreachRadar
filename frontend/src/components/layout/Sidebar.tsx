@@ -47,6 +47,7 @@ interface NavItem {
 // ─── Navigation items ──────────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard", id: "nav-dashboard" },
+  { href: "/intelligence", icon: ScrollText, label: "Veille Numérique", id: "nav-intelligence" },
   { href: "/scans", icon: ScanSearch, label: "Scans", id: "nav-scans" },
   { href: "/reports", icon: FileText, label: "Rapports", id: "nav-reports" },
   { href: "/alerts/ransomware", icon: ShieldAlert, label: "Ransomware", id: "nav-alerts-ransomware" },

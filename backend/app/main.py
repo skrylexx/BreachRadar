@@ -18,8 +18,9 @@ from slowapi.util import get_remote_address
 
 from app.core.config import settings
 from app.core.database import engine, Base
+from app import models # Ensure models are registered
 from app.core.redis import redis_client
-from app.routers import auth, users, scans, api_keys, health, webhooks, ransomlook, cve, settings as settings_router, reports
+from app.routers import auth, users, scans, api_keys, health, webhooks, ransomlook, cve, settings as settings_router, reports, intelligence
 from app.routers.dashboard import router as dashboard_router
 from app.core.init_db import initialize_database
 from app.engine.scheduler import ScanScheduler
@@ -69,25 +70,38 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 scan_manager = ScanManager()
                 await scan_manager.run_full_scan(scan.id)
 
-        async def _cve_callback():
-            """Callback déclenché par le scheduler pour la veille CVE."""
+        async def _watch_callback():
+            """Callback déclenché par le scheduler pour la veille numérique (CVE + RSS + GitHub)."""
             from app.core.database import AsyncSessionLocal
             from app.engine.cve_monitor import CVEMonitor
+            from app.engine.intelligence_monitor import IntelligenceMonitor
             
-            # Catégories par défaut à surveiller
+            # Catégories par défaut à surveiller pour les CVE
             default_categories = ["nvd_windows", "nvd_linux", "osv_pypi", "osv_npm", "osv_go"]
             
             async with AsyncSessionLocal() as db:
-                monitor = CVEMonitor(db)
+                # 1. Veille CVE (NVD, OSV...)
+                cve_monitor = CVEMonitor(db)
+                # 2. Veille Numérique (RSS, GitHub...)
+                intel_monitor = IntelligenceMonitor(db)
+                
                 try:
-                    await monitor.poll_all(active_categories=default_categories)
+                    await asyncio.gather(
+                        cve_monitor.poll_all(active_categories=default_categories),
+                        intel_monitor.run_all()
+                    )
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger("breachradar.scheduler")
+                    logger.error(f"Erreur lors de la veille programmée : {e}")
                 finally:
-                    await monitor.close()
+                    await cve_monitor.close()
+                    await intel_monitor.close()
             
         scheduler = ScanScheduler(
             settings=settings, 
             scan_callback=_scan_callback,
-            cve_callback=_cve_callback
+            cve_callback=_watch_callback
         )
         scheduler.start()
 
@@ -158,4 +172,5 @@ app.include_router(ransomlook.router, prefix="/api/v1/ransomlook", tags=["Ransom
 app.include_router(cve.router, prefix="/api/v1/cve", tags=["CVE"])
 app.include_router(settings_router.router, prefix="/api/v1/settings", tags=["Settings"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
+app.include_router(intelligence.router, prefix="/api/v1/intelligence", tags=["Intelligence"])
 app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"])
