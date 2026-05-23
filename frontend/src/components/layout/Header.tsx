@@ -10,6 +10,7 @@ import { Bell, Globe, LogOut, Menu, Settings, User, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useSidebarStore } from "@/lib/store";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 export function Header() {
   const pathname = usePathname();
@@ -75,17 +76,8 @@ export function Header() {
         {/* Sélecteur de langue */}
         <LanguageSelector />
 
-        {/* Notifications (placeholder) */}
-        <button
-          id="header-notifications"
-          className="sidebar-icon relative"
-          title="Notifications"
-          aria-label="Notifications"
-        >
-          <Bell className="w-4 h-4" strokeWidth={1.5} />
-          {/* Badge notification (exemple) */}
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-        </button>
+        {/* Notifications */}
+        <NotificationDropdown />
 
         {/* Menu utilisateur */}
         <UserMenu />
@@ -101,7 +93,8 @@ function LanguageSelector() {
 
   const changeLanguage = (newLocale: string) => {
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
-    router.refresh();
+    // Une actualisation complète est plus fiable pour mettre à jour les Server Components
+    window.location.reload();
   };
 
   return (

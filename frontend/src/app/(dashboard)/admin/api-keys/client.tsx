@@ -63,10 +63,10 @@ const SOURCES = [
 
 function useToast() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const show = (message: string, type: "success" | "error" = "success") => {
+  const show = useCallback((message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
-  };
+  }, []);
   return { toast, show };
 }
 

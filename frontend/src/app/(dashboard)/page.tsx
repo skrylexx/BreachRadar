@@ -149,11 +149,11 @@ export default async function DashboardPage({
       </div>
 
       {/* ─── Rangée 2 : Graphique + Statut connecteurs ──────────────────────────── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="h-[400px]">
           <RiskHeatmap data={chartData ?? []} initialPeriod={period as any} />
         </div>
-        <div className="card-soc p-4">
+        <div className="card-soc p-4 h-[400px]">
           <APIStatusCards statuses={connectors ?? []} />
         </div>
       </div>

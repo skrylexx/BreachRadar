@@ -137,7 +137,7 @@ class ScanManager:
                         severity=scan_severity,
                         total_findings=len(all_leak_findings) + len(ransom_findings),
                         report_path=str(report_files[0]) if report_files else None,
-                        finished_at=datetime.now(timezone.utc)
+                        completed_at=datetime.now(timezone.utc)
                     )
                 )
                 await db.commit()
@@ -151,7 +151,7 @@ class ScanManager:
                     .where(ScanResult.id == scan_id)
                     .values(
                         status=ScanStatus.FAILED,
-                        finished_at=datetime.now(timezone.utc)
+                        completed_at=datetime.now(timezone.utc)
                     )
                 )
                 await db.commit()

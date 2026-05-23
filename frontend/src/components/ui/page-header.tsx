@@ -25,6 +25,7 @@ interface PageHeaderProps {
   breadcrumb?: BreadcrumbSegment[];
   children?: React.ReactNode;
   className?: string;
+  status?: "up" | "down" | "mock" | "default";
 }
 
 export function PageHeader({
@@ -34,7 +35,17 @@ export function PageHeader({
   breadcrumb,
   children,
   className,
+  status = "default",
 }: PageHeaderProps) {
+  const statusColors = {
+    up: "bg-green-500/10 border-green-500/20 text-green-400",
+    down: "bg-red-500/10 border-red-500/20 text-red-400",
+    mock: "bg-orange-500/10 border-orange-500/20 text-orange-400",
+    default: "bg-radar/10 border-radar/20 text-radar",
+  };
+
+  const colors = statusColors[status] || statusColors.default;
+
   return (
     <div className={cn("mb-6", className)}>
       {/* Breadcrumb */}
@@ -65,7 +76,7 @@ export function PageHeader({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           {Icon && (
-            <div className="p-2.5 rounded-xl bg-radar/10 border border-radar/20 text-radar">
+            <div className={cn("p-2.5 rounded-xl border transition-colors duration-300", colors)}>
               <Icon className="w-6 h-6" />
             </div>
           )}

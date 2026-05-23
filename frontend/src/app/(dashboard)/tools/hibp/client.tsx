@@ -101,6 +101,7 @@ export function HIBPClient({
       tableColumns={columns}
       tableEmptyMessage="No compromised emails detected in this period."
       isMock={isMock}
+      isConfigured={isConfigured}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,

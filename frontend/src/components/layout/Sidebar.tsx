@@ -8,6 +8,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   ScanSearch,
@@ -46,35 +47,38 @@ interface NavItem {
 
 // ─── Navigation items ──────────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", icon: LayoutDashboard, label: "Dashboard", id: "nav-dashboard" },
-  { href: "/intelligence", icon: ScrollText, label: "Veille Numérique", id: "nav-intelligence" },
-  { href: "/scans", icon: ScanSearch, label: "Scans", id: "nav-scans" },
-  { href: "/reports", icon: FileText, label: "Rapports", id: "nav-reports" },
-  { href: "/alerts/ransomware", icon: ShieldAlert, label: "Ransomware", id: "nav-alerts-ransomware" },
-  { href: "/alerts/cve", icon: Bug, label: "CVE & Exploits", id: "nav-alerts-cve" },
-  { href: "/tools/hibp", icon: Mail, label: "HIBP", id: "nav-tool-hibp" },
-  { href: "/tools/github", icon: Github, label: "GitHub", id: "nav-tool-github" },
-  { href: "/tools/ransomlook", icon: Activity, label: "RansomLook", id: "nav-tool-ransomlook" },
-  { href: "/tools/leakcheck", icon: Database, label: "LeakCheck", id: "nav-tool-leakcheck" },
-  { href: "/tools/urlscan", icon: Globe, label: "URLScan", id: "nav-tool-urlscan" },
+  { href: "/", icon: LayoutDashboard, label: "dashboard", id: "nav-dashboard" },
+  { href: "/intelligence", icon: ScrollText, label: "intelligence", id: "nav-intelligence" },
+  { href: "/scans", icon: ScanSearch, label: "scans", id: "nav-scans" },
+  { href: "/reports", icon: FileText, label: "reports", id: "nav-reports" },
+  { href: "/alerts/ransomware", icon: ShieldAlert, label: "ransomware", id: "nav-alerts-ransomware" },
+  { href: "/alerts/cve", icon: Bug, label: "cve", id: "nav-alerts-cve" },
+  { href: "/tools/hibp", icon: Mail, label: "hibp", id: "nav-tool-hibp" },
+  { href: "/tools/github", icon: Github, label: "github", id: "nav-tool-github" },
+  { href: "/tools/ransomlook", icon: Activity, label: "ransomlook", id: "nav-tool-ransomlook" },
+  { href: "/tools/leakcheck", icon: Database, label: "leakcheck", id: "nav-tool-leakcheck" },
+  { href: "/tools/urlscan", icon: Globe, label: "urlscan", id: "nav-tool-urlscan" },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
-  { href: "/changelog", icon: ScrollText, label: "Changelog", id: "nav-changelog" },
-  { href: "/profile", icon: User, label: "Mon profil", id: "nav-profile" },
+  { href: "/changelog", icon: ScrollText, label: "changelog", id: "nav-changelog" },
+  { href: "/profile", icon: User, label: "profile", id: "nav-profile" },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
-  { href: "/admin/users", icon: Users, label: "Utilisateurs", id: "nav-admin-users", adminOnly: true },
-  { href: "/admin/api-keys", icon: Key, label: "Clés API", id: "nav-admin-api-keys", adminOnly: true },
-  { href: "/admin/smtp", icon: Mail, label: "SMTP", id: "nav-admin-smtp", adminOnly: true },
-  { href: "/admin/scheduling", icon: Clock, label: "Scheduling", id: "nav-admin-scheduling", adminOnly: true },
-  { href: "/admin/audit", icon: ClipboardList, label: "Audit trail", id: "nav-admin-audit", adminOnly: true },
-  { href: "/admin/settings", icon: Settings, label: "Paramètres", id: "nav-admin-settings", adminOnly: true },
+  { href: "/admin/users", icon: Users, label: "users", id: "nav-admin-users", adminOnly: true },
+  { href: "/admin/api-keys", icon: Key, label: "api_keys", id: "nav-admin-api-keys", adminOnly: true },
+  { href: "/admin/smtp", icon: Mail, label: "smtp", id: "nav-admin-smtp", adminOnly: true },
+  { href: "/admin/scheduling", icon: Clock, label: "scheduling", id: "nav-admin-scheduling", adminOnly: true },
+  { href: "/admin/audit", icon: ClipboardList, label: "audit", id: "nav-admin-audit", adminOnly: true },
+  { href: "/admin/settings", icon: Settings, label: "settings", id: "nav-admin-settings", adminOnly: true },
 ];
 
 function NavIcon({ item, isActive, isExpanded, onClick }: { item: NavItem; isActive: boolean, isExpanded: boolean, onClick?: () => void }) {
   const Icon = item.icon;
+  const t = useTranslations("Navigation");
+  const label = t(item.label);
+
   return (
     <Link
       href={item.href}
@@ -90,11 +94,11 @@ function NavIcon({ item, isActive, isExpanded, onClick }: { item: NavItem; isAct
         "text-sm font-medium whitespace-nowrap transition-all duration-300 overflow-hidden",
         isExpanded ? "opacity-100 w-auto translate-x-0" : "opacity-0 w-0 -translate-x-4"
       )}>
-        {item.label}
+        {label}
       </span>
       {!isExpanded && (
         <span className="lg:flex hidden absolute left-14 top-1/2 -translate-y-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded border border-border whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50 shadow-md">
-          {item.label}
+          {label}
         </span>
       )}
     </Link>
@@ -103,6 +107,7 @@ function NavIcon({ item, isActive, isExpanded, onClick }: { item: NavItem; isAct
 
 export function Sidebar() {
   const pathname = usePathname();
+  const t = useTranslations("Navigation");
   const [isHovered, setIsHovered] = useState(false);
   const [adminExpanded, setAdminExpanded] = useState(pathname.startsWith("/admin"));
   const { isOpen, close } = useSidebarStore();
@@ -182,7 +187,7 @@ export function Sidebar() {
               "text-sm font-medium whitespace-nowrap flex-1 text-left transition-all duration-300 overflow-hidden",
               (isHovered || isOpen) ? "opacity-100 w-auto" : "opacity-0 w-0"
             )}>
-              Administration
+              {t("administration")}
             </span>
             {(isHovered || isOpen) && (
               <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", adminExpanded && "rotate-180")} />
@@ -206,7 +211,7 @@ export function Sidebar() {
         ))}
         <div className="flex items-center justify-center py-2 h-8">
           <span className="text-[10px] font-data text-muted-foreground/30 whitespace-nowrap">
-            {(isHovered || isOpen) ? "BreachRadar Version 0.2.0" : "v0.2.0"}
+            {(isHovered || isOpen) ? "BreachRadar Version 0.3.0" : "v0.3.0"}
           </span>
         </div>
       </div>

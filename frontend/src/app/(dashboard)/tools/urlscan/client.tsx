@@ -101,6 +101,7 @@ export function URLScanClient({
       tableColumns={columns}
       tableEmptyMessage="No malicious URLs detected in this period."
       isMock={isMock}
+      isConfigured={isConfigured}
       pagination={initialData ? {
         page: initialPage,
         pageSize: 25,
