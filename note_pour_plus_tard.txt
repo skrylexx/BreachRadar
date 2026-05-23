@@ -4,13 +4,15 @@ configuration et test de la veille numérique (orienté cyber), validation des c
 branch : dependancies check
 check des dependances, framework et versions globales
 
-branch : finalize frontend
+branch : application features 
 mettre a jour (dashboard pour le moment) pour mettre la section connecteurs et "Detection Volume" a la meme taille (grandir le detection ?)
-hover du profil et du switch de langue pas très fonctionnels, ils se ferment tout seul quand on descend du bouton
+switch de langue pas très fonctionnel
 bouton notification non fonctionnel
 menu ouvert au hover de la photo de profil qui passe derrière les blocs du dashboard
 modifier la couleur des cadenas sur les pages d'outils pour faire correspondre avec le status (rouge au lieu de bleu si down & vert si up)
-http://localhost:3000/admin/users --> bloc utilisateurs charge en boucle
+http://localhost:3000/admin/users --> bloc utilisateurs charge en boucle avec une erreur
+scans non fonctionnels, rapports donc pas possible
+
 
 branch : security audit
 audit de securité
