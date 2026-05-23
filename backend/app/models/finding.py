@@ -1,7 +1,7 @@
 """
 breachradar/models/finding.py
 
-Modèles Pydantic pour les résultats de scan email/domaine.
+Modèles Pydantic et SQLAlchemy pour les résultats de scan et de veille.
 
 RÈGLE DE SÉCURITÉ FONDAMENTALE :
 Ce modèle ne contient AUCUN champ pour les données sensibles brutes
@@ -11,13 +11,20 @@ pas les exposer accidentellement. Seuls des flags booléens sont stockés.
 
 from __future__ import annotations
 
-from datetime import date, datetime
-from enum import Enum
+import enum
+import uuid
+from datetime import date, datetime, timezone
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import String, DateTime, Enum, Boolean, func, Text
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.database import Base
 
 
-class Severity(str, Enum):
+class Severity(str, enum.Enum):
     """Niveau de sévérité d'un finding ou d'un rapport."""
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -30,6 +37,44 @@ class Severity(str, Enum):
 
     def __ge__(self, other: "Severity") -> bool:
         return self == other or self.__gt__(other)
+
+
+class CyberFinding(Base):
+    """
+    Modèle générique pour les trouvailles de la veille numérique (RSS, Paste, GitHub, etc.).
+    """
+    __tablename__ = "cyber_findings"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    # ─── Identité & Source ──────────────────────────────────────────────────
+    source: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    finding_type: Mapped[str] = mapped_column(String(50), nullable=False) # "rss", "paste", "github", "leak"
+    
+    # ─── Contenu ───────────────────────────────────────────────────────────
+    title: Mapped[str] = mapped_column(String(512), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    url: Mapped[str] = mapped_column(String(1024), nullable=True)
+    severity: Mapped[Severity] = mapped_column(Enum(Severity), default=Severity.LOW, nullable=False)
+    
+    # ─── Méta-données flexibles ─────────────────────────────────────────────
+    # Permet de stocker CVE_ID, Tags, Mots-clés détectés, etc.
+    extra_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    # ─── État ──────────────────────────────────────────────────────────────
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_notified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # ─── Timestamps ────────────────────────────────────────────────────────
+    discovered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class LeakFinding(BaseModel):

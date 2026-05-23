@@ -5,10 +5,9 @@ Crée l'administrateur initial au premier démarrage si aucun utilisateur n'exis
 """
 
 import logging
-
 from sqlalchemy import select
-
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, engine, Base
+from app import models # Ensure models are registered
 from app.core.config import settings
 from app.core.security import hash_password
 from app.models.user import User, UserRole
@@ -19,8 +18,14 @@ logger = logging.getLogger(__name__)
 async def initialize_database() -> None:
     """
     Initialise la DB au démarrage :
+    - Synchronise le schéma.
     - Crée l'admin initial si aucun utilisateur n'existe.
     """
+    # 1. Synchronisation du schéma
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # 2. Création admin initial
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).limit(1))
         existing_user = result.scalar_one_or_none()

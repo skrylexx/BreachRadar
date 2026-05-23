@@ -46,6 +46,7 @@ class SourceStatus:
     available: bool                  # Sera effectivement utilisée ?
     skip_reason: str | None = None   # Raison d'exclusion (si available=False)
     description: str = ""
+    config: dict = field(default_factory=dict) # Données de config supplémentaires (ex: feeds RSS)
 
     @property
     def icon(self) -> str:
@@ -94,6 +95,12 @@ class SourceRegistry:
             requires_key = source_cfg.get("requires_api_key", False)
             env_key = source_cfg.get("env_key")
             description = source_cfg.get("description", "")
+            
+            # Capturer toutes les autres clés comme configuration générique
+            config_data = {
+                k: v for k, v in source_cfg.items() 
+                if k not in ["enabled", "requires_api_key", "env_key", "description"]
+            }
 
             # Vérifier si la clé API est présente dans l'environnement
             api_key_present = False
@@ -135,6 +142,7 @@ class SourceRegistry:
                 available=available,
                 skip_reason=skip_reason,
                 description=str(description).strip(),
+                config=config_data,
             )
 
         registry._log_summary()
