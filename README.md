@@ -7,7 +7,7 @@
 > Cadre : OSINT défensif — RGPD Art. 6.1.f (intérêt légitime)
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
+[![Next.js 15.5](https://img.shields.io/badge/Next.js-15.5-black.svg)](https://nextjs.org/)
 
 ---
 
@@ -34,8 +34,8 @@ BreachRadar fonctionne avec une architecture micro-services complète, englobant
 
 | Couche | Technologie |
 |---|---|
-| **Frontend** | Next.js 15 + Shadcn/UI + Tailwind CSS |
-| **Backend (Moteur)** | FastAPI (Python 3.12) |
+| **Frontend** | Next.js 15.5 + Shadcn/UI + Tailwind CSS 3.4 |
+| **Backend (Moteur)** | FastAPI (Python 3.12+) |
 | **Base de données** | PostgreSQL 16 |
 | **Cache / Sessions** | Redis 7 |
 | **Authentification** | JWT HttpOnly Cookies |
@@ -67,7 +67,7 @@ cd breachradar
 
 # 2. Configurer les variables d'environnement
 cp .env.example .env
-# Éditer .env avec vos clés API et définir des mots de passe sécurisés 
+# Éditer .env with vos clés API et définir des mots de passe sécurisés 
 # (UI_DB_PASSWORD, UI_REDIS_PASSWORD, UI_JWT_SECRET, UI_ADMIN_EMAIL, UI_ADMIN_PASSWORD)
 
 # 3. Lancer la plateforme
@@ -146,8 +146,7 @@ breachradar/
 └── frontend/                 # Application Next.js
     ├── Dockerfile
     ├── package.json
-    ├── tailwind.config.ts
-    └── src/
+    ├── src/
         ├── app/              # Routage App Router (Next 15)
         ├── components/       # Composants réutilisables (Shadcn, Recharts)
         └── lib/              # Utilitaires (api.ts, i18n)
@@ -178,6 +177,8 @@ BreachRadar intègre une gestion des rôles stricte pour répondre aux exigences
 - ✅ Sanitizer appliqué sur toutes les données brutes avant l'affichage ou le stockage en base.
 - ✅ Données temporaires purgées en mémoire après traitement.
 - ✅ Clés API uniquement dans `.env` ou chiffrées en base (Fernet).
+- ✅ **Authentification SOC** : MFA (TOTP) obligatoire pour l'admin, codes de secours et gestion de sessions robuste.
+- ✅ **Veille Numérique & Cyber** : Flux temps réel (RSS/Atom, GitHub) avec filtrage intelligent par mots-clés et sévérité.
 - ✅ **Mode Démonstration** : Possibilité d'afficher des données fictives sécurisées (Mocks) pour tester l'interface sans clés API réelles.
 - ✅ RansomLook exposé uniquement sur le réseau Docker interne (jamais `0.0.0.0`).
 - ✅ Authentification forte (JWT HttpOnly + MFA obligatoire pour Admin).

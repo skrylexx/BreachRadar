@@ -21,5 +21,9 @@ Ce document définit les étapes pour auditer, sécuriser et mettre à jour la s
 - [ ] **Rapport de Drift** : Documenter les recommandations de mise à jour (Priorité Haute / Moyenne / Basse).
 - [ ] **Mise à jour TECH_STACK.md** : S'assurer que le fichier est la source de vérité post-audit.
 
-## 5. Remédiation (Optionnel pour cette phase)
-- [ ] **Surgical Updates** : Appliquer les mises à jour de sécurité critiques n'introduisant pas de breaking changes.
+## 5. Remédiation (Phase Active)
+- [x] **Surgical Updates** : Appliquer les mises à jour de sécurité critiques n'introduisant pas de breaking changes.
+- [ ] **Next.js Upgrade** : Passer de 15.1.3 à 15.1.7+ (Correction des CVE critiques).
+- [ ] **Backend Hardening** : Mettre à jour `idna` et `urllib3` dans `pyproject.toml`.
+- [ ] **Lockfile Sync** : Régénérer `package-lock.json` et valider les versions finales.
+- [ ] **Full Documentation Update** : Refléter les nouvelles versions dans tous les fichiers .md.
