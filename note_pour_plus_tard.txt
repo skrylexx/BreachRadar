@@ -1,10 +1,6 @@
-branch : tech watch
-configuration et test de la veille numérique (orienté cyber), validation des configurations, de la flexibilité, de l'intégration de nouveaux flux...
-
-branch : dependancies check
-check des dependances, framework et versions globales
-
 branch : application features 
+page changelog non accessible (logout en boucle)
+version de breachradar (en bas à gauche du menu de gauche) pas coordonnée sur la page Changelog (actuellement v0.2.0 et changelog v0.2.3)
 mettre a jour (dashboard pour le moment) pour mettre la section connecteurs et "Detection Volume" a la meme taille (grandir le detection ?)
 switch de langue pas très fonctionnel
 bouton notification non fonctionnel
