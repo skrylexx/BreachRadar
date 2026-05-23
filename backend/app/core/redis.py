@@ -28,12 +28,36 @@ async def is_token_blacklisted(jti: str) -> bool:
 async def store_mfa_challenge(user_id: str, challenge_token: str, expire_seconds: int = 300) -> None:
     """
     Stocke un token de challenge MFA temporaire (5 min).
-    Utilisé entre la validation password et la validation TOTP.
+    Clé : mfa_challenge:{token} -> Valeur : user_id
     """
-    await redis_client.setex(f"mfa_challenge:{user_id}", expire_seconds, challenge_token)
+    await redis_client.setex(f"mfa_challenge:{challenge_token}", expire_seconds, user_id)
 
 
-async def verify_mfa_challenge(user_id: str, challenge_token: str) -> bool:
-    """Vérifie et consomme le challenge MFA (usage unique)."""
-    stored = await redis_client.getdel(f"mfa_challenge:{user_id}")
-    return stored == challenge_token
+async def verify_mfa_challenge(challenge_token: str) -> str | None:
+    """
+    Vérifie et consomme le challenge MFA (usage unique).
+    Retourne le user_id si valide, None sinon.
+    """
+    return await redis_client.getdel(f"mfa_challenge:{challenge_token}")
+
+
+# ─── Brute-force protection (MFA) ───────────────────────────────────────────
+
+async def increment_mfa_failures(user_id: str) -> int:
+    """Incrémente le compteur d'échecs MFA et retourne la nouvelle valeur."""
+    key = f"mfa_failures:{user_id}"
+    count = await redis_client.incr(key)
+    if count == 1:
+        await redis_client.expire(key, 900)  # 15 minutes de blocage
+    return count
+
+
+async def get_mfa_failures(user_id: str) -> int:
+    """Récupère le nombre d'échecs MFA actuels."""
+    val = await redis_client.get(f"mfa_failures:{user_id}")
+    return int(val) if val else 0
+
+
+async def reset_mfa_failures(user_id: str) -> None:
+    """Réinitialise le compteur d'échecs MFA."""
+    await redis_client.delete(f"mfa_failures:{user_id}")

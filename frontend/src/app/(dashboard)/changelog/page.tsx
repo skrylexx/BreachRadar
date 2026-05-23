@@ -9,6 +9,20 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.2.2",
+    date: "2026-05-23",
+    type: "Security & Experience",
+    description: "Renforcement de l'authentification multi-facteurs (MFA) et optimisation de l'expérience utilisateur.",
+    changes: [
+      { type: "feat", text: "Implémentation d'un flux de secours MFA complet avec codes de récupération (Recovery Codes)." },
+      { type: "feat", text: "Ajout d'un popup intelligent de réactivation MFA post-secours avec option de persistance 'Plus tard'." },
+      { type: "fix", text: "Correction des déconnexions prématurées lors des changements de paramètres de sécurité." },
+      { type: "fix", text: "Stabilisation du menu profil (Header) et résolution des problèmes de superposition (z-index)." },
+      { type: "feat", text: "Amélioration UX : focus automatique sur les champs de saisie et validation par touche 'Entrée'." },
+      { type: "fix", text: "Mise à jour du schéma backend pour une synchronisation parfaite des statuts MFA requis." },
+    ],
+  },
+  {
     version: "v0.2.1",
     date: "2026-05-19",
     type: "Maintenance & Connectivity",

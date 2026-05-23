@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle, DownloadCloud, Copy } from "lucide-react";
 import { authApi, User as UserType } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -31,10 +38,14 @@ export default function ProfilePage() {
 
   // MFA State
   const [mfaDialogOpen, setMfaDialogOpen] = useState(false);
-  const [mfaStep, setMfaStep] = useState<"setup" | "confirm">("setup");
-  const [mfaSetupData, setMfaSetupData] = useState<{ qrcode_base64: string; manual_entry_key: string } | null>(null);
+  const [mfaStep, setMfaStep] = useState<"setup" | "confirm" | "backup">("setup");
+  const [mfaSetupData, setMfaSetupData] = useState<{ qrcode_base64: string; manual_entry_key: string; backup_codes: string[] } | null>(null);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaLoading, setMfaLoading] = useState(false);
+
+  // MFA Disable State
+  const [mfaDisableDialogOpen, setMfaDisableDialogOpen] = useState(false);
+  const [mfaDisableCode, setMfaDisableCode] = useState("");
 
   const fetchUser = async () => {
     try {
@@ -50,6 +61,15 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchUser();
   }, []);
+
+  // Détection du paramètre setup_mfa pour lancement automatique
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("setup_mfa") === "true" && user && !user.mfa_enabled) {
+      setMfaDialogOpen(true);
+      startMfaSetup();
+    }
+  }, [searchParams, user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,11 +93,12 @@ export default function ProfilePage() {
     }
     setPwdLoading(true);
     try {
-      await authApi.passwordChange({
+      const updatedUser = await authApi.passwordChange({
         current_password: pwdData.current,
         new_password: pwdData.new,
         new_password_confirm: pwdData.confirm,
       });
+      setUser(updatedUser);
       setPwdDialogOpen(false);
       setPwdData({ current: "", new: "", confirm: "" });
       alert("Mot de passe modifié avec succès.");
@@ -104,14 +125,38 @@ export default function ProfilePage() {
   const handleMfaConfirm = async () => {
     setMfaLoading(true);
     try {
-      await authApi.mfaConfirm(mfaCode);
-      setMfaDialogOpen(false);
-      setMfaStep("setup");
+      const updatedUser = await authApi.mfaConfirm(mfaCode);
+      setUser(updatedUser);
+      setMfaStep("backup"); // Passer à l'étape des backup codes
       setMfaCode("");
-      await fetchUser();
-      alert("MFA activé avec succès !");
     } catch (err: any) {
       alert("Code invalide. Veuillez réessayer.");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const downloadBackupCodes = () => {
+    if (!mfaSetupData?.backup_codes) return;
+    const content = `BREACHRADAR - CODES DE SECOURS MFA\nGénéré le: ${new Date().toLocaleString()}\n\n${mfaSetupData.backup_codes.join("\n")}\n\nGardez ces codes précieusement. Chaque code est à usage unique.`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `breachradar-backup-codes-${user?.email}.txt`;
+    link.click();
+  };
+
+  const handleMfaDisable = async () => {
+    setMfaLoading(true);
+    try {
+      const updatedUser = await authApi.mfaDisable(mfaDisableCode);
+      setUser(updatedUser);
+      setMfaDisableDialogOpen(false);
+      setMfaDisableCode("");
+      alert("MFA désactivé avec succès.");
+    } catch (err: any) {
+      alert(err.message || "Code invalide. Impossible de désactiver le MFA.");
     } finally {
       setMfaLoading(false);
     }
@@ -245,6 +290,30 @@ export default function ProfilePage() {
                   Activer le MFA
                 </Button>
               )}
+
+              {user.mfa_enabled && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="w-full">
+                        <Button
+                          variant="outline"
+                          onClick={() => setMfaDisableDialogOpen(true)}
+                          disabled={user.mfa_required}
+                          className="w-full border-destructive/20 text-destructive hover:bg-destructive/5 disabled:opacity-50"
+                        >
+                          Désactiver le MFA
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {user.mfa_required && (
+                      <TooltipContent side="top" className="text-xs bg-destructive text-destructive-foreground">
+                        Le MFA est obligatoire pour votre compte (politique admin).
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </Card>
 
@@ -277,6 +346,7 @@ export default function ProfilePage() {
               <Label className="text-xs">Mot de passe actuel</Label>
               <Input
                 type="password"
+                autoFocus
                 value={pwdData.current}
                 onChange={(e) => setPwdData({ ...pwdData, current: e.target.value })}
                 className="bg-secondary/50 border-border/50"
@@ -318,12 +388,20 @@ export default function ProfilePage() {
       </Dialog>
 
       {/* ─── Dialog Activation MFA ─────────────────────────────────────────── */}
-      <Dialog open={mfaDialogOpen} onOpenChange={setMfaDialogOpen}>
+      <Dialog open={mfaDialogOpen} onOpenChange={(open) => {
+        if (!open && mfaStep === "backup") {
+          // Si on ferme alors qu'on est aux backup codes, on reset tout
+          setMfaStep("setup");
+        }
+        setMfaDialogOpen(open);
+      }}>
         <DialogContent className="card-soc border-border/60 max-w-md">
           <DialogHeader>
-            <DialogTitle>Configuration Double Authentification</DialogTitle>
+            <DialogTitle>
+              {mfaStep === "backup" ? "Sauvegardez vos codes de secours" : "Configuration Double Authentification"}
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              Renforcez la sécurité de votre compte avec TOTP.
+              {mfaStep === "backup" ? "C'est votre seule chance de les voir." : "Renforcez la sécurité de votre compte avec TOTP."}
             </DialogDescription>
           </DialogHeader>
 
@@ -337,7 +415,7 @@ export default function ProfilePage() {
                 {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Générer ma clé secrète"}
               </Button>
             </div>
-          ) : (
+          ) : mfaStep === "confirm" ? (
             <div className="space-y-6 py-4">
               <div className="flex justify-center bg-white p-4 rounded-lg">
                 <img src={mfaSetupData?.qrcode_base64} alt="MFA QR Code" className="w-48 h-48" />
@@ -350,8 +428,15 @@ export default function ProfilePage() {
                 <Input
                   placeholder="000000"
                   maxLength={6}
+                  autoFocus
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && mfaCode.length === 6) {
+                      e.preventDefault();
+                      handleMfaConfirm();
+                    }
+                  }}
                   className="bg-secondary/50 border-border/50 text-center text-lg tracking-[0.5em] font-data"
                 />
               </div>
@@ -368,7 +453,95 @@ export default function ProfilePage() {
                 </Button>
               </DialogFooter>
             </div>
+          ) : (
+            <div className="space-y-6 py-4">
+              <div className="p-4 rounded-md bg-green-500/5 border border-green-500/20 text-center">
+                <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                <h4 className="text-sm font-semibold text-green-400">MFA Activé avec succès !</h4>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Codes de secours</Label>
+                  <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={downloadBackupCodes}>
+                    <DownloadCloud className="w-3 h-3 mr-1" /> Télécharger (.txt)
+                  </Button>
+                </div>
+                
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Conservez ces codes en lieu sûr. Ils vous permettront d'accéder à votre compte si vous perdez votre appareil.
+                  <strong> Chaque code n'est utilisable qu'une seule fois.</strong>
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 bg-secondary/30 p-3 rounded border border-border/40 font-data text-xs">
+                  {mfaSetupData?.backup_codes.map(code => (
+                    <div key={code} className="p-1 select-all hover:text-radar transition-colors">{code}</div>
+                  ))}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button className="w-full bg-radar text-background font-bold hover:bg-radar-glow" onClick={() => { setMfaDialogOpen(false); setMfaStep("setup"); }}>
+                  J'ai enregistré mes codes
+                </Button>
+              </DialogFooter>
+            </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* ─── Dialog Désactivation MFA ────────────────────────────────────────── */}
+      <Dialog open={mfaDisableDialogOpen} onOpenChange={setMfaDisableDialogOpen}>
+        <DialogContent className="card-soc border-border/60 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Désactiver le MFA
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              La désactivation du MFA réduit la sécurité de votre compte.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Pour confirmer la désactivation, veuillez saisir le code TOTP actuel de votre application.
+            </p>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Code de vérification (6 chiffres)</Label>
+              <Input
+                placeholder="000000"
+                maxLength={6}
+                autoFocus
+                value={mfaDisableCode}
+                onChange={(e) => setMfaDisableCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && mfaDisableCode.length === 6) {
+                    e.preventDefault();
+                    handleMfaDisable();
+                  }
+                }}
+                className="bg-secondary/50 border-border/50 text-center text-lg tracking-[0.5em] font-data"
+              />
+            </div>
+            
+            <div className="p-3 rounded-md bg-yellow-500/5 border border-yellow-500/20">
+              <p className="text-[11px] text-yellow-500/80 leading-relaxed">
+                <strong>Accès perdu ?</strong> Si vous n'avez plus accès à votre application TOTP, 
+                veuillez contacter un administrateur pour réinitialiser votre MFA manuellement.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setMfaDisableDialogOpen(false)}>Annuler</Button>
+            <Button
+              onClick={handleMfaDisable}
+              disabled={mfaLoading || mfaDisableCode.length !== 6}
+              className="bg-destructive/20 text-destructive border border-destructive/30"
+            >
+              {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Confirmer la désactivation"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

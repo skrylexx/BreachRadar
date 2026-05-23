@@ -21,7 +21,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes publiques (pas de JWT requis)
-const PUBLIC_PATHS = ["/login", "/403", "/404"];
+const PUBLIC_PATHS = ["/login", "/mfa", "/403", "/404"];
 
 // Routes admin uniquement
 const ADMIN_PATHS = ["/admin"];

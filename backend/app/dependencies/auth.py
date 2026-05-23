@@ -60,6 +60,11 @@ async def get_current_user(
     if user is None or not user.is_active:
         raise credentials_exception
 
+    # Vérifier la version du token (révocation sessions)
+    token_v = payload.get("v")
+    if token_v is None or token_v != user.token_version:
+        raise credentials_exception
+
     return user
 
 

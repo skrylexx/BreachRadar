@@ -361,7 +361,6 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 
 ### Passation #5 — 2026-05-18
 
-
 - **Agent sortant**            : Gemini CLI
 - **Agent entrant**            : indéfini
 - **Commit de fin de session** : *(voir commit associé à ce push)*
@@ -371,6 +370,41 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) comme indiqué dans la ROADMAP.
 - **Points de vigilance** : Aucun nouveau point de vigilance technique introduit par cette itération de documentation.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
+
+
+### Passation #7 — 2026-05-23
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : `4a8858b` (base) + modifications locales
+- **Tâches accomplies** :
+  - Diagnostic et correction du crash backend lié à un schéma DB obsolète (migration SQL manuelle effectuée).
+  - **Refonte MFA & Session** :
+    - Correction du bug de déconnexion prématurée via `suppressRedirect` dans l'API client et mise à jour locale du state dans `ProfilePage.tsx` (évite l'appel `/me` avec un ancien token).
+    - Implémentation du **mode de secours** : lien "Device not available" sur la page MFA permettant d'utiliser un code de secours (12 caractères).
+    - **Forçage Reset MFA** : L'utilisation d'un code de secours désactive le MFA et force sa reconfiguration au prochain accès (`mfa_required`).
+    - **Améliorations UX** : Auto-focus sur les champs TOTP/Password et support complet des backup codes.
+  - Validation de l'ensemble de la stack Docker (tous les services sont healthy).
+- **Tâche suivante** : Reprendre le polling CVE réel et les actions profil (voir ROADMAP).
+- **Points de vigilance** :
+  - Le `token_version` est incrémenté à chaque changement de sécurité. Le frontend doit utiliser le `suppressRedirect` sur ces appels pour laisser le temps au navigateur de mettre à jour les cookies.
+- **Fichiers mis à jour** : ROADMAP.md · AI_AGENT_GUIDE.md · auth.py · api.ts · profile/page.tsx · mfa/page.tsx
+
+***
+
+### Passation #6 — 2026-05-21
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : `92c060f`
+- **Tâches accomplies** :
+  - Analyse complète de l'implémentation MFA actuelle (Backend auth.py & Frontend login page).
+  - Création d'une roadmap d'implémentation détaillée dans `TODO.md` (MFA flow, Admin controls, Hardening).
+- **Tâche suivante** : Implémenter la page `/mfa` dans le frontend et mettre à jour le middleware pour autoriser son accès (voir `TODO.md`).
+- **Points de vigilance** :
+  - Le middleware Next.js redirige vers `/login` si `access_token` est absent, ce qui bloque `/mfa`.
+  - Le schéma `MFAVerifyRequest` côté backend ne contient pas d'identifiant utilisateur (nécessite email ou scan Redis du challenge token).
+- **Fichiers mis à jour** : TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
 ***

@@ -50,6 +50,152 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 31 — 2026-05-23 (Gemini CLI)
+
+**Objectif de l'itération** : Maintenance de la stack et refonte du flux MFA (UX + Résilience).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `SQL Migration` | Fix | Alignement de la table `users` (colonnes MFA + Session revocation). |
+| `backend/app/routers/auth.py` | Fix/Feature | Gestion des backup codes, reset forcé du MFA après secours, et retour de l'objet User complet. |
+| `frontend/src/lib/api.ts` | Fix | Ajout de `suppressRedirect` pour éviter les logouts prématurés lors du refresh token. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Feature | Mode secours (Backup codes), auto-focus et lien "Appareil non disponible". |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Fix/UX | Mise à jour locale du state utilisateur et auto-focus dans les dialogs. |
+
+#### ✅ Maintenance & Stabilité
+- [x] **Database Sync** : Synchronisation du schéma PostgreSQL.
+- [x] **MFA Flow Fix** : Correction de la déconnexion immédiate via mise à jour locale du state et suppression des redirections 401 intempestives.
+- [x] **Recovery Mode** : Implémentation complète du flux de secours (Backup Codes).
+- [x] **UX Improvements** : Auto-focus sur tous les champs de sécurité et navigation fluide.
+- [x] **Validation** : Tous les services Docker sont `healthy`.
+
+---
+
+### Itération 30 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Durcissement de la sécurité (Security Hardening) de l'implémentation MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/models/user.py` | Modification | Ajout de `token_version` pour la révocation de session et `mfa_backup_codes` (JSON). |
+| `backend/app/core/security.py` | Modification | Implémentation du chiffrement `Fernet` déterministe et de la génération des backup codes. |
+| `backend/app/core/redis.py` | Modification | Ajout des helpers pour le tracking des échecs MFA (Brute-force protection). |
+| `backend/app/routers/auth.py` | Modification | Chiffrement at-rest, enforcement lockout (5 essais), invalidation de session, vérification backup codes. |
+| `backend/app/routers/users.py` | Modification | Invalidation de session lors d'une action admin sur le MFA. |
+| `backend/app/dependencies/auth.py` | Modification | Vérification de la `token_version` pour interdire les sessions révoquées. |
+| `backend/app/schemas/auth.py` | Modification | Support des backup codes dans le schéma de vérification. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout de l'étape de téléchargement des codes de secours lors du setup MFA. |
+| `backend/tests/test_mfa_ratelimit.py` | Création | Test isolé pour valider le verrouillage du compte. |
+
+#### ✅ Security Hardening (Phase 4)
+- [x] **Encryption at Rest** : Secrets MFA chiffrés en base de données.
+- [x] **Session Revocation** : Invalidation immédiate des tokens lors d'un changement de sécurité (MFA/Mot de passe).
+- [x] **Account Lockout** : Protection anti brute-force (15min de blocage après 5 échecs TOTP).
+- [x] **Backup & Recovery** : Génération, stockage haché et utilisation de 10 codes de secours à usage unique.
+- [x] Tests fonctionnels validés (10/10 passés).
+
+---
+
+### Itération 29 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Implémentation du Self-Service MFA pour les utilisateurs.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/routers/auth.py` | Modification | Ajout de l'endpoint `mfa/disable` avec vérification TOTP. |
+| `frontend/src/lib/api.ts` | Modification | Ajout de la méthode `mfaDisable`. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout du bouton et du dialogue de désactivation MFA avec gestion du cas `mfa_required`. |
+| `backend/tests/test_mfa_functional.py` | Modification | Ajout des tests de désactivation MFA (Succès/Échec). |
+
+#### ✅ User Self-Service (Phase 3)
+- [x] Backend : Désactivation sécurisée par l'utilisateur.
+- [x] Frontend : Interface de gestion dans le profil.
+- [x] Sécurité : Blocage de la désactivation si MFA obligatoire (admin).
+- [x] Tests fonctionnels validés (6/6 passés).
+
+---
+
+### Itération 28 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Implémentation du pilotage Admin du MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/models/user.py` | Modification | Ajout de la colonne `mfa_required`. |
+| `backend/app/routers/users.py` | Modification | Ajout des endpoints `reset-mfa` et `require-mfa` avec logs d'audit. |
+| `backend/app/routers/auth.py` | Modification | Enforcement de l'obligation MFA lors du login. |
+| `backend/app/schemas/user.py` | Modification | Exposition de `mfa_required` via l'API `UserRead`. |
+| `frontend/src/lib/api.ts` | Modification | Intégration des nouvelles méthodes `resetMfa` et `requireMfa`. |
+| `frontend/src/app/(dashboard)/admin/users/client.tsx` | Modification | Mise à jour du tableau SOC : colonnes et actions MFA. |
+| `backend/tests/test_admin_mfa.py` | Création | Tests fonctionnels validant le reset et l'obligation MFA. |
+
+#### ✅ Admin MFA Management (Phase 2)
+- [x] Backend : Endpoints de gestion opérationnels.
+- [x] Frontend : Dashboard Admin synchronisé.
+- [x] Sécurité : Interdiction de reset son propre MFA.
+- [x] Tests fonctionnels validés (3/3 passés).
+
+---
+
+### Itération 27 — 2026-05-22 (Gemini CLI)
+
+**Objectif de l'itération** : Implémentation complète du flux de vérification MFA (Login -> Challenge -> Verify).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/core/redis.py` | Modification | Optimisation du stockage des challenges MFA (O(1) lookup via token). |
+| `backend/app/routers/auth.py` | Modification | Refactoring de `mfa_verify` pour utiliser le nouveau lookup Redis et ajout de logs d'audit. |
+| `frontend/src/lib/api.ts` | Modification | Alignement du paramètre `totp_code` avec le schéma backend. |
+| `frontend/src/middleware.ts` | Modification | Autorisation de l'accès à `/mfa` sans session active. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Création | Page de vérification MFA avec design SOC-radar et gestion des erreurs. |
+| `backend/tests/test_mfa_functional.py` | Création | Tests fonctionnels automatisés du flux MFA complet. |
+
+#### Décisions techniques
+
+1. **Efficacité Redis** : Inversion de la paire Clé/Valeur dans Redis (`mfa_challenge:{token} -> user_id`) pour supprimer les scans linéaires coûteux lors de la vérification.
+2. **Continuité Design** : Réutilisation des composants et du fond radar SVG de la page login pour une expérience utilisateur fluide.
+3. **Sécurité par l'Audit** : Traçabilité systématique des tentatives MFA (réussies/échouées) dans les logs d'audit SQLAlchemy.
+
+#### ✅ Flux MFA (Phase 1)
+- [x] Optimisation Backend (Redis + Router).
+- [x] Middleware Frontend mis à jour.
+- [x] Page `/mfa` opérationnelle.
+- [x] Tests fonctionnels validés (3/3 passés).
+
+---
+
+### Itération 26 — 2026-05-21 (Gemini CLI)
+
+**Objectif de l'itération** : Planification détaillée et préparation des améliorations MFA.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `TODO.md` | Création | Roadmap détaillée pour les améliorations MFA (Login flow, Admin management, Security hardening). |
+
+#### Décisions techniques
+
+1. **Approche par Roadmap** : Avant d'implémenter les changements complexes (migration DB, nouvelles routes), une planification exhaustive a été réalisée dans `TODO.md` pour couvrir les aspects Backend, Frontend et Sécurité.
+2. **Priorisation de la Vérification** : Identification d'une faille dans le flux actuel (page `/mfa` manquante et middleware bloquant) qui sera la première tâche technique.
+
+#### ✅ Planification MFA
+- [x] Création du `TODO.md` MFA complet.
+- [x] Définition des missions de durcissement (Security Hardening).
+- [x] Push sur la branche `feat/mfa`.
+
+---
+
 ### Itération 25 — 2026-05-21 (Gemini CLI)
 
 **Objectif de l'itération** : Restauration et population de données pour le connecteur RansomLook local.

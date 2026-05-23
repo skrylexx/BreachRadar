@@ -48,7 +48,7 @@ export function Header() {
   return (
     <header
       className="h-14 flex-shrink-0 flex items-center justify-between
-                 px-4 sm:px-6 border-b border-border/50 bg-card/50 backdrop-blur-sm"
+                 px-4 sm:px-6 border-b border-border/50 bg-card/50 backdrop-blur-sm z-40 relative"
     >
       {/* Titre de la page + Menu Mobile */}
       <div className="flex items-center gap-3">
@@ -157,43 +157,61 @@ function UserMenu() {
     <div className="relative group">
       <button
         id="header-user-menu"
-        className="flex items-center gap-2 px-2 py-1.5 rounded-md
+        className="flex items-center justify-center w-9 h-9 rounded-md
                    hover:bg-accent transition-colors duration-150"
         aria-label="User menu"
       >
         <div className="w-7 h-7 rounded-full bg-radar/20 border border-radar/30
-                        flex items-center justify-center">
+                        flex items-center justify-center flex-shrink-0">
           <User className="w-3.5 h-3.5 text-radar" strokeWidth={1.5} />
         </div>
       </button>
 
+      {/* Bridge invisible pour garder le hover actif entre le bouton et le menu */}
+      <div className="absolute top-full right-0 h-2 w-full pointer-events-auto" />
+
       {/* Dropdown */}
-      <div className="absolute right-0 top-full mt-1
-                      bg-popover border border-border rounded-md shadow-lg
+      <div className="absolute right-0 top-[calc(100%+4px)]
+                      bg-popover border border-border rounded-md shadow-xl
                       opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto
-                      transition-opacity duration-150 z-50 min-w-[160px]">
-        <div className="px-3 py-2 border-b border-border">
-          <p className="text-xs font-medium text-foreground">Account</p>
-          <p className="text-xs text-muted-foreground font-data truncate">admin@domain.com</p>
+                      transition-all duration-150 z-[100] min-w-[200px]
+                      translate-y-1 group-hover:translate-y-0">
+        <div className="px-4 py-3 border-b border-border/50">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">
+            Connected as
+          </p>
+          <p className="text-xs text-foreground font-data truncate">admin@yourdomain.com</p>
         </div>
 
-        <div className="p-1">
+        <div className="p-1.5">
+          <button
+            id="user-menu-profile"
+            onClick={() => window.location.href = "/profile"}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md
+                       text-xs text-foreground hover:bg-accent transition-colors"
+          >
+            <User className="w-3.5 h-3.5" strokeWidth={1.5} />
+            Mon Profil
+          </button>
           <button
             id="user-menu-settings"
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-sm
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md
                        text-xs text-foreground hover:bg-accent transition-colors"
           >
             <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Settings
+            Paramètres
           </button>
+          
+          <div className="h-px bg-border/50 my-1.5" />
+          
           <button
             id="user-menu-logout"
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-sm
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md
                        text-xs text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Sign out
+            Se déconnecter
           </button>
         </div>
       </div>

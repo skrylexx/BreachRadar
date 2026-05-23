@@ -26,6 +26,7 @@ class UserRead(BaseModel):
     role: UserRole
     is_active: bool
     mfa_enabled: bool
+    mfa_required: bool
     created_at: datetime
     last_login_at: Optional[datetime]
 

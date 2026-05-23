@@ -22,20 +22,24 @@ class LoginRequest(BaseModel):
 class MFAVerifyRequest(BaseModel):
     """Vérification du code TOTP après la connexion password."""
     challenge_token: str  # Token temporaire Redis (valide 5 min)
-    totp_code: str        # Code 6 chiffres de l'app authenticator
+    totp_code: str        # Code 6 chiffres ou code de secours 12 caractères
 
     @field_validator("totp_code")
     @classmethod
     def validate_totp_code(cls, v: str) -> str:
-        if not v.isdigit() or len(v) != 6:
-            raise ValueError("TOTP code must be exactly 6 digits")
-        return v
+        # Autorise TOTP (6 chiffres) OU Backup Code (12 chars alphanum)
+        if len(v) == 6 and v.isdigit():
+            return v
+        if len(v) == 12 and v.isalnum():
+            return v
+        raise ValueError("Must be a 6-digit TOTP or a 12-character backup code")
 
 
 class MFASetupResponse(BaseModel):
-    """Réponse lors de l'activation du MFA : QR code + secret de backup."""
+    """Réponse lors de l'activation du MFA : QR code + secret de backup + codes de secours."""
     qrcode_base64: str    # "data:image/png;base64,..."
     manual_entry_key: str # Clé manuelle pour les apps sans caméra
+    backup_codes: list[str] # 10 codes à usage unique
 
 
 class PasswordChangeRequest(BaseModel):
@@ -70,6 +74,7 @@ class UserInfo(BaseModel):
     email: str
     role: str
     mfa_enabled: bool
+    mfa_required: bool
     last_login_at: Optional[datetime]
 
     model_config = {"from_attributes": True}
