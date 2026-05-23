@@ -35,7 +35,8 @@ class IntelligenceMonitor:
         self.registry = SourceRegistry.load()
         self.client = httpx.AsyncClient(
             timeout=30.0,
-            headers={"User-Agent": f"BreachRadar/1.0 (Watch-Engine; {settings.target_domain})"}
+            follow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
         )
 
     async def run_all(self):

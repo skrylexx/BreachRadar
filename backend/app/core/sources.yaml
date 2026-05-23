@@ -104,6 +104,9 @@ sources:
       - name: "CISA (Current Activity)"
         url: "https://www.cisa.gov/uscert/ncas/current-activity.xml"
         category: "Alerts"
+      - name: "IT-Connect"
+        url: "https://www.it-connect.fr/feed/"
+        category: "News"
 
   # ─── RansomLook — Surveillance ransomware ────────────────────────────────────
 

@@ -40,7 +40,8 @@ export default function IntelligenceFeedPage() {
   const [findings, setFindings] = useState<CyberFinding[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState<string>("all");
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [readFilter, setReadFilter] = useState<string>("unread");
 
   const fetchFindings = useCallback(async () => {
     setLoading(true);
@@ -70,8 +71,14 @@ export default function IntelligenceFeedPage() {
   const filteredFindings = findings.filter(f => {
     const matchesSearch = f.title.toLowerCase().includes(search.toLowerCase()) || 
                          f.source.toLowerCase().includes(search.toLowerCase());
-    const matchesType = filterType === "all" || f.finding_type === filterType;
-    return matchesSearch && matchesType;
+    
+    const matchesSeverity = severityFilter === "all" || f.severity === severityFilter;
+    
+    let matchesRead = true;
+    if (readFilter === "unread") matchesRead = !f.is_read;
+    if (readFilter === "read") matchesRead = f.is_read;
+
+    return matchesSearch && matchesSeverity && matchesRead;
   });
 
   return (
@@ -83,24 +90,48 @@ export default function IntelligenceFeedPage() {
       />
 
       {/* Barre d'outils / Filtres */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full sm:max-w-md">
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full lg:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Rechercher une menace, une source..." 
+            placeholder="Rechercher..." 
             className="pl-10 bg-secondary/30 border-border/50"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          {/* Filtre Statut de lecture */}
+          <select 
+            value={readFilter}
+            onChange={(e) => setReadFilter(e.target.value)}
+            className="bg-secondary/30 border border-border/50 rounded-md px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-radar"
+          >
+            <option value="all">Tous les articles</option>
+            <option value="unread">Non lus uniquement</option>
+            <option value="read">Déjà lus</option>
+          </select>
+
+          {/* Filtre Sévérité */}
+          <select 
+            value={severityFilter}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+            className="bg-secondary/30 border border-border/50 rounded-md px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-radar"
+          >
+            <option value="all">Toutes sévérités</option>
+            <option value="CRITICAL">Critique</option>
+            <option value="HIGH">Élevée</option>
+            <option value="MEDIUM">Moyenne</option>
+            <option value="LOW">Faible</option>
+          </select>
+
           <Button 
             variant="outline" 
             size="sm" 
             onClick={fetchFindings}
             disabled={loading}
-            className="bg-secondary/30 border-border/50"
+            className="bg-secondary/30 border-border/50 ml-auto lg:ml-0"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Rafraîchir
