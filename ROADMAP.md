@@ -50,6 +50,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 33 — 2026-05-23 (Gemini CLI)
+
+**Objectif de l'itération** : Audit complet des versions et de la sécurité des dépendances (SCA).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `PROCEDURE_CHECKS.md` | Nouveau | Guide réutilisable pour les futurs audits de versions. |
+| `TODO.md` | Modification | Définition des tâches de l'audit de sécurité. |
+| `security_audits/TECH_STACK.md` | Modification | Synchronisation des versions réelles (Runtimes + Packages). |
+
+#### ✅ Audit de Sécurité (SCA)
+- [x] **Backend Audit** : Détection de 6 vulnérabilités (`idna`, `urllib3`, `pip`). Version Python réelle : 3.14.3.
+- [x] **Frontend Audit** : Détection de 6 vulnérabilités, dont une **CRITIQUE** sur `Next.js 15.1.3` (RCE, SSRF, Cache Poisoning).
+- [x] **Analyse de Drift** : Frameworks frontend (`Next.js`, `React`, `Tailwind`) identifiés comme ayant un retard important par rapport aux dernières versions stables.
+- [x] **Documentation** : Création de la procédure standard de vérification.
+
+---
+
 ### Itération 32 — 2026-05-23 (Gemini CLI)
 
 **Objectif de l'itération** : Mise en place du moteur de Veille Numérique & Intelligence Cyber.
