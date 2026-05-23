@@ -50,6 +50,29 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 31 — 2026-05-23 (Gemini CLI)
+
+**Objectif de l'itération** : Maintenance de la stack et refonte du flux MFA (UX + Résilience).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `SQL Migration` | Fix | Alignement de la table `users` (colonnes MFA + Session revocation). |
+| `backend/app/routers/auth.py` | Fix/Feature | Gestion des backup codes, reset forcé du MFA après secours, et retour de l'objet User complet. |
+| `frontend/src/lib/api.ts` | Fix | Ajout de `suppressRedirect` pour éviter les logouts prématurés lors du refresh token. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Feature | Mode secours (Backup codes), auto-focus et lien "Appareil non disponible". |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Fix/UX | Mise à jour locale du state utilisateur et auto-focus dans les dialogs. |
+
+#### ✅ Maintenance & Stabilité
+- [x] **Database Sync** : Synchronisation du schéma PostgreSQL.
+- [x] **MFA Flow Fix** : Correction de la déconnexion immédiate via mise à jour locale du state et suppression des redirections 401 intempestives.
+- [x] **Recovery Mode** : Implémentation complète du flux de secours (Backup Codes).
+- [x] **UX Improvements** : Auto-focus sur tous les champs de sécurité et navigation fluide.
+- [x] **Validation** : Tous les services Docker sont `healthy`.
+
+---
+
 ### Itération 30 — 2026-05-22 (Gemini CLI)
 
 **Objectif de l'itération** : Durcissement de la sécurité (Security Hardening) de l'implémentation MFA.

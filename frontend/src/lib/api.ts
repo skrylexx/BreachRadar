@@ -27,13 +27,14 @@ export interface PaginatedResponse<T> {
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
+  suppressRedirect?: boolean;
 }
 
 export async function apiFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { skipAuth = false, ...fetchOptions } = options;
+  const { skipAuth = false, suppressRedirect = false, ...fetchOptions } = options;
 
   const headers = new Headers(fetchOptions.headers ?? {});
 
@@ -48,7 +49,7 @@ export async function apiFetch<T = unknown>(
   });
 
   // 401 → redirection vers login
-  if (response.status === 401 && !skipAuth) {
+  if (response.status === 401 && !skipAuth && !suppressRedirect) {
     if (typeof window !== "undefined") {
       window.location.href = "/login";
     }
@@ -415,9 +416,12 @@ export const authApi = {
     api.post<void>("/api/v1/auth/mfa/verify", { challenge_token, totp_code }, { skipAuth: true }),
   logout: () => api.post<void>("/api/v1/auth/logout"),
   me: () => api.get<User>("/api/v1/auth/me"),
-  passwordChange: (data: any) => api.post<void>("/api/v1/auth/password/change", data),
+  passwordChange: (data: any) =>
+    api.post<User>("/api/v1/auth/password/change", data, { suppressRedirect: true }),
   mfaSetup: () =>
     api.post<{ qrcode_base64: string; manual_entry_key: string; backup_codes: string[] }>("/api/v1/auth/mfa/setup"),
-  mfaConfirm: (code: string) => api.post<void>("/api/v1/auth/mfa/confirm", { totp_code: code }),
-  mfaDisable: (code: string) => api.post<void>("/api/v1/auth/mfa/disable", { totp_code: code }),
+  mfaConfirm: (code: string) =>
+    api.post<User>("/api/v1/auth/mfa/confirm", { totp_code: code }, { suppressRedirect: true }),
+  mfaDisable: (code: string) =>
+    api.post<User>("/api/v1/auth/mfa/disable", { totp_code: code }, { suppressRedirect: true }),
 };

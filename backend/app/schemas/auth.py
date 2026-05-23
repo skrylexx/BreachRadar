@@ -74,6 +74,7 @@ class UserInfo(BaseModel):
     email: str
     role: str
     mfa_enabled: bool
+    mfa_required: bool
     last_login_at: Optional[datetime]
 
     model_config = {"from_attributes": True}

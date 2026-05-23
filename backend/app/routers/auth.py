@@ -210,6 +210,7 @@ async def mfa_verify(
     is_valid = False
     is_backup_used = False
 
+    # Accepter les codes de secours (12 caractères)
     if len(body.totp_code) == 12:
         # Tentative via code de secours
         if user.mfa_backup_codes:
@@ -220,6 +221,10 @@ async def mfa_verify(
                     flag_modified(user, "mfa_backup_codes")
                     is_valid = True
                     is_backup_used = True
+                    # Si un code de secours est utilisé, on force la réinitialisation du MFA
+                    user.mfa_enabled = False
+                    user.mfa_required = True
+                    user.token_version += 1 # Invalider les autres sessions par sécurité
                     break
     else:
         # Tentative via TOTP standard
@@ -305,30 +310,37 @@ async def mfa_setup(
     )
 
 
-@router.post("/mfa/confirm")
+@router.post("/mfa/confirm", response_model=UserInfo)
 async def mfa_confirm(
     body: dict,
+    response: Response,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> User:
     """Valide le premier code TOTP pour activer définitivement le MFA."""
     code = body.get("totp_code")
     if not code or not verify_totp(decrypt_secret(current_user.mfa_secret), code):
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = True
+    current_user.mfa_required = False # Si on vient d'un reset via backup code
     current_user.token_version += 1
+    
+    # Rafraîchir les cookies avec la nouvelle version
+    _set_auth_cookies(response, current_user.id, current_user.email, current_user.role.value, current_user.token_version)
+    
     await db.commit()
-    return {"message": "MFA enabled successfully"}
+    return current_user
 
 
-@router.post("/mfa/disable")
+@router.post("/mfa/disable", response_model=UserInfo)
 async def mfa_disable(
     request: Request,
+    response: Response,
     body: dict,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> User:
     """Désactive le MFA de l'utilisateur (requiert code TOTP)."""
     if not current_user.mfa_enabled:
         raise HTTPException(status_code=400, detail="MFA is not enabled")
@@ -342,19 +354,23 @@ async def mfa_disable(
     current_user.mfa_secret = None
     current_user.token_version += 1
     
+    # Rafraîchir les cookies avec la nouvelle version
+    _set_auth_cookies(response, current_user.id, current_user.email, current_user.role.value, current_user.token_version)
+    
     await _log_action(db, "auth.mfa.disable.success", request, current_user.email)
     await db.commit()
-    return {"message": "MFA disabled successfully"}
+    return current_user
 
 
 # ─── POST /auth/password/change ───────────────────────────────────────────────
-@router.post("/password/change")
+@router.post("/password/change", response_model=UserInfo)
 async def change_password(
     request: Request,
+    response: Response,
     body: PasswordChangeRequest,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> User:
     """Changement de mot de passe authentifié."""
     if not verify_password(body.current_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
@@ -369,8 +385,12 @@ async def change_password(
     current_user.password_length = len(body.new_password)
     current_user.token_version += 1
 
+    # Rafraîchir les cookies avec la nouvelle version
+    _set_auth_cookies(response, current_user.id, current_user.email, current_user.role.value, current_user.token_version)
+
     await _log_action(db, "auth.password.changed", request, current_user.email)
-    return {"message": "Password changed successfully"}
+    await db.commit()
+    return current_user
 
 
 # ─── GET /health (quick auth check) ──────────────────────────────────────────

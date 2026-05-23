@@ -28,6 +28,7 @@ export default function MFAPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [isRecovery, setIsRecovery] = useState(false);
 
   // Vérifier la présence du challenge token au montage
   useEffect(() => {
@@ -42,8 +43,17 @@ export default function MFAPage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
-  } = useForm<MFAFormData>({ resolver: zodResolver(mfaSchema) });
+  } = useForm<MFAFormData>({ 
+    resolver: zodResolver(
+      z.object({
+        totp_code: isRecovery 
+          ? z.string().length(12, "Recovery code must be 12 characters")
+          : z.string().length(6, "Code must be 6 digits").regex(/^\d+$/, "Digits only"),
+      })
+    ) 
+  });
 
   const onSubmit = async (data: MFAFormData) => {
     if (!challengeToken) return;
@@ -58,6 +68,12 @@ export default function MFAPage() {
     } catch (err: any) {
       setError(err.message || "Invalid or expired verification code");
     }
+  };
+
+  const toggleMode = () => {
+    setIsRecovery(!isRecovery);
+    setError(null);
+    reset();
   };
 
   // Ne rien afficher si redirection en cours
@@ -89,31 +105,42 @@ export default function MFAPage() {
         {/* Formulaire */}
         <div className="card-soc p-6 space-y-6">
           <div className="space-y-1">
-            <h1 className="text-lg font-semibold text-foreground">Multi-Factor Authentication</h1>
+            <h1 className="text-lg font-semibold text-foreground">
+              {isRecovery ? "Recovery Code" : "Multi-Factor Authentication"}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Please enter the 6-digit code from your authenticator app to complete the sign-in process.
+              {isRecovery 
+                ? "Please enter one of your 12-character emergency backup codes."
+                : "Please enter the 6-digit code from your authenticator app."}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Code TOTP */}
+            {/* Code TOTP / Recovery */}
             <div className="space-y-2">
               <label htmlFor="totp_code" className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
-                Authentication Code
+                {isRecovery ? "Backup Recovery Code" : "Authentication Code"}
               </label>
               <input
                 id="totp_code"
                 type="text"
-                inputMode="numeric"
+                inputMode={isRecovery ? "text" : "numeric"}
                 autoComplete="one-time-code"
                 autoFocus
-                className="w-full px-3 py-4 bg-secondary/50 border border-border rounded-md
-                           text-center text-3xl font-mono tracking-[0.5em] text-foreground 
+                key={isRecovery ? "recovery" : "totp"}
+                className={`w-full px-3 py-4 bg-secondary/50 border border-border rounded-md
+                           text-center font-mono text-foreground 
                            placeholder:text-muted-foreground/20
                            focus:outline-none focus:ring-2 focus:ring-radar/50 focus:border-radar
-                           transition-all duration-150"
-                placeholder="000000"
-                maxLength={6}
+                           transition-all duration-150 ${isRecovery ? "text-xl tracking-wider" : "text-3xl tracking-[0.5em]"}`}
+                placeholder={isRecovery ? "ABC1-DEF2-GH" : "000000"}
+                maxLength={isRecovery ? 12 : 6}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSubmit(onSubmit)();
+                  }
+                }}
                 {...register("totp_code")}
               />
               {errors.totp_code && (
@@ -142,13 +169,20 @@ export default function MFAPage() {
               {isSubmitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
               ) : (
-                "Verify Code"
+                isRecovery ? "Recover Account" : "Verify Code"
               )}
             </button>
           </form>
 
-          {/* Lien retour */}
-          <div className="text-center">
+          {/* Lien Mode de secours / Retour */}
+          <div className="flex flex-col gap-3 text-center">
+            <button
+              onClick={toggleMode}
+              className="text-xs text-radar/80 hover:text-radar transition-colors font-medium"
+            >
+              {isRecovery ? "Use authenticator app instead" : "Device not available? Use a recovery code"}
+            </button>
+
             <button
               onClick={() => router.push("/login")}
               className="text-xs text-muted-foreground hover:text-radar transition-colors 

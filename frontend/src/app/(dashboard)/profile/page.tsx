@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle, DownloadCloud, Copy } from "lucide-react";
 import { authApi, User as UserType } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
@@ -61,6 +62,15 @@ export default function ProfilePage() {
     fetchUser();
   }, []);
 
+  // Détection du paramètre setup_mfa pour lancement automatique
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("setup_mfa") === "true" && user && !user.mfa_enabled) {
+      setMfaDialogOpen(true);
+      startMfaSetup();
+    }
+  }, [searchParams, user]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -83,11 +93,12 @@ export default function ProfilePage() {
     }
     setPwdLoading(true);
     try {
-      await authApi.passwordChange({
+      const updatedUser = await authApi.passwordChange({
         current_password: pwdData.current,
         new_password: pwdData.new,
         new_password_confirm: pwdData.confirm,
       });
+      setUser(updatedUser);
       setPwdDialogOpen(false);
       setPwdData({ current: "", new: "", confirm: "" });
       alert("Mot de passe modifié avec succès.");
@@ -114,10 +125,10 @@ export default function ProfilePage() {
   const handleMfaConfirm = async () => {
     setMfaLoading(true);
     try {
-      await authApi.mfaConfirm(mfaCode);
+      const updatedUser = await authApi.mfaConfirm(mfaCode);
+      setUser(updatedUser);
       setMfaStep("backup"); // Passer à l'étape des backup codes
       setMfaCode("");
-      await fetchUser();
     } catch (err: any) {
       alert("Code invalide. Veuillez réessayer.");
     } finally {
@@ -139,10 +150,10 @@ export default function ProfilePage() {
   const handleMfaDisable = async () => {
     setMfaLoading(true);
     try {
-      await authApi.mfaDisable(mfaDisableCode);
+      const updatedUser = await authApi.mfaDisable(mfaDisableCode);
+      setUser(updatedUser);
       setMfaDisableDialogOpen(false);
       setMfaDisableCode("");
-      await fetchUser();
       alert("MFA désactivé avec succès.");
     } catch (err: any) {
       alert(err.message || "Code invalide. Impossible de désactiver le MFA.");
@@ -335,6 +346,7 @@ export default function ProfilePage() {
               <Label className="text-xs">Mot de passe actuel</Label>
               <Input
                 type="password"
+                autoFocus
                 value={pwdData.current}
                 onChange={(e) => setPwdData({ ...pwdData, current: e.target.value })}
                 className="bg-secondary/50 border-border/50"
@@ -416,8 +428,15 @@ export default function ProfilePage() {
                 <Input
                   placeholder="000000"
                   maxLength={6}
+                  autoFocus
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && mfaCode.length === 6) {
+                      e.preventDefault();
+                      handleMfaConfirm();
+                    }
+                  }}
                   className="bg-secondary/50 border-border/50 text-center text-lg tracking-[0.5em] font-data"
                 />
               </div>
@@ -492,8 +511,15 @@ export default function ProfilePage() {
               <Input
                 placeholder="000000"
                 maxLength={6}
+                autoFocus
                 value={mfaDisableCode}
                 onChange={(e) => setMfaDisableCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && mfaDisableCode.length === 6) {
+                    e.preventDefault();
+                    handleMfaDisable();
+                  }
+                }}
                 className="bg-secondary/50 border-border/50 text-center text-lg tracking-[0.5em] font-data"
               />
             </div>
