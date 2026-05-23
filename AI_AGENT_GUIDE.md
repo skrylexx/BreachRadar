@@ -372,6 +372,25 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
+### Passation #8 — 2026-05-23
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : `cb12e58` (base) + Audit Reports
+- **Tâches accomplies** :
+  - **Audit de Sécurité des Versions** :
+    - Scan SCA Backend (`pip-audit`) : 6 vulnérabilités trouvées (`idna` < 3.15, `urllib3` < 2.7.0).
+    - Scan SCA Frontend (`npm audit`) : 6 vulnérabilités trouvées, dont **Next.js 15.1.3 (CRITIQUE)**.
+    - Création de `PROCEDURE_CHECKS.md` pour systématiser les futurs checks.
+    - Mise à jour de `TECH_STACK.md` avec les versions système réelles (Python 3.14.3, Node 22.12.0).
+- **Tâche suivante** : Remédiation des vulnérabilités critiques (Update Next.js, urllib3, idna).
+- **Points de vigilance** :
+  - **URGENT** : La version de Next.js utilisée présente des risques de RCE et SSRF documentés.
+  - La version Python locale (3.14) est très en avance sur l'image Docker (3.12).
+- **Fichiers mis à jour** : ROADMAP.md · AI_AGENT_GUIDE.md · TODO.md · PROCEDURE_CHECKS.md · TECH_STACK.md
+
+***
+
 ### Passation #7 — 2026-05-23
 
 - **Agent sortant**            : Gemini CLI
