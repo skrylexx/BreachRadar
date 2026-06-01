@@ -71,3 +71,4 @@ security_audits/reports/
 # Dossier temporaires de tests
 docker_images/
 debug/
+resultats.txt

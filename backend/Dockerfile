@@ -1,6 +1,6 @@
 # ─── Backend FastAPI — Dockerfile ───────────────────────────────────────────
 # Image slim, non-root, avec uv pour la gestion des paquets
-FROM python:3.12-slim@sha256:452a468a4bf985040037cb6d5392410206e47db9bf5b7278d281f94d1c2d0931 AS base
+FROM python:3.12-slim@sha256:73dbd1a2ad74137451593a8ac30f7bdd0f5010fc05fb34644190cffa7696bbf3 AS base
 
 # Métadonnées
 LABEL maintainer="BreachRadar Team"

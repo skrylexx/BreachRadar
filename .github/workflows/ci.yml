@@ -46,7 +46,9 @@ jobs:
         run: uv python install 3.12
 
       - name: 🛠️ Install dependencies
-        run: cd backend && uv sync --extra dev
+        run: |
+          cd backend
+          uv pip install --system -e ".[dev,pdf]"
 
       - name: 🔍 Lint & Format (Ruff)
         run: cd backend && uv run ruff check app/ tests/
