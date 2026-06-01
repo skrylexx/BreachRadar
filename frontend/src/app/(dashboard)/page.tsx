@@ -17,6 +17,7 @@ import { IntelligenceWidget } from "@/components/dashboard/IntelligenceWidget";
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 import { fetchJSON } from "@/lib/fetch";
+import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: "Dashboard — BreachRadar",
@@ -34,19 +35,16 @@ interface DashboardStats {
   last_scan_at: string | null;
 }
 
-// ─── Helpers fetch ─────────────────────────────────────────────────────────────────────
-// On utilise fetchJSON du lib/fetch qui gère maintenant les cookies et l'URL interne
-
 // ─── Formatage "X ago" ────────────────────────────────────────────────────────────────────
-function timeAgo(iso: string | null): string {
-  if (!iso) return "Never";
+function formatTimeAgo(iso: string | null, t: any): string {
+  if (!iso) return t("Common.never");
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1)  return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1)  return t("Common.just_now");
+  if (minutes < 60) return t("Common.time_ago", { time: minutes, unit: t("Common.unit_m") });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24)   return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24)   return t("Common.time_ago", { time: hours, unit: t("Common.unit_h") });
+  return t("Common.time_ago", { time: Math.floor(hours / 24), unit: t("Common.unit_d") });
 }
 
 // ─── Page ────────────────────────────────────────────────────────────────────────────────
@@ -56,6 +54,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ period?: string }>;
 }) {
   const { period = "7d" } = await searchParams;
+  const t = await getTranslations();
 
   // Appels parallèles vers le backend
   const [stats, connectors, findingsRes, chartData, ransomwareRes, cveRes, scansRes] = await Promise.all([
@@ -82,7 +81,7 @@ export default async function DashboardPage({
   const quickStats = [
     {
       id: "stat-critical",
-      label: "Alertes Critiques",
+      label: t("Dashboard.stat_critical"),
       value: stats?.critical_count ?? 0,
       icon: ShieldAlert,
       bg: "bg-red-500/10",
@@ -90,7 +89,7 @@ export default async function DashboardPage({
     },
     {
       id: "stat-total",
-      label: "Fuites Détectées",
+      label: t("Dashboard.stat_findings"),
       value: stats?.total_findings ?? 0,
       icon: TrendingUp,
       bg: "bg-radar/10",
@@ -98,7 +97,7 @@ export default async function DashboardPage({
     },
     {
       id: "stat-scans",
-      label: "Scans (7j)",
+      label: t("Dashboard.stat_scans"),
       value: stats?.scans_7d ?? 0,
       icon: Clock,
       bg: "bg-blue-500/10",
@@ -106,8 +105,8 @@ export default async function DashboardPage({
     },
     {
       id: "stat-last-scan",
-      label: "Dernier scan",
-      value: timeAgo(stats?.last_scan_at ?? null),
+      label: t("Dashboard.stat_last_scan"),
+      value: formatTimeAgo(stats?.last_scan_at ?? null, t),
       icon: Clock,
       bg: "bg-secondary",
       color: "text-muted-foreground",
@@ -122,8 +121,8 @@ export default async function DashboardPage({
         <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center gap-3 text-orange-400">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <div className="text-sm">
-            <span className="font-bold uppercase mr-2">Mode Démonstration Actif :</span>
-            Certaines sources ne sont pas configurées. Des données fictives (Mocks) sont affichées pour illustrer l'interface.
+            <span className="font-bold uppercase mr-2">{t("Dashboard.alert_demo_title")} :</span>
+            {t("Dashboard.alert_demo_text")}
           </div>
         </div>
       )}

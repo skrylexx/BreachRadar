@@ -12,20 +12,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Shield, ArrowLeft } from "lucide-react";
 import { authApi } from "@/lib/api";
-
-// ─── Schéma de validation ─────────────────────────────────────────────────────
-const mfaSchema = z.object({
-  totp_code: z
-    .string()
-    .length(6, "Code must be exactly 6 digits")
-    .regex(/^\d+$/, "Code must contain only digits"),
-});
-
-type MFAFormData = z.infer<typeof mfaSchema>;
+import { useTranslations } from "next-intl";
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 export default function MFAPage() {
   const router = useRouter();
+  const t = useTranslations("MFA");
   const [error, setError] = useState<string | null>(null);
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const [isRecovery, setIsRecovery] = useState(false);
@@ -45,17 +37,17 @@ export default function MFAPage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<MFAFormData>({ 
+  } = useForm<any>({ 
     resolver: zodResolver(
       z.object({
         totp_code: isRecovery 
-          ? z.string().length(12, "Recovery code must be 12 characters")
-          : z.string().length(6, "Code must be 6 digits").regex(/^\d+$/, "Digits only"),
+          ? z.string().length(12, t("error_recovery_length"))
+          : z.string().length(6, t("error_length")).regex(/^\d+$/, t("error_digits")),
       })
     ) 
   });
 
-  const onSubmit = async (data: MFAFormData) => {
+  const onSubmit = async (data: any) => {
     if (!challengeToken) return;
     setError(null);
 
@@ -71,7 +63,7 @@ export default function MFAPage() {
       
       router.push(returnTo);
     } catch (err: any) {
-      setError(err.message || "Invalid or expired verification code");
+      setError(err.message || t("error_invalid"));
     }
   };
 
@@ -103,7 +95,7 @@ export default function MFAPage() {
             </span>
           </div>
           <p className="text-muted-foreground text-sm font-medium tracking-wide">
-            TWO-STEP VERIFICATION REQUIRED
+            {t("title_required")}
           </p>
         </div>
 
@@ -111,12 +103,12 @@ export default function MFAPage() {
         <div className="card-soc p-6 space-y-6">
           <div className="space-y-1">
             <h1 className="text-lg font-semibold text-foreground">
-              {isRecovery ? "Recovery Code" : "Multi-Factor Authentication"}
+              {isRecovery ? t("recovery_title") : t("card_title")}
             </h1>
             <p className="text-sm text-muted-foreground">
               {isRecovery 
-                ? "Please enter one of your 12-character emergency backup codes."
-                : "Please enter the 6-digit code from your authenticator app."}
+                ? t("recovery_desc")
+                : t("card_desc")}
             </p>
           </div>
 
@@ -124,7 +116,7 @@ export default function MFAPage() {
             {/* Code TOTP / Recovery */}
             <div className="space-y-2">
               <label htmlFor="totp_code" className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
-                {isRecovery ? "Backup Recovery Code" : "Authentication Code"}
+                {isRecovery ? t("input_label_recovery") : t("input_label")}
               </label>
               <input
                 id="totp_code"
@@ -138,7 +130,7 @@ export default function MFAPage() {
                            placeholder:text-muted-foreground/20
                            focus:outline-none focus:ring-2 focus:ring-radar/50 focus:border-radar
                            transition-all duration-150 ${isRecovery ? "text-xl tracking-wider" : "text-3xl tracking-[0.5em]"}`}
-                placeholder={isRecovery ? "ABC1-DEF2-GH" : "000000"}
+                placeholder={isRecovery ? t("input_placeholder_recovery") : t("input_placeholder")}
                 maxLength={isRecovery ? 12 : 6}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -149,7 +141,7 @@ export default function MFAPage() {
                 {...register("totp_code")}
               />
               {errors.totp_code && (
-                <p className="text-xs text-red-400 font-medium">{errors.totp_code.message}</p>
+                <p className="text-xs text-red-400 font-medium">{errors.totp_code.message as string}</p>
               )}
             </div>
 
@@ -172,9 +164,9 @@ export default function MFAPage() {
                          transition-all duration-150 shadow-lg shadow-radar/20"
             >
               {isSubmitting ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
+                <><Loader2 className="w-4 h-4 animate-spin" /> {t("btn_verifying")}</>
               ) : (
-                isRecovery ? "Recover Account" : "Verify Code"
+                isRecovery ? t("btn_recover") : t("btn_verify")
               )}
             </button>
           </form>
@@ -185,7 +177,7 @@ export default function MFAPage() {
               onClick={toggleMode}
               className="text-xs text-radar/80 hover:text-radar transition-colors font-medium"
             >
-              {isRecovery ? "Use authenticator app instead" : "Device not available? Use a recovery code"}
+              {isRecovery ? t("link_use_app") : t("link_use_recovery")}
             </button>
 
             <button
@@ -194,14 +186,14 @@ export default function MFAPage() {
                          flex items-center justify-center gap-1.5 mx-auto font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> 
-              Back to Sign In
+              {t("link_back_login")}
             </button>
           </div>
         </div>
 
         {/* Footer légal */}
         <p className="text-center text-xs text-muted-foreground/40 mt-6 tracking-tight">
-          Defensive OSINT — SOC Access Control — GDPR Compliance
+          {t("footer_legal")}
         </p>
       </div>
     </div>

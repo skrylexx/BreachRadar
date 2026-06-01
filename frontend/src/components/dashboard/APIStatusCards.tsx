@@ -7,31 +7,33 @@
 import { Plug } from "lucide-react";
 import type { ConnectorStatus } from "@/lib/api";
 import { StatusDot, type SourceStatus } from "@/components/ui/status-dot";
+import { useTranslations } from "next-intl";
 
-function formatTime(iso: string | null): string {
-  if (!iso) return "Never";
+function formatTime(iso: string | null, t: any): string {
+  if (!iso) return t("Common.never");
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t("Common.just_now");
+  if (mins < 60) return t("Common.time_ago", { time: mins, unit: t("Common.unit_m") });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return t("Common.time_ago", { time: hours, unit: t("Common.unit_h") });
+  return t("Common.time_ago", { time: Math.floor(hours / 24), unit: t("Common.unit_d") });
 }
 
-function resolveLabel(c: ConnectorStatus): string {
-  if (c.is_mock) return "Demo Mode";
-  if (!c.configured) return "Not configured";
-  if (!c.is_active) return "Inactive";
-  return c.status === "ok" ? "Operational" : c.status === "warning" ? "Degraded" : c.status === "error" ? "Error" : "Unknown";
+function resolveLabel(c: ConnectorStatus, t: any): string {
+  if (c.is_mock) return t("Connectors.demo_mode");
+  if (!c.configured) return t("Connectors.not_configured");
+  if (!c.is_active) return t("Connectors.inactive");
+  return c.status === "ok" ? t("Connectors.operational") : c.status === "warning" ? t("Connectors.degraded") : c.status === "error" ? t("Connectors.error") : "Unknown";
 }
 
 function EmptyConnectors() {
+  const t = useTranslations("Connectors");
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3 opacity-40">
       <Plug className="w-8 h-8 text-muted-foreground stroke-1" />
       <p className="text-xs text-muted-foreground">
-        No connectors detected. Check backend connection.
+        {t("no_connectors")}
       </p>
     </div>
   );
@@ -39,6 +41,7 @@ function EmptyConnectors() {
 
 // ─── Composant principal ───────────────────────────────────────────────────────────
 export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[] }) {
+  const t = useTranslations();
   const activeCount = statuses.filter((s) => (s.is_active && s.configured) || s.is_mock).length;
   const total       = statuses.length;
 
@@ -46,10 +49,10 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
     <div className="flex flex-col h-full">
       {/* En-tête */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-foreground">Connectors</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("Connectors.title")}</h3>
         {total > 0 && (
           <span className="text-xs text-muted-foreground">
-            {activeCount}/{total} active
+            {t("Connectors.active_count", { active: activeCount, total: total })}
           </span>
         )}
       </div>
@@ -69,7 +72,7 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
               status = c.status;
             }
             
-            const label  = resolveLabel(c);
+            const label  = resolveLabel(c, t);
             return (
               <div
                 key={c.name}
@@ -95,7 +98,7 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
                   </div>
                   {c.is_mock && (
                     <span className="text-[8px] font-bold px-1 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                      MOCK
+                      {t("Connectors.mock_badge")}
                     </span>
                   )}
                 </div>
@@ -110,7 +113,7 @@ export function APIStatusCards({ statuses = [] }: { statuses?: ConnectorStatus[]
                     {label}
                   </p>
                   <p className="text-[10px] text-muted-foreground font-data">
-                    {formatTime(c.last_scan_at)}
+                    {formatTime(c.last_scan_at, t)}
                   </p>
                 </div>
               </div>

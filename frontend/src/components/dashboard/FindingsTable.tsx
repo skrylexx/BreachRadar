@@ -10,6 +10,7 @@ import { Shield, Radar } from "lucide-react";
 import { useState } from "react";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { SeverityBadge, type SeverityLevel } from "@/components/ui/severity-badge";
+import { useTranslations, useLocale } from "next-intl";
 
 interface Finding {
   id: string;
@@ -36,6 +37,7 @@ function SourceBadge({ source }: { source: string }) {
 // ─── CTA "Premier scan" ─────────────────────────────────────────────────────────────
 function FirstScanCTA() {
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const t = useTranslations("FindingsTable");
 
   async function triggerScan() {
     setState("loading");
@@ -64,9 +66,9 @@ function FirstScanCTA() {
         </span>
       </div>
 
-      <p className="text-sm font-medium text-foreground mb-1">No findings yet</p>
+      <p className="text-sm font-medium text-foreground mb-1">{t("first_scan_title")}</p>
       <p className="text-xs text-muted-foreground max-w-xs mb-5">
-        Your connectors are ready. Launch a first scan to populate the dashboard.
+        {t("first_scan_desc")}
       </p>
 
       {state === "idle" && (
@@ -77,23 +79,23 @@ function FirstScanCTA() {
                      text-radar text-xs font-semibold transition-colors duration-150"
         >
           <Radar className="w-3.5 h-3.5" />
-          Launch first scan
+          {t("btn_launch_scan")}
         </button>
       )}
 
       {state === "loading" && (
-        <span className="text-xs text-radar animate-pulse">Scan in progress…</span>
+        <span className="text-xs text-radar animate-pulse">{t("scan_in_progress")}</span>
       )}
 
       {state === "done" && (
         <span className="text-xs text-emerald-400">
-          Scan launched — refreshing…
+          {t("scan_launched")}
         </span>
       )}
 
       {state === "error" && (
         <span className="text-xs text-red-400">
-          Failed to start scan. Check your permissions.
+          {t("scan_failed")}
         </span>
       )}
     </div>
@@ -102,13 +104,13 @@ function FirstScanCTA() {
 
 // ─── Empty state standard ───────────────────────────────────────────────────────────
 function EmptyFindings() {
+  const t = useTranslations("FindingsTable");
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center px-8">
       <Shield className="w-10 h-10 text-muted-foreground/30 mb-4" strokeWidth={1} />
-      <p className="text-sm font-medium text-foreground mb-1">No findings yet</p>
+      <p className="text-sm font-medium text-foreground mb-1">{t("empty_title")}</p>
       <p className="text-xs text-muted-foreground max-w-xs">
-        Findings will appear here once the backend has completed its first scan
-        and data sources are configured.
+        {t("empty_desc")}
       </p>
     </div>
   );
@@ -122,9 +124,12 @@ export function FindingsTable({
   findings?: Finding[];
   hasActiveConnector?: boolean;
 }) {
+  const t = useTranslations();
+  const locale = useLocale();
+
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString("en-GB", {
+    return d.toLocaleDateString(locale === 'en' ? 'en-GB' : 'fr-FR', {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -136,42 +141,42 @@ export function FindingsTable({
   const columns: DataTableColumn<Finding>[] = [
     {
       key: "severity",
-      header: "Severity",
+      header: t("Common.severity"),
       render: (row) => <SeverityBadge level={row.severity} />,
       sortable: true,
       accessor: (row) => row.severity,
     },
     {
       key: "source",
-      header: "Source",
+      header: t("Common.source"),
       render: (row) => <SourceBadge source={row.source} />,
       sortable: true,
       accessor: (row) => row.source,
     },
     {
       key: "domain",
-      header: "Domain",
+      header: t("Common.domain"),
       className: "font-data text-foreground",
       sortable: true,
       accessor: (row) => row.domain,
     },
     {
       key: "type",
-      header: "Type",
+      header: t("Common.type"),
       className: "capitalize",
       sortable: true,
       accessor: (row) => row.type,
     },
     {
       key: "count",
-      header: "Count",
+      header: t("Common.count"),
       className: "font-data font-semibold text-foreground",
       sortable: true,
       accessor: (row) => row.count,
     },
     {
       key: "discovered_at",
-      header: "Discovered",
+      header: t("Common.date"),
       className: "font-data whitespace-nowrap",
       render: (row) => formatDate(row.discovered_at),
       sortable: true,
@@ -185,10 +190,10 @@ export function FindingsTable({
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-radar" strokeWidth={1.5} />
-          <h3 className="text-sm font-semibold text-foreground">Latest Findings</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("FindingsTable.title")}</h3>
         </div>
         <span className="text-xs text-muted-foreground">
-          {findings.length} result{findings.length !== 1 ? "s" : ""}
+          {findings.length} {findings.length !== 1 ? t("Common.results") : t("Common.result")}
         </span>
       </div>
 
@@ -200,7 +205,7 @@ export function FindingsTable({
           columns={columns}
           data={findings}
           rowKey={(row) => row.id}
-          emptyMessage="Findings will appear here once the backend has completed its first scan and data sources are configured."
+          emptyMessage={t("FindingsTable.empty_desc")}
           className="border-0 rounded-none"
         />
       )}

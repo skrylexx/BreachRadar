@@ -3,8 +3,10 @@
 import { AlertTriangle, ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import type { RansomwareAlert } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 export function RansomwareAlertBlock({ alerts = [] }: { alerts?: RansomwareAlert[] }) {
+  const t = useTranslations("RansomwareAlert");
   if (!alerts || alerts.length === 0) return null;
 
   const alert = alerts[0]; // Display the most recent
@@ -24,25 +26,25 @@ export function RansomwareAlertBlock({ alerts = [] }: { alerts?: RansomwareAlert
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-sm font-bold text-red-400 uppercase tracking-wide">
-                Ransomware Alert: {alert.group}
+                {t("title", { group: alert.group })}
               </h3>
               <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 font-data">
-                CRITICAL
+                {t("critical")}
               </span>
               {isMock && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 ml-2">
-                  MOCK DATA
+                  {t("mock")}
                 </span>
               )}
             </div>
             <p className="text-xs text-foreground font-medium mb-1">
-              Victim: <span className="font-data text-muted-foreground">{alert.victim}</span>
+              {t("victim")}: <span className="font-data text-muted-foreground">{alert.victim}</span>
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground font-data">
-              {alert.sector && <span>Sector: {alert.sector}</span>}
-              {alert.country && <span>Country: {alert.country}</span>}
-              {alert.claim_size && <span>Size: {alert.claim_size}</span>}
-              <span>Status: {alert.status}</span>
+              {alert.sector && <span>{t("sector")}: {alert.sector}</span>}
+              {alert.country && <span>{t("country")}: {alert.country}</span>}
+              {alert.claim_size && <span>{t("size")}: {alert.claim_size}</span>}
+              <span>{t("status")}: {alert.status}</span>
             </div>
           </div>
         </div>
@@ -53,7 +55,7 @@ export function RansomwareAlertBlock({ alerts = [] }: { alerts?: RansomwareAlert
                      bg-red-500/10 text-red-400 text-xs font-semibold border border-red-500/20
                      hover:bg-red-500/20 transition-colors whitespace-nowrap self-start md:self-auto"
         >
-          View Details
+          {t("view_details")}
           <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>

@@ -11,20 +11,22 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Loader2, Shield } from "lucide-react";
-
-// ─── Schéma de validation ─────────────────────────────────────────────────────
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { useTranslations } from "next-intl";
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("Auth");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ─── Schéma de validation ─────────────────────────────────────────────────────
+  const loginSchema = z.object({
+    email: z.string().email(t("email_invalid")),
+    password: z.string().min(1, t("password_required")),
+  });
+
+  type LoginFormData = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -45,7 +47,7 @@ export default function LoginPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        setError(json.detail || "Authentication failed");
+        setError(json.detail || t("error_failed"));
         return;
       }
 
@@ -63,7 +65,7 @@ export default function LoginPage() {
       // Connexion directe → rediriger vers return_to ou dashboard
       router.push(returnTo);
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("error_network"));
     }
   };
 
@@ -86,19 +88,19 @@ export default function LoginPage() {
             </span>
           </div>
           <p className="text-muted-foreground text-sm">
-            SOC Governance Platform — Authorized Access Only
+            {t("login_subtitle")}
           </p>
         </div>
 
         {/* Formulaire */}
         <div className="card-soc p-6 space-y-5">
-          <h1 className="text-lg font-semibold text-foreground">Sign in</h1>
+          <h1 className="text-lg font-semibold text-foreground">{t("login_title")}</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-                Email
+                {t("email_label")}
               </label>
               <input
                 id="email"
@@ -108,7 +110,7 @@ export default function LoginPage() {
                            text-sm font-data text-foreground placeholder:text-muted-foreground
                            focus:outline-none focus:ring-2 focus:ring-radar/50 focus:border-radar
                            transition-all duration-150"
-                placeholder="admin@yourdomain.com"
+                placeholder={t("email_placeholder")}
                 {...register("email")}
               />
               {errors.email && (
@@ -119,7 +121,7 @@ export default function LoginPage() {
             {/* Password */}
             <div className="space-y-1.5">
               <label htmlFor="password" className="text-sm font-medium text-muted-foreground">
-                Password
+                {t("password_label")}
               </label>
               <div className="relative">
                 <input
@@ -130,7 +132,7 @@ export default function LoginPage() {
                              text-sm font-data text-foreground placeholder:text-muted-foreground
                              focus:outline-none focus:ring-2 focus:ring-radar/50 focus:border-radar
                              transition-all duration-150"
-                  placeholder="••••••••••••••••"
+                  placeholder={t("password_placeholder")}
                   {...register("password")}
                 />
                 <button
@@ -138,7 +140,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground
                              hover:text-foreground transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t("hide_password") : t("show_password")}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -168,9 +170,9 @@ export default function LoginPage() {
                          transition-all duration-150"
             >
               {isSubmitting ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Authenticating...</>
+                <><Loader2 className="w-4 h-4 animate-spin" /> {t("btn_authenticating")}</>
               ) : (
-                "Sign in"
+                t("btn_signin")
               )}
             </button>
           </form>
@@ -181,14 +183,14 @@ export default function LoginPage() {
               href="/reset-password"
               className="text-xs text-muted-foreground hover:text-radar transition-colors"
             >
-              Forgot password?
+              {t("forgot_password")}
             </a>
           </div>
         </div>
 
         {/* Footer légal */}
         <p className="text-center text-xs text-muted-foreground/50 mt-4">
-          Defensive OSINT — Authorized use only — GDPR Art. 6.1.f
+          {t("footer_legal")}
         </p>
       </div>
     </div>

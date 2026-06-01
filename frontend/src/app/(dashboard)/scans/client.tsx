@@ -7,6 +7,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { SeverityBadge, type SeverityLevel } from "@/components/ui/severity-badge";
 import { StatusDot } from "@/components/ui/status-dot";
 import { scansApi, type Scan, type PaginatedResponse } from "@/lib/api";
+import { useTranslations, useLocale } from "next-intl";
 
 export function ScansClient({ 
   initialData, 
@@ -16,10 +17,13 @@ export function ScansClient({
   initialPage: number;
 }) {
   const router = useRouter();
+  const t = useTranslations("Scans");
+  const tc = useTranslations("Common");
+  const locale = useLocale();
   const [isScanning, setIsScanning] = useState(false);
 
   const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleString("en-GB", {
+    return new Date(iso).toLocaleString(locale === 'en' ? 'en-GB' : 'fr-FR', {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -31,14 +35,14 @@ export function ScansClient({
   const columns: DataTableColumn<Scan>[] = [
     {
       key: "id",
-      header: "Scan ID",
+      header: t("col_id"),
       className: "font-data text-xs font-medium truncate max-w-[150px]",
       sortable: false,
       accessor: (row) => row.id,
     },
     {
       key: "status",
-      header: "Status",
+      header: t("col_status"),
       render: (row) => (
         <div className="flex items-center gap-2">
           <StatusDot status={row.status === "completed" ? "ok" : row.status === "failed" ? "error" : "warning"} />
@@ -50,7 +54,7 @@ export function ScansClient({
     },
     {
       key: "started_at",
-      header: "Started At",
+      header: t("col_started"),
       className: "font-data whitespace-nowrap",
       render: (row) => formatDate(row.started_at),
       sortable: false,
@@ -58,29 +62,29 @@ export function ScansClient({
     },
     {
       key: "duration_seconds",
-      header: "Duration",
+      header: t("col_duration"),
       className: "font-data text-muted-foreground",
-      render: (row) => row.duration_seconds ? `${row.duration_seconds}s` : "-",
+      render: (row) => row.duration_seconds ? `${row.duration_seconds}${tc("unit_s")}` : "-",
       sortable: false,
       accessor: (row) => row.duration_seconds,
     },
     {
       key: "findings_count",
-      header: "Findings",
+      header: t("col_findings"),
       className: "font-data font-bold",
       sortable: false,
       accessor: (row) => row.findings_count,
     },
     {
       key: "severity",
-      header: "Max Severity",
+      header: t("col_severity"),
       render: (row) => <SeverityBadge level={row.severity as SeverityLevel} />,
       sortable: false,
       accessor: (row) => row.severity,
     },
     {
       key: "triggered_by",
-      header: "Trigger",
+      header: t("col_trigger"),
       className: "capitalize text-muted-foreground text-xs",
       sortable: false,
       accessor: (row) => row.triggered_by,
@@ -121,7 +125,7 @@ export function ScansClient({
           ) : (
             <Play className="w-4 h-4" />
           )}
-          {isScanning ? "Starting Scan..." : "Trigger New Scan"}
+          {isScanning ? t("btn_starting") : t("btn_trigger")}
         </button>
       </div>
 
@@ -130,7 +134,7 @@ export function ScansClient({
           columns={columns}
           data={initialData?.items || []}
           rowKey={(row) => row.id}
-          emptyMessage="No scans have been run yet."
+          emptyMessage={t("empty")}
           className="border-0 rounded-none"
           pagination={initialData ? {
             page: initialPage,

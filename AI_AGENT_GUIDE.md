@@ -372,6 +372,24 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
+### Passation #10 — 2026-06-01
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - **Internationalisation (i18n)** : Mise en place complète du support FR/EN sur le frontend via `next-intl`.
+  - **Traduction** : Couverture des pages critiques (Dashboard, Login, MFA, Profil, Intelligence, Scans, Rapports).
+  - **Localisation** : Gestion dynamique des formats de date et durées selon la langue de l'utilisateur.
+  - **Documentation** : Mise à jour du `ROADMAP.md` (Itération 36).
+- **Tâche suivante** : Continuer la traduction des pages d'outils spécifiques (HIBP, GitHub, etc.) et des composants UI restants (modals de confirmation, tooltips complexes).
+- **Points de vigilance** :
+  - Bien utiliser le hook `useTranslations` dans les composants clients et `getTranslations` dans les composants serveurs.
+  - S'assurer que les nouvelles clés de traduction sont ajoutées aux deux fichiers `en.json` et `fr.json` simultanément.
+- **Fichiers mis à jour** : frontend/messages/*.json · frontend/src/app/(dashboard)/**/*.tsx · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
 ### Passation #9 — 2026-06-01
 
 - **Agent sortant**            : Gemini CLI

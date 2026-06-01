@@ -20,7 +20,8 @@ import { SeverityBadge } from "@/components/ui/severity-badge";
 import { apiFetch } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enGB } from "date-fns/locale";
+import { useTranslations, useLocale } from "next-intl";
 
 interface CyberFinding {
   id: string;
@@ -37,6 +38,9 @@ interface CyberFinding {
 }
 
 export default function IntelligenceFeedPage() {
+  const t = useTranslations("Intelligence");
+  const tc = useTranslations("Common");
+  const locale = useLocale();
   const [findings, setFindings] = useState<CyberFinding[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -84,8 +88,8 @@ export default function IntelligenceFeedPage() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Veille Numérique" 
-        description="Intelligence cyber en temps réel issue des flux RSS, GitHub et sources spécialisées."
+        title={t("title")} 
+        description={t("description")}
         icon={ScrollText}
       />
 
@@ -94,7 +98,7 @@ export default function IntelligenceFeedPage() {
         <div className="relative w-full lg:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Rechercher..." 
+            placeholder={t("search_placeholder")} 
             className="pl-10 bg-secondary/30 border-border/50"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -108,9 +112,9 @@ export default function IntelligenceFeedPage() {
             onChange={(e) => setReadFilter(e.target.value)}
             className="bg-secondary/30 border border-border/50 rounded-md px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-radar"
           >
-            <option value="all">Tous les articles</option>
-            <option value="unread">Non lus uniquement</option>
-            <option value="read">Déjà lus</option>
+            <option value="all">{t("filter_all")}</option>
+            <option value="unread">{t("filter_unread")}</option>
+            <option value="read">{t("filter_read")}</option>
           </select>
 
           {/* Filtre Sévérité */}
@@ -119,11 +123,11 @@ export default function IntelligenceFeedPage() {
             onChange={(e) => setSeverityFilter(e.target.value)}
             className="bg-secondary/30 border border-border/50 rounded-md px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-radar"
           >
-            <option value="all">Toutes sévérités</option>
-            <option value="CRITICAL">Critique</option>
-            <option value="HIGH">Élevée</option>
-            <option value="MEDIUM">Moyenne</option>
-            <option value="LOW">Faible</option>
+            <option value="all">{t("filter_severity_all")}</option>
+            <option value="CRITICAL">{tc("severity")} - Critique</option>
+            <option value="HIGH">{tc("severity")} - Élevée</option>
+            <option value="MEDIUM">{tc("severity")} - Moyenne</option>
+            <option value="LOW">{tc("severity")} - Faible</option>
           </select>
 
           <Button 
@@ -134,7 +138,7 @@ export default function IntelligenceFeedPage() {
             className="bg-secondary/30 border-border/50 ml-auto lg:ml-0"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Rafraîchir
+            {t("btn_refresh")}
           </Button>
         </div>
       </div>
@@ -189,7 +193,7 @@ export default function IntelligenceFeedPage() {
                           size="icon" 
                           className="h-8 w-8 text-muted-foreground hover:text-radar"
                           onClick={() => markAsRead(finding.id)}
-                          title="Marquer comme lu"
+                          title={t("mark_read")}
                         >
                           <CheckCircle2 className="w-4 h-4" />
                         </Button>
@@ -215,8 +219,8 @@ export default function IntelligenceFeedPage() {
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
                       <Clock className="w-3 h-3" />
                       {finding.published_at 
-                        ? formatDistanceToNow(new Date(finding.published_at), { addSuffix: true, locale: fr })
-                        : formatDistanceToNow(new Date(finding.discovered_at), { addSuffix: true, locale: fr })}
+                        ? formatDistanceToNow(new Date(finding.published_at), { addSuffix: true, locale: locale === 'fr' ? fr : enGB })
+                        : formatDistanceToNow(new Date(finding.discovered_at), { addSuffix: true, locale: locale === 'fr' ? fr : enGB })}
                     </div>
                     {finding.extra_metadata?.category && (
                       <div className="px-1.5 py-0.5 rounded bg-secondary/50 text-[10px] text-muted-foreground border border-border/50">
@@ -234,8 +238,8 @@ export default function IntelligenceFeedPage() {
               <Search className="w-8 h-8 text-muted-foreground/40" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Aucune trouvaille détectée</p>
-              <p className="text-xs text-muted-foreground">La veille numérique ne remonte pas encore de résultats pour ce domaine.</p>
+              <p className="text-sm font-medium text-foreground">{t("empty_title")}</p>
+              <p className="text-xs text-muted-foreground">{t("empty_desc")}</p>
             </div>
           </div>
         )}

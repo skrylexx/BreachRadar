@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { BarChart2 } from "lucide-react";
 import { TimeFilter, type TimePeriod } from "@/components/ui/time-filter";
+import { useTranslations } from "next-intl";
 
 interface DataPoint {
   date: string;
@@ -37,13 +38,14 @@ interface RiskHeatmapProps {
 
 // ─── Tooltip personnalisé ─────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label }: any) {
+  const t = useTranslations("RiskHeatmap");
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg p-3 shadow-xl">
       <p className="text-xs font-semibold text-foreground mb-2 font-data">{label}</p>
       {payload.map((entry: any) => (
         <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
-          <span className="text-muted-foreground capitalize">{entry.name}</span>
+          <span className="text-muted-foreground capitalize">{t(`legend_${entry.name}`)}</span>
           <span className="font-semibold" style={{ color: entry.fill }}>{entry.value}</span>
         </div>
       ))}
@@ -59,16 +61,18 @@ function CustomTooltip({ active, payload, label }: any) {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyChart() {
+  const t = useTranslations("RiskHeatmap");
   return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
       <BarChart2 className="w-8 h-8 text-muted-foreground/30" strokeWidth={1} />
-      <p className="text-xs text-muted-foreground">No detection data yet</p>
+      <p className="text-xs text-muted-foreground">{t("empty")}</p>
     </div>
   );
 }
 
 export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d" }: RiskHeatmapProps) {
   const router = useRouter();
+  const t = useTranslations("RiskHeatmap");
 
   const handlePeriodChange = (p: TimePeriod) => {
     router.push(`/?period=${p}`);
@@ -79,9 +83,9 @@ export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d"
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Detection Volume</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("title")}</h3>
           <p className="text-xs text-muted-foreground">
-            Findings over time — all sources combined
+            {t("description")}
           </p>
         </div>
         <TimeFilter value={initialPeriod} onChange={handlePeriodChange} />
@@ -90,7 +94,7 @@ export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d"
       {/* Graphique ou empty state */}
       {isLoading ? (
         <div className="h-64 flex items-center justify-center">
-          <p className="text-xs text-muted-foreground font-data animate-pulse">Loading data...</p>
+          <p className="text-xs text-muted-foreground font-data animate-pulse">{t("loading")}</p>
         </div>
       ) : data.length === 0 ? (
         <EmptyChart />
@@ -135,14 +139,14 @@ export function RiskHeatmap({ data = [], isLoading = false, initialPeriod = "7d"
       {data.length > 0 && (
         <div className="flex items-center gap-4 justify-end">
           {[
-            { label: "Critical", color: "#ef4444" },
-            { label: "High",     color: "#f97316" },
-            { label: "Medium",   color: "#eab308" },
-            { label: "Low",      color: "#64748b" },
-          ].map(({ label, color }) => (
-            <div key={label} className="flex items-center gap-1.5">
+            { key: "critical", color: "#ef4444" },
+            { key: "high",     color: "#f97316" },
+            { key: "medium",   color: "#eab308" },
+            { key: "low",      color: "#64748b" },
+          ].map(({ key, color }) => (
+            <div key={key} className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
-              <span className="text-xs text-muted-foreground">{label}</span>
+              <span className="text-xs text-muted-foreground">{t(`legend_${key}`)}</span>
             </div>
           ))}
         </div>
