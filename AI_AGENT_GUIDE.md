@@ -372,6 +372,22 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
+### Passation #13 — 2026-06-01
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - **Docker Stack Fix** : Correction des digests SHA256 erronés dans `docker-compose.yml` pour Postgres, Redis, TorProxy et RansomLook.
+  - **Orchestration** : Relance réussie de la stack complète (7 services).
+  - **Health Validation** : Vérification de la santé de tous les conteneurs (tous sont `healthy`).
+- **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) ou résoudre les erreurs `mypy` restantes de l'itération #12.
+- **Points de vigilance** :
+  - Les digests SHA256 ont été synchronisés avec les versions locales fonctionnelles. Si le build échoue sur une autre architecture, il faudra peut-être re-générer les digests ou utiliser des tags simples.
+- **Fichiers mis à jour** : docker-compose.yml · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
 ### Passation #12 — 2026-06-01
 
 - **Agent sortant**            : Gemini CLI

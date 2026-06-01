@@ -50,6 +50,23 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 39 — 2026-06-01 (Gemini CLI)
+
+**Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker et relance de la stack complète.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `docker-compose.yml` | Modification | Mise à jour des digests SHA256 pour Redis, Postgres, TorProxy et RansomLook vers les versions fonctionnelles. |
+| `ROADMAP.md` | Modification | Journalisation de l'itération 39. |
+
+#### ✅ Maintenance & Stabilité
+- **Image Resolution Fix** : Correction des digests SHA256 erronés qui bloquaient le pull/start des services tiers.
+- **Stack Up & Healthy** : Validation de la santé des 7 services (API, UI, Postgres, 2x Redis, Tor, RansomLook).
+
+---
+
 ### Itération 38 — 2026-06-01 (Gemini CLI)
 
 **Objectif de l'itération** : Création d'un skill Gemini CI/CD, renforcement de la pipeline de qualité et atteinte du "Zéro Défaut" (Tests & Typing).

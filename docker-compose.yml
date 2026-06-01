@@ -9,7 +9,7 @@ services:
 
   # ─── RansomLook — Redis (stockage des données scrapées) ─────────────────────
   ransomlook-redis:
-    image: redis:7-alpine@sha256:ffba80df6855a0cdf853f0c020cfb4404797522a03d91c7512254325403327f9
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     container_name: ransomlook-redis
     restart: unless-stopped
     security_opt:
@@ -32,7 +32,7 @@ services:
 
   # ─── RansomLook — Tor (accès aux portails .onion des groupes ransomware) ─────
   ransomlook-tor:
-    image: dperson/torproxy:latest@sha256:5a7797ab2303ae19ac67e175818b4bf50aa7c28d54cf945f0a16c56e1f43a275
+    image: dperson/torproxy:latest@sha256:d8b5f1cf24f1b7a0aa334929a264b2606a107223dd0d51eb1cda8aae6fbeec53
     container_name: ransomlook-tor
     restart: unless-stopped
     security_opt:
@@ -55,7 +55,7 @@ services:
 
   # ─── RansomLook — Application principale ────────────────────────────────────
   ransomlook-app:
-    image: travishunting/ransomlook:latest@sha256:a3f540278e4c11373e15605311851dd9c64d208f4d63e727bccc0e39f9329310
+    image: travishunting/ransomlook:latest@sha256:d74d4720d00dbaddbcbbd1c4fa65d6ed61fd3fcd53d657c90c9626a38bfdac5e
     container_name: ransomlook-app
     restart: unless-stopped
     security_opt:
@@ -104,7 +104,7 @@ services:
 
   # ─── WebUI — PostgreSQL 16 ──────────────────────────────────────────────────
   breachradar-postgres:
-    image: postgres:16-alpine@sha256:e79918ef780293b6c36cb4a5a2554703a52b92f2fe22174fb001512a90d9a51c
+    image: postgres:16-alpine@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229
     container_name: breachradar-postgres
     restart: unless-stopped
     security_opt:
@@ -132,7 +132,7 @@ services:
 
   # ─── WebUI — Redis (sessions JWT + rate limiting) ────────────────────────────
   breachradar-ui-redis:
-    image: redis:7-alpine@sha256:ffba80df6855a0cdf853f0c020cfb4404797522a03d91c7512254325403327f9
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     container_name: breachradar-ui-redis
     restart: unless-stopped
     security_opt:
