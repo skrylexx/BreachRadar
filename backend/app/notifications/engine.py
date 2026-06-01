@@ -14,8 +14,8 @@ import httpx
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.config import Settings
-from app.models.ransom import RansomFinding
 from app.models.finding import CyberFinding
+from app.models.ransom import RansomFinding
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class NotificationEngine:
             loader=FileSystemLoader(str(TEMPLATES_DIR)) if TEMPLATES_DIR.exists() else None,
             trim_blocks=True,
             lstrip_blocks=True,
-            autoescape=select_autoescape(['html', 'xml', 'txt']),
+            autoescape=select_autoescape(["html", "xml", "txt"]),
         )
 
     async def send_ransom_alert(self, finding: RansomFinding) -> None:
@@ -47,10 +47,7 @@ class NotificationEngine:
         # Rendre le template de notification
         try:
             template = self.env.get_template("notification.txt.j2")
-            message = template.render(
-                domain=self.settings.target_domain,
-                alert=finding
-            )
+            message = template.render(domain=self.settings.target_domain, alert=finding)
         except Exception as e:
             logger.error(f"Erreur de rendu du template d'alerte: {e}")
             message = f"ALERTE CRITIQUE: Le domaine a été détecté sur le portail de {finding.group_display_name}."
@@ -61,13 +58,17 @@ class NotificationEngine:
 
         # Envoi via Email (Stub pour l'instant - implémentation SMTP à faire)
         if self.settings.ransomlook_alert_email:
-            await self.send_email(self.settings.ransomlook_alert_email, "ALERTE CRITIQUE RANSOMWARE", message)
+            await self.send_email(
+                self.settings.ransomlook_alert_email, "ALERTE CRITIQUE RANSOMWARE", message
+            )
 
     async def send_intel_alert(self, finding: CyberFinding) -> None:
         """
         Envoie une alerte de veille cyber critique.
         """
-        if not self.settings.ransomlook_alert_configured: # On réutilise les mêmes canaux pour l'instant
+        if (
+            not self.settings.ransomlook_alert_configured
+        ):  # On réutilise les mêmes canaux pour l'instant
             return
 
         message = (
@@ -83,12 +84,16 @@ class NotificationEngine:
             await self.send_webhook(self.settings.ransomlook_alert_webhook, message)
 
         if self.settings.ransomlook_alert_email:
-            await self.send_email(self.settings.ransomlook_alert_email, f"ALERTE VEILLE: {finding.title[:50]}", message)
+            await self.send_email(
+                self.settings.ransomlook_alert_email,
+                f"ALERTE VEILLE: {finding.title[:50]}",
+                message,
+            )
 
     async def send_webhook(self, url: str, message: str) -> None:
         """Envoie une notification via Webhook (Discord, Slack, etc.)."""
-        payload = {"text": message, "content": message} # format compatible Slack et Discord
-        
+        payload = {"text": message, "content": message}  # format compatible Slack et Discord
+
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(url, json=payload)
@@ -102,11 +107,11 @@ class NotificationEngine:
         if not self.settings.smtp_server or not self.settings.smtp_username:
             logger.warning("Configuration SMTP manquante, impossible d'envoyer l'email.")
             return
-            
+
+        import asyncio
         import smtplib
         from email.message import EmailMessage
-        import asyncio
-        
+
         msg = EmailMessage()
         msg.set_content(message)
         msg["Subject"] = subject
@@ -115,7 +120,9 @@ class NotificationEngine:
 
         def _send():
             try:
-                server = smtplib.SMTP(self.settings.smtp_server, self.settings.smtp_port, timeout=10)
+                server = smtplib.SMTP(
+                    self.settings.smtp_server, self.settings.smtp_port, timeout=10
+                )
                 server.starttls()
                 server.login(self.settings.smtp_username, self.settings.smtp_password)
                 server.send_message(msg)

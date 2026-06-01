@@ -3,6 +3,7 @@ breachradar/clients/dehashed.py
 
 Client Dehashed API.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,14 +14,18 @@ from app.models.finding import LeakFinding, Severity
 
 logger = logging.getLogger(__name__)
 
+
 class DehashedClient(BaseLeakClient):
     """
     Client pour l'API Dehashed.
     """
+
     name = "dehashed"
     rate_limit_delay = 0.5
 
-    def __init__(self, dehashed_email: str, api_key: str, sanitizer: DataSanitizer | None = None) -> None:
+    def __init__(
+        self, dehashed_email: str, api_key: str, sanitizer: DataSanitizer | None = None
+    ) -> None:
         super().__init__()
         self.dehashed_email = dehashed_email
         self.api_key = api_key
@@ -100,7 +105,9 @@ class DehashedClient(BaseLeakClient):
 
     def _parse_entry(self, email: str, entry: dict) -> LeakFinding | None:
         sanitized = self.sanitizer.sanitize(entry)
-        safe_entry = sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else entry
+        safe_entry = (
+            sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else entry
+        )
 
         try:
             breach_name = safe_entry.get("database_name", "Unknown Dehashed Source")
@@ -109,13 +116,13 @@ class DehashedClient(BaseLeakClient):
 
             has_password = bool(password)
             has_hash = bool(hashed_password)
-            
+
             data_classes = ["Email addresses"]
             if has_password:
                 data_classes.append("Passwords")
             if has_hash:
                 data_classes.append("Hashed Passwords")
-            
+
             if safe_entry.get("username"):
                 data_classes.append("Usernames")
 

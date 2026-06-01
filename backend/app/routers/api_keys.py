@@ -47,6 +47,7 @@ class APIKeyRead(BaseModel):
 
 class APIKeyStatus(BaseModel):
     """Vue d'ensemble de tous les connecteurs (configurés ou non)."""
+
     service_name: str
     service_label: str
     configured: bool
@@ -69,13 +70,15 @@ async def get_api_keys_status(
     statuses = []
     for service, label in SUPPORTED_SERVICES.items():
         key = configured_keys.get(service)
-        statuses.append(APIKeyStatus(
-            service_name=service,
-            service_label=label,
-            configured=key is not None,
-            is_active=key.is_active if key else False,
-            last_test_success=key.last_test_success if key else None,
-        ))
+        statuses.append(
+            APIKeyStatus(
+                service_name=service,
+                service_label=label,
+                configured=key is not None,
+                is_active=key.is_active if key else False,
+                last_test_success=key.last_test_success if key else None,
+            )
+        )
 
     return statuses
 
@@ -108,12 +111,14 @@ async def upsert_api_key(
         )
         db.add(key)
 
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="apikey.updated",
-        details={"service": service_name},
-        ip_address=request.client.host if request.client else None,
-    ))
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="apikey.updated",
+            details={"service": service_name},
+            ip_address=request.client.host if request.client else None,
+        )
+    )
 
     return {"message": f"API key for {service_name} saved successfully"}
 
@@ -132,9 +137,11 @@ async def delete_api_key(
         raise HTTPException(status_code=404, detail="API key not found")
 
     await db.delete(key)
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="apikey.deleted",
-        details={"service": service_name},
-        ip_address=request.client.host if request.client else None,
-    ))
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="apikey.deleted",
+            details={"service": service_name},
+            ip_address=request.client.host if request.client else None,
+        )
+    )

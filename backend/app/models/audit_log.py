@@ -37,9 +37,7 @@ class AuditLog(Base):
     )  # Null pour les actions système
 
     # ─── Quoi ──────────────────────────────────────────────────────────────
-    action: Mapped[str] = mapped_column(
-        String(128), nullable=False, index=True
-    )
+    action: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     # Ex: "auth.login.success", "auth.login.failure", "user.created",
     #     "apikey.updated", "scan.triggered", "smtp.configured"
 

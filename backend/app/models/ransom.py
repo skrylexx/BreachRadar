@@ -17,19 +17,20 @@ direct à ces portails.
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class RansomStatus(str, Enum):
+class RansomStatus(StrEnum):
     """
     Statut de la publication de la victime sur le portail ransomware.
     Basé sur les métadonnées publiques disponibles via RansomLook.
     """
-    LISTED = "LISTED"       # Victime listée, données pas encore publiées
-    PUBLISHED = "PUBLISHED" # Données publiées / téléchargeables
-    REMOVED = "REMOVED"     # Publication supprimée (rançon payée ?)
+
+    LISTED = "LISTED"  # Victime listée, données pas encore publiées
+    PUBLISHED = "PUBLISHED"  # Données publiées / téléchargeables
+    REMOVED = "REMOVED"  # Publication supprimée (rançon payée ?)
     UNKNOWN = "UNKNOWN"
 
 
@@ -47,9 +48,7 @@ class RansomFinding(BaseModel):
 
     source: str = Field(default="ransomlook")
     group_name: str = Field(description="Nom technique du groupe (ex: 'lockbit3')")
-    group_display_name: str = Field(
-        description="Nom affichable du groupe (ex: 'LockBit 3.0')"
-    )
+    group_display_name: str = Field(description="Nom affichable du groupe (ex: 'LockBit 3.0')")
     victim_name: str = Field(
         description="Nom de la victime tel qu'affiché sur le portail du groupe"
     )
@@ -57,9 +56,7 @@ class RansomFinding(BaseModel):
         default=None,
         description="Domaine de la victime si disponible",
     )
-    discovered_at: datetime = Field(
-        description="Date de découverte par RansomLook"
-    )
+    discovered_at: datetime = Field(description="Date de découverte par RansomLook")
     published_at: datetime | None = Field(
         default=None,
         description="Date de publication sur le portail (si disponible)",
@@ -83,9 +80,7 @@ class RansomFinding(BaseModel):
         exclude=False,  # Incluse dans le modèle mais filtrée dans engine.py
     )
 
-    search_term_matched: str = Field(
-        description="Terme de recherche qui a déclenché ce matching"
-    )
+    search_term_matched: str = Field(description="Terme de recherche qui a déclenché ce matching")
     severity: str = Field(
         default="CRITICAL",
         description="Toujours CRITICAL — pas de négociation",

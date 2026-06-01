@@ -5,9 +5,9 @@ Toutes les variables d'environnement validées et typées.
 Fusionne la config de la WebUI et l'ancienne config du CLI.
 """
 
-from functools import lru_cache
-from typing import Any, List, Literal
 import os
+from functools import lru_cache
+from typing import Any, Literal
 
 from pydantic import EmailStr, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -50,8 +50,8 @@ class Settings(BaseSettings):
     initial_admin_password: str
 
     # ─── CORS & Sécurité ─────────────────────────────────────────────────────
-    cors_origins: List[str] = ["http://localhost:3000"]
-    allowed_hosts: List[str] = ["localhost", "127.0.0.1", "breachradar-ui"]
+    cors_origins: list[str] = ["http://localhost:3000"]
+    allowed_hosts: list[str] = ["localhost", "127.0.0.1", "breachradar-ui"]
 
     # ─── Politique mot de passe ───────────────────────────────────────────────
     password_min_length_admin: int = 16
@@ -82,7 +82,9 @@ class Settings(BaseSettings):
     dehashed_api_key: str = Field(default="", description="Dehashed API key")
     intelx_api_key: str = Field(default="", description="Intelligence X API key")
     shodan_api_key: str = Field(default="", description="Shodan API key")
-    hunter_api_key: str = Field(default="", description="Hunter.io API key pour le résolveur d'emails")
+    hunter_api_key: str = Field(
+        default="", description="Hunter.io API key pour le résolveur d'emails"
+    )
 
     # ─── Telegram ────────────────────────────────────────────────────────────
     telegram_api_id: int = Field(default=0, description="Telegram API ID")
@@ -216,6 +218,7 @@ class Settings(BaseSettings):
                 return ["http://localhost:3000", "http://127.0.0.1:3000"]
             try:
                 import json
+
                 parsed = json.loads(v)
                 if isinstance(parsed, list):
                     return parsed
@@ -312,16 +315,26 @@ class Settings(BaseSettings):
 
     def get_configured_sources(self) -> list[str]:
         available = ["ransomlook", "rss"]
-        if self.hibp_configured: available.append("hibp")
-        if self.github_configured or True: available.append("github")
-        if self.gitlab_configured: available.append("gitlab")
-        if self.urlscan_configured: available.append("urlscan")
-        if self.otx_configured: available.append("otx")
-        if self.leakcheck_configured: available.append("leakcheck")
-        if self.dehashed_configured: available.append("dehashed")
-        if self.intelx_configured: available.append("intelx")
-        if self.shodan_configured: available.append("shodan")
-        if self.telegram_configured: available.append("telegram")
+        if self.hibp_configured:
+            available.append("hibp")
+        if True:
+            available.append("github")
+        if self.gitlab_configured:
+            available.append("gitlab")
+        if self.urlscan_configured:
+            available.append("urlscan")
+        if self.otx_configured:
+            available.append("otx")
+        if self.leakcheck_configured:
+            available.append("leakcheck")
+        if self.dehashed_configured:
+            available.append("dehashed")
+        if self.intelx_configured:
+            available.append("intelx")
+        if self.shodan_configured:
+            available.append("shodan")
+        if self.telegram_configured:
+            available.append("telegram")
         return available
 
 

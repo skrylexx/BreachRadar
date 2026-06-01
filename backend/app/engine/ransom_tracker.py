@@ -45,8 +45,8 @@ class RansomwareTracker:
 
     def __init__(
         self,
-        client: "RansomLookClient",
-        notifier: "NotificationEngine | None" = None,
+        client: RansomLookClient,
+        notifier: NotificationEngine | None = None,
     ) -> None:
         """
         Args:
@@ -102,7 +102,9 @@ class RansomwareTracker:
             for finding in findings:
                 await self._send_immediate_alert(finding, domain)
         else:
-            logger.info(f"✅ RansomLook : domaine '{domain}' non détecté sur les portails ransomware")
+            logger.info(
+                f"✅ RansomLook : domaine '{domain}' non détecté sur les portails ransomware"
+            )
 
         return findings
 
@@ -113,9 +115,7 @@ class RansomwareTracker:
         """
         return await self.client.check_health()
 
-    async def _send_immediate_alert(
-        self, finding: RansomFinding, domain: str
-    ) -> None:
+    async def _send_immediate_alert(self, finding: RansomFinding, domain: str) -> None:
         """
         Envoie une alerte d'urgence immédiate pour un RansomFinding.
 
@@ -143,8 +143,7 @@ class RansomwareTracker:
         try:
             await self.notifier.send_ransom_alert(finding)
             logger.info(
-                f"Alerte ransomware envoyée pour '{domain}' — "
-                f"groupe: {finding.group_display_name}"
+                f"Alerte ransomware envoyée pour '{domain}' — groupe: {finding.group_display_name}"
             )
         except Exception as e:
             logger.error(

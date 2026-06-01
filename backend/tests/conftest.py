@@ -12,7 +12,6 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-import respx
 
 from app.models.finding import LeakFinding, Severity
 from app.models.ransom import RansomFinding, RansomStats, RansomStatus
@@ -22,6 +21,7 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 # ─── Fixtures RansomLook ──────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def ransom_victim_found_json() -> list[dict]:
@@ -83,6 +83,7 @@ def mock_ransom_stats_unhealthy() -> RansomStats:
 
 # ─── Fixtures LeakFinding ─────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_finding_critical() -> LeakFinding:
     """LeakFinding de sévérité CRITICAL (credential en clair)."""
@@ -138,6 +139,7 @@ def mock_finding_low() -> LeakFinding:
 
 
 # ─── Fixtures Mock Clients ────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_notifier() -> MagicMock:

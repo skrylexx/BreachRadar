@@ -39,9 +39,7 @@ class APIKey(Base):
 
     # ─── Statut ────────────────────────────────────────────────────────────
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    last_tested_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    last_tested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_test_success: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     # ─── Métadonnées ───────────────────────────────────────────────────────

@@ -88,9 +88,7 @@ class BaseLeakClient(ABC):
         wait_time = self.rate_limit_delay - elapsed
 
         if wait_time > 0:
-            self._logger.debug(
-                f"Rate limit [{self.name}] : attente {wait_time:.2f}s"
-            )
+            self._logger.debug(f"Rate limit [{self.name}] : attente {wait_time:.2f}s")
             await asyncio.sleep(wait_time)
 
         self._last_request_time = time.monotonic()
@@ -123,9 +121,7 @@ class BaseLeakClient(ABC):
         Log la détection d'un finding de manière sécurisée.
         RÈGLE : Ne jamais logguer les données sensibles (passwords, hashs).
         """
-        self._logger.info(
-            f"[{self.name}] Finding détecté : email={email}, breach={breach_name}"
-        )
+        self._logger.info(f"[{self.name}] Finding détecté : email={email}, breach={breach_name}")
 
     def _log_sensitive_data_detected(self, email: str, data_type: str) -> None:
         """
@@ -133,8 +129,7 @@ class BaseLeakClient(ABC):
         RÈGLE : Utiliser uniquement des flags booléens dans les logs.
         """
         self._logger.debug(
-            f"[{self.name}] Donnée sensible détectée pour {email} "
-            f"(type: {data_type}) — masquée"
+            f"[{self.name}] Donnée sensible détectée pour {email} (type: {data_type}) — masquée"
         )
 
     @retry(
@@ -162,8 +157,7 @@ class BaseLeakClient(ABC):
                 return None
             if e.response.status_code == 429:
                 self._logger.warning(
-                    f"[{self.name}] Rate limit atteint (429) sur {url} — "
-                    f"attente avant retry"
+                    f"[{self.name}] Rate limit atteint (429) sur {url} — attente avant retry"
                 )
             elif e.response.status_code >= 500:
                 self._logger.error(

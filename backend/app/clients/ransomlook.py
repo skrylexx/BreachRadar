@@ -97,15 +97,13 @@ class RansomLookClient(BaseLeakClient):
         self.search_terms = settings.all_ransomlook_terms
         self.timeout = httpx.Timeout(settings.request_timeout_seconds)
 
-        logger.info(
-            "RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url
-        )
+        logger.info("RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url)
 
     async def _fetch_local_key(self) -> str | None:
         """Récupère la clé API auto-générée depuis l'instance locale."""
         if self.mode != "local":
             return None
-        
+
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.get(f"{self.base_url}/api/key")

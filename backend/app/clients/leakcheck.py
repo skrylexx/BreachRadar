@@ -3,6 +3,7 @@ breachradar/clients/leakcheck.py
 
 Client LeakCheck.io API v2.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,10 +14,12 @@ from app.models.finding import LeakFinding, Severity
 
 logger = logging.getLogger(__name__)
 
+
 class LeakCheckClient(BaseLeakClient):
     """
     Client pour l'API LeakCheck.io.
     """
+
     name = "leakcheck"
     rate_limit_delay = 1.0
 
@@ -111,7 +114,7 @@ class LeakCheckClient(BaseLeakClient):
 
             # LeakCheck peut retourner un mot de passe en clair dans `line`
             has_password = "password" in safe_item or ":" in safe_item.get("line", "")
-            
+
             # Sévérité
             severity = Severity.HIGH if has_password else Severity.MEDIUM
 

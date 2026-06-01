@@ -35,7 +35,7 @@ jobs:
       - name: 🐍 Backend Audit (pip-audit)
         run: |
           cd backend
-          uv export --format requirements-txt > req.txt
+          uv export --format requirements-txt --no-hashes > req.txt
           uvx pip-audit -r req.txt
 
   # ─── SECTION BACKEND (PYTHON) ─────────────────────────────────────────────

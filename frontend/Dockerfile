@@ -1,7 +1,7 @@
 # ─── Frontend Next.js — Dockerfile ──────────────────────────────────────────
 # Build multi-étapes : builder + runner léger
 
-FROM node:20-alpine@sha256:48d74f0ef0ef699600679e301f316693013f694a5597d952339310206e47db9b AS base
+FROM node:20-alpine AS base
 
 # ─── Étape 1 : Installation des dépendances ───────────────────────────────────
 FROM base AS deps

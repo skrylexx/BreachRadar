@@ -8,7 +8,7 @@ Endpoints : /auth/login, /auth/logout, /auth/refresh,
 
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from slowapi import Limiter
@@ -20,27 +20,26 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.redis import (
     blacklist_token,
-    is_token_blacklisted,
+    get_mfa_failures,
+    increment_mfa_failures,
+    reset_mfa_failures,
     store_mfa_challenge,
     verify_mfa_challenge,
-    increment_mfa_failures,
-    get_mfa_failures,
-    reset_mfa_failures,
 )
 from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    decrypt_secret,
+    encrypt_secret,
+    generate_backup_codes,
     generate_totp_qrcode_base64,
     generate_totp_secret,
-    generate_backup_codes,
     hash_password,
     is_password_rotation_required,
     validate_password_strength,
     verify_password,
     verify_totp,
-    encrypt_secret,
-    decrypt_secret,
 )
 from app.dependencies.auth import CurrentUser, ViewerUser
 from app.models.audit_log import AuditLog
@@ -62,21 +61,15 @@ COOKIE_SECURE = settings.environment == "production"
 COOKIE_SAMESITE = "lax"
 
 
-def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: str, token_version: int) -> None:
+def _set_auth_cookies(
+    response: Response, user_id: uuid.UUID, email: str, role: str, token_version: int
+) -> None:
     """Pose les cookies HttpOnly JWT (access + refresh)."""
     jti = secrets.token_urlsafe(16)
-    access_token = create_access_token({
-        "sub": str(user_id),
-        "email": email,
-        "role": role,
-        "jti": jti,
-        "v": token_version
-    })
-    refresh_token = create_refresh_token({
-        "sub": str(user_id),
-        "email": email,
-        "v": token_version
-    })
+    access_token = create_access_token(
+        {"sub": str(user_id), "email": email, "role": role, "jti": jti, "v": token_version}
+    )
+    refresh_token = create_refresh_token({"sub": str(user_id), "email": email, "v": token_version})
 
     response.set_cookie(
         key="access_token",
@@ -166,7 +159,7 @@ async def login(
 
     # Connexion directe (pas de MFA)
     _set_auth_cookies(response, user.id, user.email, user.role.value, user.token_version)
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     await _log_action(db, "auth.login.success", request, user.email)
     return TokenResponse()
 
@@ -218,13 +211,14 @@ async def mfa_verify(
                 if verify_password(body.totp_code, hashed):
                     user.mfa_backup_codes.pop(i)
                     from sqlalchemy.orm.attributes import flag_modified
+
                     flag_modified(user, "mfa_backup_codes")
                     is_valid = True
                     is_backup_used = True
                     # Si un code de secours est utilisé, on force la réinitialisation du MFA
                     user.mfa_enabled = False
                     user.mfa_required = True
-                    user.token_version += 1 # Invalider les autres sessions par sécurité
+                    user.token_version += 1  # Invalider les autres sessions par sécurité
                     break
     else:
         # Tentative via TOTP standard
@@ -241,12 +235,12 @@ async def mfa_verify(
     # Succès : Nettoyage brute-force et pose cookies JWT
     await reset_mfa_failures(user_id)
     _set_auth_cookies(response, user.id, user.email, user.role.value, user.token_version)
-    user.last_login_at = datetime.now(timezone.utc)
-    
+    user.last_login_at = datetime.now(UTC)
+
     audit_action = "auth.mfa.backup_success" if is_backup_used else "auth.mfa.success"
     await _log_action(db, audit_action, request, user.email)
     await db.commit()
-    
+
     return TokenResponse()
 
 
@@ -265,7 +259,7 @@ async def logout(
         if payload and (jti := payload.get("jti")):
             # Blacklister jusqu'à l'expiration naturelle du token
             exp = payload.get("exp", 0)
-            now = int(datetime.now(timezone.utc).timestamp())
+            now = int(datetime.now(UTC).timestamp())
             ttl = max(exp - now, 0)
             await blacklist_token(jti, ttl)
 
@@ -295,12 +289,12 @@ async def mfa_setup(
     secret = generate_totp_secret()
     # Stocker temporairement dans l'utilisateur (non activé)
     current_user.mfa_secret = encrypt_secret(secret)
-    
+
     # Générer 10 codes de secours (backup codes)
     backup_codes = generate_backup_codes(10)
     # Stocker hachés (usage unique)
     current_user.mfa_backup_codes = [hash_password(c) for c in backup_codes]
-    
+
     await db.flush()
 
     return MFASetupResponse(
@@ -323,12 +317,18 @@ async def mfa_confirm(
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = True
-    current_user.mfa_required = False # Si on vient d'un reset via backup code
+    current_user.mfa_required = False  # Si on vient d'un reset via backup code
     current_user.token_version += 1
-    
+
     # Rafraîchir les cookies avec la nouvelle version
-    _set_auth_cookies(response, current_user.id, current_user.email, current_user.role.value, current_user.token_version)
-    
+    _set_auth_cookies(
+        response,
+        current_user.id,
+        current_user.email,
+        current_user.role.value,
+        current_user.token_version,
+    )
+
     await db.commit()
     return current_user
 
@@ -353,10 +353,16 @@ async def mfa_disable(
     current_user.mfa_enabled = False
     current_user.mfa_secret = None
     current_user.token_version += 1
-    
+
     # Rafraîchir les cookies avec la nouvelle version
-    _set_auth_cookies(response, current_user.id, current_user.email, current_user.role.value, current_user.token_version)
-    
+    _set_auth_cookies(
+        response,
+        current_user.id,
+        current_user.email,
+        current_user.role.value,
+        current_user.token_version,
+    )
+
     await _log_action(db, "auth.mfa.disable.success", request, current_user.email)
     await db.commit()
     return current_user
@@ -381,12 +387,18 @@ async def change_password(
         raise HTTPException(status_code=422, detail=error)
 
     current_user.hashed_password = hash_password(body.new_password)
-    current_user.last_password_change = datetime.now(timezone.utc)
+    current_user.last_password_change = datetime.now(UTC)
     current_user.password_length = len(body.new_password)
     current_user.token_version += 1
 
     # Rafraîchir les cookies avec la nouvelle version
-    _set_auth_cookies(response, current_user.id, current_user.email, current_user.role.value, current_user.token_version)
+    _set_auth_cookies(
+        response,
+        current_user.id,
+        current_user.email,
+        current_user.role.value,
+        current_user.token_version,
+    )
 
     await _log_action(db, "auth.password.changed", request, current_user.email)
     await db.commit()

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from app.models.finding import (
     EmailFindingResult,
@@ -123,10 +123,8 @@ class ResultAggregator:
         # 6. Trier les findings par sévérité (CRITICAL en premier)
         sorted_findings = sorted(
             email_results.values(),
-            key=lambda r: (
-                [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW].index(
-                    r.severity or Severity.LOW
-                )
+            key=lambda r: [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW].index(
+                r.severity or Severity.LOW
             ),
         )
 
@@ -137,9 +135,7 @@ class ResultAggregator:
             findings=sorted_findings,
         )
 
-    def _deduplicate_and_group(
-        self, findings: list[LeakFinding]
-    ) -> dict[str, EmailFindingResult]:
+    def _deduplicate_and_group(self, findings: list[LeakFinding]) -> dict[str, EmailFindingResult]:
         """
         Groupe les findings par email et déduplique les breaches identiques.
         Un breach est un doublon si (email, breach_name, source) est identique.
@@ -171,7 +167,7 @@ class ResultAggregator:
                 status="COMPROMISED",
                 breach_count=len(email_findings),
                 findings=email_findings,
-                checked_at=datetime.now(timezone.utc),
+                checked_at=datetime.now(UTC),
             )
 
         logger.info(
@@ -217,8 +213,15 @@ class ResultAggregator:
             return self._escalate_if_recent(base, finding.breach_date)
 
         # Données PII uniquement → MEDIUM
-        pii_classes = {"email addresses", "passwords", "usernames", "phone numbers",
-                       "physical addresses", "dates of birth", "social security numbers"}
+        pii_classes = {
+            "email addresses",
+            "passwords",
+            "usernames",
+            "phone numbers",
+            "physical addresses",
+            "dates of birth",
+            "social security numbers",
+        }
         data_lower = {d.lower() for d in finding.data_classes}
         if data_lower & pii_classes:
             base = Severity.MEDIUM

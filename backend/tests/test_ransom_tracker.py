@@ -13,7 +13,7 @@ Couverture :
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -158,9 +158,7 @@ class TestRansomwareTrackerContext:
     """Tests de la méthode get_context()."""
 
     @pytest.mark.asyncio
-    async def test_get_context_returns_stats(
-        self, mock_ransom_stats_healthy: RansomStats
-    ) -> None:
+    async def test_get_context_returns_stats(self, mock_ransom_stats_healthy: RansomStats) -> None:
         """get_context() retourne les stats de l'instance."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)

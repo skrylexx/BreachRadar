@@ -8,12 +8,11 @@ L'intégration avec des outils comme Hunter.io ou theHarvester est prévue pour 
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from pathlib import Path
 
 import httpx
-import asyncio
-import subprocess
 
 from app.core.config import get_settings
 
@@ -55,7 +54,9 @@ class EmailResolver:
                         email = line.strip().lower()
                         if email and email.endswith(f"@{self.domain}"):
                             emails.add(email)
-                logger.info(f"[Resolver] {len(emails) - len(self.common_prefixes)} emails chargés depuis emails.txt")
+                logger.info(
+                    f"[Resolver] {len(emails) - len(self.common_prefixes)} emails chargés depuis emails.txt"
+                )
             except Exception as e:
                 logger.error(f"[Resolver] Erreur lecture {emails_file}: {e}")
 
@@ -68,19 +69,17 @@ class EmailResolver:
         harvester_emails = await self._run_theharvester()
         emails.update(harvester_emails)
 
-        resolved = sorted(list(emails))
-        logger.info(f"[Resolver] Total : {len(resolved)} adresses email uniques trouvées pour {self.domain}")
+        resolved = sorted(emails)
+        logger.info(
+            f"[Resolver] Total : {len(resolved)} adresses email uniques trouvées pour {self.domain}"
+        )
         return resolved
 
     async def _run_hunter(self) -> list[str]:
         logger.info(f"[Resolver] Interrogation de Hunter.io pour {self.domain}")
-        url = f"https://api.hunter.io/v2/domain-search"
-        params = {
-            "domain": self.domain,
-            "api_key": self.settings.hunter_api_key,
-            "limit": 100
-        }
-        
+        url = "https://api.hunter.io/v2/domain-search"
+        params = {"domain": self.domain, "api_key": self.settings.hunter_api_key, "limit": 100}
+
         async with httpx.AsyncClient(timeout=15.0) as client:
             try:
                 response = await client.get(url, params=params)
@@ -100,9 +99,15 @@ class EmailResolver:
         try:
             # On exécute de manière asynchrone pour ne pas bloquer
             process = await asyncio.create_subprocess_exec(
-                "theHarvester", "-d", self.domain, "-b", "duckduckgo,yahoo", "-l", "100",
+                "theHarvester",
+                "-d",
+                self.domain,
+                "-b",
+                "duckduckgo,yahoo",
+                "-l",
+                "100",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
             if process.returncode == 0:
@@ -122,10 +127,12 @@ class EmailResolver:
                             found.append(line.lower())
                 logger.info(f"[Resolver] theHarvester: {len(found)} emails trouvés")
             else:
-                logger.warning(f"[Resolver] theHarvester a retourné le code {process.returncode}. (Non installé ?)")
+                logger.warning(
+                    f"[Resolver] theHarvester a retourné le code {process.returncode}. (Non installé ?)"
+                )
         except FileNotFoundError:
             logger.warning("[Resolver] theHarvester n'est pas installé ou n'est pas dans le PATH.")
         except Exception as e:
             logger.error(f"[Resolver] Erreur theHarvester : {e}")
-        
+
         return found

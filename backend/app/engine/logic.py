@@ -7,26 +7,25 @@ Fait le lien entre les différents modules (Orchestrator, Tracker, Aggregator, R
 
 import asyncio
 import logging
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 from uuid import UUID
-
 
 from sqlalchemy import update
 
+from app.clients.ransomlook import RansomLookClient
 from app.core.config import settings
 from app.core.source_registry import SourceRegistry
+from app.engine.aggregator import ResultAggregator
 from app.engine.orchestrator import ScanOrchestrator
 from app.engine.ransom_tracker import RansomwareTracker
-from app.engine.aggregator import ResultAggregator
-from app.report.engine import ReportEngine
-from app.notifications.engine import NotificationEngine
-from app.resolver.email_resolver import EmailResolver
-from app.clients.ransomlook import RansomLookClient
-from app.models.scan import ScanResult, ScanStatus, ScanSeverity
 from app.models.report import ReportMetadata
+from app.models.scan import ScanResult, ScanSeverity, ScanStatus
+from app.notifications.engine import NotificationEngine
+from app.report.engine import ReportEngine
+from app.resolver.email_resolver import EmailResolver
 
 logger = logging.getLogger(__name__)
+
 
 class ScanManager:
     """
@@ -41,11 +40,12 @@ class ScanManager:
 
     async def _get_api_keys(self, db) -> dict[str, str]:
         """Charge toutes les clés API actives depuis la base de données."""
-        from app.models.api_key import APIKey
-        from app.core.security import decrypt_secret
         from sqlalchemy import select
 
-        result = await db.execute(select(APIKey).where(APIKey.is_active == True))
+        from app.core.security import decrypt_secret
+        from app.models.api_key import APIKey
+
+        result = await db.execute(select(APIKey).where(APIKey.is_active))
         keys = {}
         for k in result.scalars().all():
             try:
@@ -69,24 +69,23 @@ class ScanManager:
             try:
                 # 0. Charger les clés API de la base
                 db_keys = await self._get_api_keys(db)
-                
+
                 # 1. Initialiser les clients avec les clés fraîches
-                orchestrator = ScanOrchestrator(settings=settings, registry=self.registry, api_keys=db_keys)
-                
+                orchestrator = ScanOrchestrator(
+                    settings=settings, registry=self.registry, api_keys=db_keys
+                )
+
                 # Client RansomLook (priorité SaaS key DB)
                 mode = settings.ransomlook_mode
                 api_key = db_keys.get("ransomlook_saas")
-                
-                ransom_client = RansomLookClient(
-                    mode=mode,
-                    api_key=api_key
-                )
+
+                ransom_client = RansomLookClient(mode=mode, api_key=api_key)
                 tracker = RansomwareTracker(client=ransom_client, notifier=self.notifier)
 
                 # 2. Résolution des adresses email
                 resolver = EmailResolver(domain=domain)
                 emails = await resolver.resolve()
-                
+
                 # 3. Exécution des scans en parallèle
                 ransom_task = asyncio.create_task(tracker.run(domain))
                 leak_task = asyncio.create_task(orchestrator.scan_emails(emails))
@@ -96,28 +95,28 @@ class ScanManager:
                 ransom_findings = await ransom_task
                 leak_findings = await leak_task
                 domain_findings = await domain_leak_task
-                
+
                 all_leak_findings = leak_findings + domain_findings
 
                 # 4. Agrégation des résultats
                 metadata = ReportMetadata(
                     target_domain=domain,
-                    generated_at=datetime.now(timezone.utc),
+                    generated_at=datetime.now(UTC),
                     scan_duration_seconds=0.0,
                     sources_queried=self.registry.active_sources,
                     total_emails_checked=len(emails),
-                    total_findings=len(all_leak_findings) + len(ransom_findings)
+                    total_findings=len(all_leak_findings) + len(ransom_findings),
                 )
-                
+
                 report = self.aggregator.aggregate(
                     email_findings=all_leak_findings,
                     ransom_findings=ransom_findings,
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
                 # 4. Génération du rapport physique (JSON, HTML, PDF)
                 report_files = self.report_engine.generate(report, formats=["json", "html", "pdf"])
-                
+
                 # 5. Mise à jour de la base de données
                 severity_map = {
                     "CRITICAL": ScanSeverity.CRITICAL,
@@ -125,8 +124,12 @@ class ScanManager:
                     "MEDIUM": ScanSeverity.MEDIUM,
                     "LOW": ScanSeverity.LOW,
                 }
-                
-                global_sev_str = report.summary.global_severity.value if report.summary.global_severity else "LOW"
+
+                global_sev_str = (
+                    report.summary.global_severity.value
+                    if report.summary.global_severity
+                    else "LOW"
+                )
                 scan_severity = severity_map.get(global_sev_str, ScanSeverity.LOW)
 
                 await db.execute(
@@ -137,11 +140,11 @@ class ScanManager:
                         severity=scan_severity,
                         total_findings=len(all_leak_findings) + len(ransom_findings),
                         report_path=str(report_files[0]) if report_files else None,
-                        completed_at=datetime.now(timezone.utc)
+                        completed_at=datetime.now(UTC),
                     )
                 )
                 await db.commit()
-                
+
                 logger.info(f"Scan {scan_id} terminé avec succès. Sévérité: {scan_severity}")
 
             except Exception as e:
@@ -149,9 +152,6 @@ class ScanManager:
                 await db.execute(
                     update(ScanResult)
                     .where(ScanResult.id == scan_id)
-                    .values(
-                        status=ScanStatus.FAILED,
-                        completed_at=datetime.now(timezone.utc)
-                    )
+                    .values(status=ScanStatus.FAILED, completed_at=datetime.now(UTC))
                 )
                 await db.commit()

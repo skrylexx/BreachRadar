@@ -6,8 +6,6 @@ Tests unitaires du SourceRegistry — disponibilité des sources selon les clés
 
 from __future__ import annotations
 
-import pytest
-
 from app.core.source_registry import SourceRegistry
 
 

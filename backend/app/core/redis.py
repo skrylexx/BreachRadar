@@ -5,6 +5,7 @@ Client Redis pour les sessions JWT révoquées (blacklist) et le rate limiting.
 """
 
 import redis.asyncio as aioredis
+
 from app.core.config import settings
 
 # ─── Client Redis singleton ───────────────────────────────────────────────────
@@ -25,7 +26,9 @@ async def is_token_blacklisted(jti: str) -> bool:
     return await redis_client.exists(f"blacklist:{jti}") > 0
 
 
-async def store_mfa_challenge(user_id: str, challenge_token: str, expire_seconds: int = 300) -> None:
+async def store_mfa_challenge(
+    user_id: str, challenge_token: str, expire_seconds: int = 300
+) -> None:
     """
     Stocke un token de challenge MFA temporaire (5 min).
     Clé : mfa_challenge:{token} -> Valeur : user_id
@@ -42,6 +45,7 @@ async def verify_mfa_challenge(challenge_token: str) -> str | None:
 
 
 # ─── Brute-force protection (MFA) ───────────────────────────────────────────
+
 
 async def increment_mfa_failures(user_id: str) -> int:
     """Incrémente le compteur d'échecs MFA et retourne la nouvelle valeur."""
