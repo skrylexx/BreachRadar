@@ -1,11 +1,10 @@
-step 1 :
+mettre a jour le changelog avec un v0.4.0 avec :
+i18n
+security check
 
-lire AI_AGENT_GUIDE.md pour compréhension du projet
-lire les autres fichiers pour mieux comprendre, et lire aussi la cicd github (.github/)
-créer un skill pour gemini en tant qu'expert ci-cd
+deconnexion marche plus
 
+donnes persistantes ransomlook pour detections positives uniquement
 
-step 2 :
+admin de base de l'app peut pas scanner (permissions insuffisantes)
 
-lire les fichiers du dossier "ci_reports/" pour voir les logs de run
-corriger et push pour tester
