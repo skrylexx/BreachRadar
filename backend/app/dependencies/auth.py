@@ -73,9 +73,12 @@ async def require_admin(
 ) -> User:
     """Dependency : réservé aux administrateurs."""
     if current_user.role != UserRole.ADMIN:
+        import logging
+        logger = logging.getLogger("app.auth")
+        logger.warning(f"Access denied: User {current_user.email} has role {current_user.role} (expected {UserRole.ADMIN})")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required",
+            detail=f"Admin privileges required (Current role: {current_user.role})",
         )
     return current_user
 

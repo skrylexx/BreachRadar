@@ -11,6 +11,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useSidebarStore } from "@/lib/store";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { useEffect, useState } from "react";
 
 export function Header() {
   const pathname = usePathname();
@@ -138,8 +139,27 @@ function LanguageSelector() {
 // ─── Menu utilisateur ─────────────────────────────────────────────────────────
 function UserMenu() {
   const t = useTranslations("Common");
+  const [email, setEmail] = useState<string>("admin@yourdomain.com");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/me`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.email) setEmail(data.email);
+        }
+      } catch (e) {
+        console.error("Failed to fetch user in header", e);
+      }
+    };
+    fetchUser();
+  }, []);
+
   const handleLogout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
@@ -173,7 +193,7 @@ function UserMenu() {
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">
             {t("connected_as")}
           </p>
-          <p className="text-xs text-foreground font-data truncate">admin@yourdomain.com</p>
+          <p className="text-xs text-foreground font-data truncate">{email}</p>
         </div>
 
         <div className="p-1.5">

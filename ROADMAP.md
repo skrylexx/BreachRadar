@@ -52,22 +52,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ### Itération 39 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker, correction du "Black Screen" (CSP) et fiabilisation du démarrage Backend (Race Condition).
+**Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker, correction du "Black Screen" (CSP), fiabilisation du démarrage Backend (Race Condition), et correction du flux de déconnexion.
 
 #### Fichiers créés/modifiés
 
 | Fichier | Nature | Description |
 |---|---|---|
 | `docker-compose.yml` | Modification | Mise à jour des digests SHA256 pour les images tierces. |
-| `frontend/next.config.ts` | Modification | Relaxation du CSP (`unsafe-inline`, `unsafe-eval`) pour permettre l'hydratation Next.js et suppression de `interest-cohort`. |
-| `backend/app/main.py` | Modification | Suppression de l'appel redondant à `create_all` dans le lifespan. |
-| `backend/app/core/init_db.py` | Modification | Implémentation d'un verrou Redis distribué pour éviter les collisions lors de la création du schéma par plusieurs workers. |
+| `frontend/next.config.ts` | Modification | Relaxation du CSP (`unsafe-inline`, `unsafe-eval`) pour permettre l'hydratation Next.js. |
+| `backend/app/main.py` | Modification | Ajout d'un verrou Redis pour le Scheduler (singleton multi-worker). |
+| `backend/app/core/init_db.py` | Modification | Implémentation d'un verrou Redis robuste avec retries pour l'initialisation de la DB. |
+| `backend/app/dependencies/auth.py` | Modification | Amélioration des messages d'erreur RBAC pour faciliter le debug. |
+| `frontend/src/components/layout/Header.tsx` | Modification | Fix de l'URL de logout et passage de l'email admin en dynamique (fetch). |
 | `ROADMAP.md` | Modification | Journalisation de l'itération 39. |
 
 #### ✅ Maintenance & Stabilité
 - **Docker Image Fix** : Correction des digests SHA256 bloquants.
-- **CSP Fix** : Résolution de l'écran noir causé par un blocage des scripts Next.js internes par la politique de sécurité trop stricte.
-- **Backend Startup** : Suppression des erreurs `IntegrityError` (UniqueViolation) sur les Enums lors du démarrage concurrent des workers FastAPI.
+- **CSP Fix** : Résolution de l'écran noir.
+- **Backend Startup** : Suppression des erreurs `IntegrityError` sur les Enums via verrouillage distribué robuste.
+- **RBAC & Auth** : Fix de la déconnexion (404) et amélioration du feedback de permissions.
+- **UX** : L'email dans le header est désormais récupéré depuis la session réelle.
 
 ---
 

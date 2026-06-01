@@ -25,47 +25,60 @@ async def initialize_database() -> None:
     - Crée l'admin initial si aucun utilisateur n'existe.
     """
     lock_key = "breachradar:db_init_lock"
-    # Tenter de prendre le verrou pendant 30 secondes
-    is_locked = await redis_client.set(lock_key, "1", nx=True, ex=30)
+    max_retries = 10
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        # Tenter de prendre le verrou pendant 60 secondes
+        is_locked = await redis_client.set(lock_key, "1", nx=True, ex=60)
 
-    if not is_locked:
+        if is_locked:
+            break
+        
         logger.debug("Database initialization already in progress by another worker. Waiting...")
-        # Attendre un peu que l'autre worker termine
         await asyncio.sleep(2)
-        return
+        retry_count += 1
+    
+    if retry_count >= max_retries:
+        logger.warning("Could not acquire DB init lock after several attempts. Proceeding with caution.")
 
     try:
         # 1. Synchronisation du schéma
-        # NOTE: SQLAlchemy create_all peut encore lever IntegrityError sur les Enums 
-        # en cas de concurrence extrême ou de cleanup incomplet.
-        try:
-            async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-        except Exception as e:
-            if "already exists" in str(e).lower():
-                logger.debug(f"Types already created: {e}")
-            else:
-                raise
-
+        async with engine.begin() as conn:
+            # On utilise run_sync pour appeler create_all qui est synchrone dans SQLAlchemy
+            await conn.run_sync(Base.metadata.create_all)
+        
         # 2. Création admin initial
         async with AsyncSessionLocal() as session:
-            result = await session.execute(select(User).limit(1))
-            existing_user = result.scalar_one_or_none()
+            # Vérifier si l'admin existe déjà (par email)
+            result = await session.execute(select(User).where(User.email == settings.initial_admin_email))
+            existing_admin = result.scalar_one_or_none()
 
-            if existing_user is None:
-                logger.info("No users found. Creating initial admin account...")
-                admin = User(
-                    email=settings.initial_admin_email,
-                    hashed_password=hash_password(settings.initial_admin_password),
-                    role=UserRole.ADMIN,
-                    is_active=True,
-                    mfa_enabled=False,
-                )
-                session.add(admin)
-                await session.commit()
-                logger.info(f"Initial admin created: {settings.initial_admin_email}")
+            if existing_admin is None:
+                # Vérifier si un autre utilisateur existe quand même
+                res_any = await session.execute(select(User).limit(1))
+                if res_any.scalar_one_or_none() is None:
+                    logger.info(f"Creating initial admin account: {settings.initial_admin_email}")
+                    admin = User(
+                        email=settings.initial_admin_email,
+                        hashed_password=hash_password(settings.initial_admin_password),
+                        role=UserRole.ADMIN,
+                        is_active=True,
+                        mfa_enabled=False,
+                    )
+                    session.add(admin)
+                    await session.commit()
+                    logger.info("Initial admin created successfully.")
             else:
-                logger.debug("Database already initialized.")
+                logger.debug("Database already has the initial admin.")
+    except Exception as e:
+        # Si l'erreur est liée à un objet déjà existant, on l'ignore (race condition résolue par PG)
+        if "already exists" in str(e).lower():
+            logger.debug(f"DB Object already exists, skipping: {e}")
+        else:
+            logger.error(f"Error during database initialization: {e}")
+            raise
     finally:
-        # Libérer le verrou
-        await redis_client.delete(lock_key)
+        # Libérer le verrou (seulement si on l'avait pris)
+        if retry_count < max_retries:
+            await redis_client.delete(lock_key)

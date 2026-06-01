@@ -54,65 +54,80 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     scheduler = None
     if getattr(settings, "schedule_enabled", False):
         import logging
-
         logger = logging.getLogger("breachradar.scheduler")
-        logger.info("Démarrage du ScanScheduler en tâche de fond...")
+        
+        # Lock Redis pour s'assurer qu'un seul worker lance le scheduler
+        scheduler_lock_key = "breachradar:scheduler_lock"
+        is_scheduler_leader = await redis_client.set(scheduler_lock_key, "1", nx=True, ex=60)
+        
+        if is_scheduler_leader:
+            logger.info("Démarrage du ScanScheduler (Instance Leader)...")
 
-        async def _scan_callback():
-            """Callback déclenché par le scheduler pour un scan complet."""
-            from datetime import datetime
+            async def _scan_callback():
+                """Callback déclenché par le scheduler pour un scan complet."""
+                from datetime import datetime
 
-            from app.core.database import AsyncSessionLocal
-            from app.engine.logic import ScanManager
-            from app.models.scan import ScanResult, ScanStatus
+                from app.core.database import AsyncSessionLocal
+                from app.engine.logic import ScanManager
+                from app.models.scan import ScanResult, ScanStatus
 
-            async with AsyncSessionLocal() as db:
-                # 1. Créer l'entrée ScanResult en DB
-                scan = ScanResult(
-                    target_domain=settings.target_domain,
-                    status=ScanStatus.RUNNING,
-                    triggered_by="scheduler",
-                    started_at=datetime.now(UTC),
-                )
-                db.add(scan)
-                await db.commit()
-                await db.refresh(scan)
-
-                # 2. Lancer le scan
-                scan_manager = ScanManager()
-                await scan_manager.run_full_scan(scan.id)
-
-        async def _watch_callback():
-            """Callback déclenché par le scheduler pour la veille numérique (CVE + RSS + GitHub)."""
-            from app.core.database import AsyncSessionLocal
-            from app.engine.cve_monitor import CVEMonitor
-            from app.engine.intelligence_monitor import IntelligenceMonitor
-
-            # Catégories par défaut à surveiller pour les CVE
-            default_categories = ["nvd_windows", "nvd_linux", "osv_pypi", "osv_npm", "osv_go"]
-
-            async with AsyncSessionLocal() as db:
-                # 1. Veille CVE (NVD, OSV...)
-                cve_monitor = CVEMonitor(db)
-                # 2. Veille Numérique (RSS, GitHub...)
-                intel_monitor = IntelligenceMonitor(db)
-
-                try:
-                    await asyncio.gather(
-                        cve_monitor.poll_all(active_categories=default_categories),
-                        intel_monitor.run_all(),
+                async with AsyncSessionLocal() as db:
+                    # 1. Créer l'entrée ScanResult en DB
+                    scan = ScanResult(
+                        target_domain=settings.target_domain,
+                        status=ScanStatus.RUNNING,
+                        triggered_by="scheduler",
+                        started_at=datetime.now(UTC),
                     )
-                except Exception as e:
-                    import logging
+                    db.add(scan)
+                    await db.commit()
+                    await db.refresh(scan)
 
-                    logger = logging.getLogger("breachradar.scheduler")
-                    logger.error(f"Erreur lors de la veille programmée : {e}")
-                finally:
-                    await cve_monitor.close()
-                    await intel_monitor.close()
+                    # 2. Lancer le scan
+                    scan_manager = ScanManager()
+                    await scan_manager.run_full_scan(scan.id)
 
-        scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
-        scheduler.start()
+            async def _watch_callback():
+                """Callback déclenché par le scheduler pour la veille numérique (CVE + RSS + GitHub)."""
+                from app.core.database import AsyncSessionLocal
+                from app.engine.cve_monitor import CVEMonitor
+                from app.engine.intelligence_monitor import IntelligenceMonitor
+
+                # Catégories par défaut à surveiller pour les CVE
+                default_categories = ["nvd_windows", "nvd_linux", "osv_pypi", "osv_npm", "osv_go"]
+
+                async with AsyncSessionLocal() as db:
+                    # 1. Veille CVE (NVD, OSV...)
+                    cve_monitor = CVEMonitor(db)
+                    # 2. Veille Numérique (RSS, GitHub...)
+                    intel_monitor = IntelligenceMonitor(db)
+
+                    try:
+                        await asyncio.gather(
+                            cve_monitor.poll_all(active_categories=default_categories),
+                            intel_monitor.run_all(),
+                        )
+                    except Exception as e:
+                        import logging
+
+                        logger = logging.getLogger("breachradar.scheduler")
+                        logger.error(f"Erreur lors de la veille programmée : {e}")
+                    finally:
+                        await cve_monitor.close()
+                        await intel_monitor.close()
+
+            scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
+            scheduler.start()
+            
+            # Tâche de fond pour maintenir le lock du scheduler
+            async def _maintain_scheduler_lock():
+                while True:
+                    await asyncio.sleep(30)
+                    await redis_client.expire(scheduler_lock_key, 60)
+            
+            asyncio.create_task(_maintain_scheduler_lock())
+        else:
+            logger.debug("ScanScheduler déjà actif sur une autre instance.")
 
     yield
 

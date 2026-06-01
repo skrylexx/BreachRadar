@@ -2,9 +2,8 @@ mettre a jour le changelog avec un v0.4.0 avec :
 i18n
 security check
 
-deconnexion marche plus
+penser à reset le mfa du admin de base
 
 donnes persistantes ransomlook pour detections positives uniquement
 
 admin de base de l'app peut pas scanner (permissions insuffisantes)
-
