@@ -49,9 +49,7 @@ class RansomFinding(BaseModel):
     source: str = Field(default="ransomlook")
     group_name: str = Field(description="Nom technique du groupe (ex: 'lockbit3')")
     group_display_name: str = Field(description="Nom affichable du groupe (ex: 'LockBit 3.0')")
-    victim_name: str = Field(
-        description="Nom de la victime tel qu'affiché sur le portail du groupe"
-    )
+    victim_name: str = Field(description="Nom de la victime tel qu'affiché sur le portail du groupe")
     victim_website: str | None = Field(
         default=None,
         description="Domaine de la victime si disponible",

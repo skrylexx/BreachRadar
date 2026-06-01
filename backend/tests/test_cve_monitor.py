@@ -41,11 +41,7 @@ async def test_poll_nvd_success(mock_db):
                 "cve": {
                     "id": "CVE-2024-1234",
                     "descriptions": [{"lang": "en", "value": "Test NVD vulnerability"}],
-                    "metrics": {
-                        "cvssMetricV31": [
-                            {"cvssData": {"baseScore": 9.8, "baseSeverity": "CRITICAL"}}
-                        ]
-                    },
+                    "metrics": {"cvssMetricV31": [{"cvssData": {"baseScore": 9.8, "baseSeverity": "CRITICAL"}}]},
                     "published": "2024-05-17T10:00:00.000Z",
                 }
             }
@@ -116,9 +112,7 @@ async def test_poll_osv_success(mock_db):
         respx.get("https://storage.googleapis.com/osv-vulnerabilities/PyPI/modified_id.csv").mock(
             return_value=Response(200, text=csv_content)
         )
-        respx.get("https://api.osv.dev/v1/vulns/OSV-2024-9999").mock(
-            return_value=Response(200, json=osv_detail)
-        )
+        respx.get("https://api.osv.dev/v1/vulns/OSV-2024-9999").mock(return_value=Response(200, json=osv_detail))
 
         await monitor._poll_osv(["osv_pypi"])
 
@@ -148,12 +142,8 @@ async def test_poll_cvefeed_success(mock_db):
     """
 
     with respx.mock:
-        respx.get("https://cvefeed.io/rssfeed/severity/critical.xml").mock(
-            return_value=Response(200, text=rss_content)
-        )
-        respx.get("https://cvefeed.io/rssfeed/severity/high.xml").mock(
-            return_value=Response(200, text="")
-        )
+        respx.get("https://cvefeed.io/rssfeed/severity/critical.xml").mock(return_value=Response(200, text=rss_content))
+        respx.get("https://cvefeed.io/rssfeed/severity/high.xml").mock(return_value=Response(200, text=""))
 
         await monitor._poll_cvefeed()
 

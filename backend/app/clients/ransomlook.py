@@ -87,9 +87,7 @@ class RansomLookClient(BaseLeakClient):
             self.base_url = base_url or settings.ransomlook_saas_api_url.rstrip("/")
             key = api_key or settings.ransomlook_saas_api_key
             if not key:
-                raise RuntimeError(
-                    "RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas"
-                )
+                raise RuntimeError("RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas")
             self.headers = {
                 "Authorization": key,
             }
@@ -185,9 +183,7 @@ class RansomLookClient(BaseLeakClient):
                 results = await self._get(path, params={"name": term})
 
                 if not isinstance(results, list):
-                    logger.warning(
-                        "RansomLook: réponse inattendue pour '%s' : %s", term, type(results)
-                    )
+                    logger.warning("RansomLook: réponse inattendue pour '%s' : %s", term, type(results))
                     continue
 
                 for item in results:
@@ -234,6 +230,7 @@ class RansomLookClient(BaseLeakClient):
             params = {"days": days} if self.mode == "saas" else {}
             res = await self._get(path, params=params)
             from typing import cast
+
             return cast(list[dict], res)
         except Exception as e:
             logger.error("Erreur récupération victimes récentes RansomLook : %s", e)

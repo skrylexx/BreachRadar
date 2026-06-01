@@ -65,9 +65,7 @@ COOKIE_SECURE = settings.environment == "production"
 COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
 
 
-def _set_auth_cookies(
-    response: Response, user_id: uuid.UUID, email: str, role: str, token_version: int
-) -> None:
+def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: str, token_version: int) -> None:
     """Pose les cookies HttpOnly JWT (access + refresh)."""
     jti = secrets.token_urlsafe(16)
     access_token = create_access_token(

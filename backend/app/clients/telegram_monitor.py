@@ -41,9 +41,7 @@ class TelegramMonitorClient(BaseLeakClient):
             self.client_class = TelethonClient
         except ImportError:
             self.client_class = None
-            logger.warning(
-                "[Telegram] Telethon n'est pas installé. Lancez 'uv pip install telethon'."
-            )
+            logger.warning("[Telegram] Telethon n'est pas installé. Lancez 'uv pip install telethon'.")
 
     async def _ensure_auth(self) -> Any:
         if not self.client_class or not self.api_id or not self.api_hash:
@@ -89,9 +87,7 @@ class TelegramMonitorClient(BaseLeakClient):
             # Pour l'instant, nous retournons une liste vide si on ne peut pas interagir
             # efficacement sans risquer un ban (FloodWait).
             # Dans une version avancée, on itérerait sur des canaux OSINT connus.
-            logger.info(
-                f"[{self.name}] La recherche Telegram nécessitera une liste de canaux cible (Phase 3 avancée)."
-            )
+            logger.info(f"[{self.name}] La recherche Telegram nécessitera une liste de canaux cible (Phase 3 avancée).")
 
         except Exception as e:
             logger.error(f"[{self.name}] Erreur lors de la recherche Telegram : {e}")

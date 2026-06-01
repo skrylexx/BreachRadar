@@ -31,9 +31,7 @@ router = APIRouter()
 
 async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Vérifie si l'affichage des données de démonstration est activé."""
-    result = await db.execute(
-        select(SystemSettings).where(SystemSettings.key == "mock_data_enabled")
-    )
+    result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
 
@@ -116,9 +114,7 @@ async def dashboard_stats(
         "scans_7d": len(scans),
         "critical_count": sum(1 for s in scans if s.severity == ScanSeverity.CRITICAL),
         "total_findings": sum(s.total_findings for s in scans),
-        "last_scan_at": (
-            last_scan.completed_at.isoformat() if last_scan and last_scan.completed_at else None
-        ),
+        "last_scan_at": (last_scan.completed_at.isoformat() if last_scan and last_scan.completed_at else None),
     }
 
 
@@ -192,9 +188,7 @@ def _get_mock_chart_data(days: int) -> list[dict[str, Any]]:
 
 
 @router.get("/connectors/status")
-async def connectors_status(
-    current_user: ViewerUser, db: AsyncSession = Depends(get_db)
-) -> list[dict[str, Any]]:
+async def connectors_status(current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
     """
     État de TOUS les connecteurs disponibles dans l'application.
     Ajoute un flag 'is_mock' si le connecteur n'est pas configuré mais que le mode mock est activé.
@@ -215,9 +209,7 @@ async def connectors_status(
             "is_active": ransomlook_ok or mock_enabled,
             "is_mock": not ransomlook_ok and mock_enabled,
             "status": _get_status(ransomlook_ok),
-            "last_test_success": True
-            if settings.ransomlook_mode == "local"
-            else (True if ransomlook_ok else None),
+            "last_test_success": True if settings.ransomlook_mode == "local" else (True if ransomlook_ok else None),
         },
         {
             "name": "hibp",
@@ -376,14 +368,10 @@ async def list_findings(
     if not rows and await _get_mock_data_enabled(db):
         return _get_mock_findings(source, limit, offset)
 
-    return PaginatedResponse(
-        items=rows, total=total_scans, page=(offset // limit) + 1, page_size=limit
-    )
+    return PaginatedResponse(items=rows, total=total_scans, page=(offset // limit) + 1, page_size=limit)
 
 
-def _get_mock_findings(
-    source: str | None, limit: int, offset: int
-) -> PaginatedResponse[FindingRead]:
+def _get_mock_findings(source: str | None, limit: int, offset: int) -> PaginatedResponse[FindingRead]:
     """Génère des données factices réalistes."""
     sources = [source] if source else ["hibp", "leakcheck", "github", "ransomlook", "urlscan"]
     mock_items = []

@@ -114,9 +114,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     await cve_monitor.close()
                     await intel_monitor.close()
 
-        scheduler = ScanScheduler(
-            settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback
-        )
+        scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
         scheduler.start()
 
     yield

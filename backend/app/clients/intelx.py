@@ -54,9 +54,7 @@ class IntelXClient(BaseLeakClient):
                 "sort": 2,  # Sort by date
                 "terminate": [],
             }
-            search_resp = await self._safe_request(
-                client, "POST", f"{self.base_url}/intelligent/search", json=payload
-            )
+            search_resp = await self._safe_request(client, "POST", f"{self.base_url}/intelligent/search", json=payload)
             if not search_resp:
                 return []
 

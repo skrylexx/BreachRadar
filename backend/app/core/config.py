@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     app_name: str = "BreachRadar WebUI"
 
     # ─── Base de données ─────────────────────────────────────────────────────
-    database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/breachradar") 
+    database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/breachradar")
     redis_url: str = Field(default="redis://localhost:6379/0")
     jwt_secret_key: str = Field(default="dev_secret_key_at_least_32_characters_long")
     jwt_algorithm: str = "HS256"
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # ─── Chiffrement (Clés API, SMTP) ────────────────────────────────────────
     encryption_key: str = Field(
         default="knkoNM10_D0QLRM8PHihA23w0k50EQnUGwtmqRmbLyY=",
-        description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",    
+        description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",
     )
 
     # ─── Admin initial ────────────────────────────────────────────────────────
@@ -77,9 +77,7 @@ class Settings(BaseSettings):
     dehashed_api_key: str = Field(default="", description="Dehashed API key")
     intelx_api_key: str = Field(default="", description="Intelligence X API key")
     shodan_api_key: str = Field(default="", description="Shodan API key")
-    hunter_api_key: str = Field(
-        default="", description="Hunter.io API key pour le résolveur d'emails"
-    )
+    hunter_api_key: str = Field(default="", description="Hunter.io API key pour le résolveur d'emails")
 
     # ─── Telegram ────────────────────────────────────────────────────────────
     telegram_api_id: int = Field(default=0, description="Telegram API ID")

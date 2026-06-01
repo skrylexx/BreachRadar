@@ -71,9 +71,7 @@ class ScanManager:
                 db_keys = await self._get_api_keys(db)
 
                 # 1. Initialiser les clients avec les clés fraîches
-                orchestrator = ScanOrchestrator(
-                    settings=settings, registry=self.registry, api_keys=db_keys
-                )
+                orchestrator = ScanOrchestrator(settings=settings, registry=self.registry, api_keys=db_keys)
 
                 # Client RansomLook (priorité SaaS key DB)
                 mode = settings.ransomlook_mode
@@ -125,11 +123,7 @@ class ScanManager:
                     "LOW": ScanSeverity.LOW,
                 }
 
-                global_sev_str = (
-                    report.summary.global_severity.value
-                    if report.summary.global_severity
-                    else "LOW"
-                )
+                global_sev_str = report.summary.global_severity.value if report.summary.global_severity else "LOW"
                 scan_severity = severity_map.get(global_sev_str, ScanSeverity.LOW)
 
                 await db.execute(

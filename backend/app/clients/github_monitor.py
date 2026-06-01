@@ -29,9 +29,7 @@ class GitHubClient(BaseLeakClient):
     """
 
     name = "github"
-    rate_limit_delay = (
-        2.0  # 2 secondes par défaut pour respecter le secondary rate limit de l'API search
-    )
+    rate_limit_delay = 2.0  # 2 secondes par défaut pour respecter le secondary rate limit de l'API search
 
     def __init__(self, token: str = "", sanitizer: DataSanitizer | None = None) -> None:
         """

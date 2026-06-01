@@ -76,14 +76,10 @@ class ReportEngine:
                     file_path = self._generate_json(report, base_filename)
                     generated_files.append(file_path)
                 elif fmt == "markdown" or fmt == "md":
-                    file_path = self._generate_template(
-                        report, f"{base_filename}.md", "report.md.j2"
-                    )
+                    file_path = self._generate_template(report, f"{base_filename}.md", "report.md.j2")
                     generated_files.append(file_path)
                 elif fmt == "html":
-                    file_path = self._generate_template(
-                        report, f"{base_filename}.html", "report.html.j2"
-                    )
+                    file_path = self._generate_template(report, f"{base_filename}.html", "report.html.j2")
                     generated_files.append(file_path)
                 elif fmt == "pdf":
                     file_path = self._generate_pdf(report, f"{base_filename}.pdf")
@@ -123,9 +119,7 @@ class ReportEngine:
     def _generate_template(self, report: FinalReport, filename: str, template_name: str) -> Path:
         """Génère un rapport basé sur un template Jinja2."""
         if not TEMPLATES_DIR.exists():
-            raise FileNotFoundError(
-                "Répertoire des templates introuvable. Impossible de générer le rapport."
-            )
+            raise FileNotFoundError("Répertoire des templates introuvable. Impossible de générer le rapport.")
 
         template = self.env.get_template(template_name)
         content = template.render(report=report)

@@ -111,9 +111,7 @@ class ResultAggregator:
         )
 
         # 4. Calculer la sévérité globale
-        global_severity = self._calculate_global_severity(
-            list(email_results.values()), ransom_findings
-        )
+        global_severity = self._calculate_global_severity(list(email_results.values()), ransom_findings)
 
         # 5. Construire le résumé
         summary = self._build_summary(list(email_results.values()), ransom_findings)
@@ -152,8 +150,7 @@ class ResultAggregator:
 
             if dedup_key in seen_breaches[finding.email]:
                 logger.debug(
-                    f"Doublon ignoré : email={finding.email}, "
-                    f"breach={finding.breach_name}, source={finding.source}"
+                    f"Doublon ignoré : email={finding.email}, breach={finding.breach_name}, source={finding.source}"
                 )
                 continue
 
@@ -263,8 +260,7 @@ class ResultAggregator:
         """
         if ransom_findings:
             logger.warning(
-                "🚨 Sévérité globale forcée à CRITICAL — "
-                f"{len(ransom_findings)} alerte(s) ransomware détectée(s)"
+                f"🚨 Sévérité globale forcée à CRITICAL — {len(ransom_findings)} alerte(s) ransomware détectée(s)"
             )
             return Severity.CRITICAL
 

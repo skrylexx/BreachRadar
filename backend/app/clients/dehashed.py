@@ -23,9 +23,7 @@ class DehashedClient(BaseLeakClient):
     name = "dehashed"
     rate_limit_delay = 0.5
 
-    def __init__(
-        self, dehashed_email: str, api_key: str, sanitizer: DataSanitizer | None = None
-    ) -> None:
+    def __init__(self, dehashed_email: str, api_key: str, sanitizer: DataSanitizer | None = None) -> None:
         super().__init__()
         self.dehashed_email = dehashed_email
         self.api_key = api_key
@@ -105,9 +103,7 @@ class DehashedClient(BaseLeakClient):
 
     def _parse_entry(self, email: str, entry: dict) -> LeakFinding | None:
         sanitized = self.sanitizer.sanitize(entry)
-        safe_entry = (
-            sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else entry
-        )
+        safe_entry = sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else entry
 
         try:
             breach_name = safe_entry.get("database_name", "Unknown Dehashed Source")

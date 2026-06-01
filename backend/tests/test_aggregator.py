@@ -58,9 +58,7 @@ def test_deduplication(aggregator, dummy_metadata):
             is_sensitive=False,
         ),
     ]
-    report = aggregator.aggregate(
-        email_findings=findings, ransom_findings=[], metadata=dummy_metadata
-    )
+    report = aggregator.aggregate(email_findings=findings, ransom_findings=[], metadata=dummy_metadata)
 
     assert len(report.findings) == 1
     assert report.findings[0].breach_count == 1
@@ -97,9 +95,7 @@ def test_severity_calculation(aggregator, dummy_metadata):
             is_sensitive=True,
         ),
     ]
-    report = aggregator.aggregate(
-        email_findings=findings, ransom_findings=[], metadata=dummy_metadata
-    )
+    report = aggregator.aggregate(email_findings=findings, ransom_findings=[], metadata=dummy_metadata)
 
     assert len(report.findings) == 2
     # L'un a LOW, l'autre a HIGH (potentiellement CRITICAL si récent, mais là 2020 donc HIGH)
@@ -131,9 +127,7 @@ def test_ransomware_overrides_severity(aggregator, dummy_metadata):
         )
     ]
     # Même sans email findings
-    report = aggregator.aggregate(
-        email_findings=[], ransom_findings=ransom_findings, metadata=dummy_metadata
-    )
+    report = aggregator.aggregate(email_findings=[], ransom_findings=ransom_findings, metadata=dummy_metadata)
 
     assert report.summary.global_severity == Severity.CRITICAL
     assert report.summary.ransomware_detected is True
@@ -157,9 +151,7 @@ def test_escalate_recent_breach(aggregator, dummy_metadata):
             is_sensitive=True,
         )
     ]
-    report = aggregator.aggregate(
-        email_findings=findings, ransom_findings=[], metadata=dummy_metadata
-    )
+    report = aggregator.aggregate(email_findings=findings, ransom_findings=[], metadata=dummy_metadata)
 
     assert report.findings[0].severity == Severity.CRITICAL
     assert report.summary.global_severity == Severity.CRITICAL

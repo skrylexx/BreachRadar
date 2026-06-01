@@ -47,20 +47,14 @@ class CVEAlert(Base):
     cve_id: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    severity: Mapped[CVESeverity] = mapped_column(
-        Enum(CVESeverity), nullable=False, default=CVESeverity.UNKNOWN
-    )
+    severity: Mapped[CVESeverity] = mapped_column(Enum(CVESeverity), nullable=False, default=CVESeverity.UNKNOWN)
     cvss_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     category: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     source_type: Mapped[CVESourceType] = mapped_column(Enum(CVESourceType), nullable=False)
     url: Mapped[str] = mapped_column(String(512), nullable=False)
 
-    published_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, index=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
 class CustomFeedSource(Base):
@@ -83,9 +77,7 @@ class CustomFeedSource(Base):
     last_polled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_item_count: Mapped[int] = mapped_column(default=0, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )

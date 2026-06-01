@@ -132,8 +132,7 @@ class DataSanitizer:
     def __init__(self) -> None:
         # Pré-compiler les regex pour les performances
         self._compiled_patterns = [
-            (flag, re.compile(pattern), replacement)
-            for flag, pattern, replacement in self.SENSITIVE_PATTERNS
+            (flag, re.compile(pattern), replacement) for flag, pattern, replacement in self.SENSITIVE_PATTERNS
         ]
 
     def sanitize(self, raw: dict | list | str) -> SanitizedResult:

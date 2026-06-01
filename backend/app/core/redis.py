@@ -26,9 +26,7 @@ async def is_token_blacklisted(jti: str) -> bool:
     return await redis_client.exists(f"blacklist:{jti}") > 0
 
 
-async def store_mfa_challenge(
-    user_id: str, challenge_token: str, expire_seconds: int = 300
-) -> None:
+async def store_mfa_challenge(user_id: str, challenge_token: str, expire_seconds: int = 300) -> None:
     """
     Stocke un token de challenge MFA temporaire (5 min).
     Clé : mfa_challenge:{token} -> Valeur : user_id

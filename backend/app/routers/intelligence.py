@@ -56,9 +56,7 @@ async def list_intelligence_findings(
 
 
 @router.post("/{finding_id}/read")
-async def mark_as_read(
-    finding_id: str, current_user: ViewerUser, db: AsyncSession = Depends(get_db)
-):
+async def mark_as_read(finding_id: str, current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
     """Marque une trouvaille comme lue."""
     result = await db.execute(select(CyberFinding).where(CyberFinding.id == finding_id))
     item = result.scalar_one_or_none()

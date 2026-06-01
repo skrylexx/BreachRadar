@@ -38,9 +38,7 @@ class CVEMonitor:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.client = httpx.AsyncClient(
-            timeout=30.0, headers={"User-Agent": "BreachRadar/1.0 (Cyber-Governance-Tool)"}
-        )
+        self.client = httpx.AsyncClient(timeout=30.0, headers={"User-Agent": "BreachRadar/1.0 (Cyber-Governance-Tool)"})
 
     async def poll_all(self, active_categories: list[str]):
         """Lance la collecte pour toutes les catégories actives."""

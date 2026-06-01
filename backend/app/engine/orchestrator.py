@@ -31,9 +31,7 @@ class ScanOrchestrator:
     Chef d'orchestre : gère l'exécution parallèle des clients API.
     """
 
-    def __init__(
-        self, settings: Settings, registry: SourceRegistry, api_keys: dict[str, str] | None = None
-    ) -> None:
+    def __init__(self, settings: Settings, registry: SourceRegistry, api_keys: dict[str, str] | None = None) -> None:
         self.settings = settings
         self.registry = registry
         self.api_keys = api_keys or {}
@@ -59,11 +57,7 @@ class ScanOrchestrator:
             )
 
         if "github" in active_sources:
-            clients.append(
-                GitHubClient(
-                    token=_get_key("github", self.settings.github_token), sanitizer=self.sanitizer
-                )
-            )
+            clients.append(GitHubClient(token=_get_key("github", self.settings.github_token), sanitizer=self.sanitizer))
 
         if "leakcheck" in active_sources:
             clients.append(
@@ -104,9 +98,7 @@ class ScanOrchestrator:
         if not emails or not self.clients:
             return []
 
-        logger.info(
-            f"Démarrage du scan email pour {len(emails)} adresse(s) sur {len(self.clients)} source(s)."
-        )
+        logger.info(f"Démarrage du scan email pour {len(emails)} adresse(s) sur {len(self.clients)} source(s).")
         all_findings: list[LeakFinding] = []
 
         # Pour chaque client, on traite la liste des emails
@@ -125,9 +117,7 @@ class ScanOrchestrator:
 
         return all_findings
 
-    async def _run_client_for_emails(
-        self, client: BaseLeakClient, emails: list[str]
-    ) -> list[LeakFinding]:
+    async def _run_client_for_emails(self, client: BaseLeakClient, emails: list[str]) -> list[LeakFinding]:
         """Exécute un client donné pour tous les emails de manière séquentielle (pour respecter son propre rate_limit)."""
         findings = []
         for email in emails:
@@ -146,9 +136,7 @@ class ScanOrchestrator:
         if not self.clients:
             return []
 
-        logger.info(
-            f"Démarrage du scan de domaine pour '{domain}' sur {len(self.clients)} source(s)."
-        )
+        logger.info(f"Démarrage du scan de domaine pour '{domain}' sur {len(self.clients)} source(s).")
         all_findings: list[LeakFinding] = []
 
         tasks = []

@@ -33,9 +33,7 @@ class HIBPClient(BaseLeakClient):
 
     name = "hibp"
 
-    def __init__(
-        self, api_key: str, sanitizer: DataSanitizer | None = None, rate_limit_delay: float = 1.5
-    ) -> None:
+    def __init__(self, api_key: str, sanitizer: DataSanitizer | None = None, rate_limit_delay: float = 1.5) -> None:
         """
         Args:
             api_key: Clé API HaveIBeenPwned
@@ -149,9 +147,7 @@ class HIBPClient(BaseLeakClient):
         """Parse un dictionnaire breach de HIBP vers LeakFinding."""
         # Sanitize data before parsing (just in case)
         sanitized = self.sanitizer.sanitize(breach)
-        safe_breach = (
-            sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else breach
-        )
+        safe_breach = sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else breach
 
         try:
             breach_date_str = safe_breach.get("BreachDate")
@@ -165,7 +161,9 @@ class HIBPClient(BaseLeakClient):
 
             # Déduire les types de données exposées
             has_password = "passwords" in data_classes_lower
-            has_hash = False  # HIBP ne dit pas toujours si le mdp est hashé, mais en général "passwords" couvre les deux.
+            has_hash = (
+                False  # HIBP ne dit pas toujours si le mdp est hashé, mais en général "passwords" couvre les deux.
+            )
 
             # Si un mot de passe est exposé, on le marque (l'aggregator gérera la sévérité).
             # On suppose que ce ne sont pas des credentials en clair sauf si c'est spécifié autrement.

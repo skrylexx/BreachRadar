@@ -58,17 +58,13 @@ class NotificationEngine:
 
         # Envoi via Email (Stub pour l'instant - implémentation SMTP à faire)
         if self.settings.ransomlook_alert_email:
-            await self.send_email(
-                self.settings.ransomlook_alert_email, "ALERTE CRITIQUE RANSOMWARE", message
-            )
+            await self.send_email(self.settings.ransomlook_alert_email, "ALERTE CRITIQUE RANSOMWARE", message)
 
     async def send_intel_alert(self, finding: CyberFinding) -> None:
         """
         Envoie une alerte de veille cyber critique.
         """
-        if (
-            not self.settings.ransomlook_alert_configured
-        ):  # On réutilise les mêmes canaux pour l'instant
+        if not self.settings.ransomlook_alert_configured:  # On réutilise les mêmes canaux pour l'instant
             return
 
         message = (
@@ -120,9 +116,7 @@ class NotificationEngine:
 
         def _send():
             try:
-                server = smtplib.SMTP(
-                    self.settings.smtp_host, self.settings.smtp_port, timeout=10
-                )
+                server = smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port, timeout=10)
                 if self.settings.smtp_tls:
                     server.starttls()
                 server.login(self.settings.smtp_user, self.settings.smtp_password)

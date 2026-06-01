@@ -128,9 +128,7 @@ class BaseLeakClient(ABC):
         Log la présence de données sensibles SANS les logguer elles-mêmes.
         RÈGLE : Utiliser uniquement des flags booléens dans les logs.
         """
-        self._logger.debug(
-            f"[{self.name}] Donnée sensible détectée pour {email} (type: {data_type}) — masquée"
-        )
+        self._logger.debug(f"[{self.name}] Donnée sensible détectée pour {email} (type: {data_type}) — masquée")
 
     @retry(
         stop=stop_after_attempt(3),
@@ -156,14 +154,9 @@ class BaseLeakClient(ABC):
             if e.response.status_code == 404:
                 return None
             if e.response.status_code == 429:
-                self._logger.warning(
-                    f"[{self.name}] Rate limit atteint (429) sur {url} — attente avant retry"
-                )
+                self._logger.warning(f"[{self.name}] Rate limit atteint (429) sur {url} — attente avant retry")
             elif e.response.status_code >= 500:
-                self._logger.error(
-                    f"[{self.name}] Erreur serveur (500+) sur {url} — "
-                    f"status={e.response.status_code}"
-                )
+                self._logger.error(f"[{self.name}] Erreur serveur (500+) sur {url} — status={e.response.status_code}")
             raise
         except httpx.RequestError as e:
             self._logger.error(f"[{self.name}] Erreur réseau sur {url} : {e}")

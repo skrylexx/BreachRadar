@@ -124,6 +124,7 @@ async def test_mfa_login_and_verify_success(async_client, mock_user):
 
             # Verify store was called
             from unittest.mock import ANY
+
             mock_store.assert_called_once_with(ANY, challenge_token)
 
             # 2. Verify MFA

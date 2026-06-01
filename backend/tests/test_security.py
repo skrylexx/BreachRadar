@@ -79,15 +79,12 @@ class TestNoSensitiveDataInReport:
         forbidden_field_names = {"password", "hash_value", "hash", "token", "api_key_value"}
         for field_name in forbidden_field_names:
             assert field_name not in finding_dict, (
-                f"Champ sensible '{field_name}' trouvé dans LeakFinding — "
-                "ce champ ne doit pas exister dans le modèle"
+                f"Champ sensible '{field_name}' trouvé dans LeakFinding — ce champ ne doit pas exister dans le modèle"
             )
 
         # Vérifier que les patterns sensibles ne sont pas dans la sérialisation JSON
         for pattern in FORBIDDEN_PATTERNS:
-            assert not re.search(pattern, finding_json), (
-                f"Pattern sensible détecté dans LeakFinding JSON : {pattern}"
-            )
+            assert not re.search(pattern, finding_json), f"Pattern sensible détecté dans LeakFinding JSON : {pattern}"
 
     def test_report_does_not_contain_passwords(self) -> None:
         """Le rapport final ne doit contenir aucun mot de passe."""

@@ -58,11 +58,7 @@ async def list_reports(
     period: str | None = Query(None, pattern="^(7d|1m|30d|6m|12m)$"),
 ) -> PaginatedResponse[ReportRead]:
     """Liste les rapports générés (basé sur les ScanResult terminés)."""
-    stmt = (
-        select(ScanResult)
-        .where(ScanResult.status == ScanStatus.COMPLETED)
-        .order_by(desc(ScanResult.completed_at))
-    )
+    stmt = select(ScanResult).where(ScanResult.status == ScanStatus.COMPLETED).order_by(desc(ScanResult.completed_at))
 
     if period:
         days = {"7d": 7, "1m": 30, "30d": 30, "6m": 180, "12m": 365}[period]
@@ -89,8 +85,7 @@ async def list_reports(
                 emails_compromised=s.breach_findings,
                 has_ransomware_alert=s.ransomware_findings > 0,
                 type="manual" if s.triggered_by.startswith("manual") else "scheduled",
-                finding_counts=s.findings_by_source
-                or {},  # Simplifié pour le Record<Severity, number>
+                finding_counts=s.findings_by_source or {},  # Simplifié pour le Record<Severity, number>
             )
         )
 

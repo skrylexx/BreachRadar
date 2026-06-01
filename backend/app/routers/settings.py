@@ -100,9 +100,7 @@ async def create_custom_source(
     db: AsyncSession = Depends(get_db),
 ):
     """Ajoute une nouvelle source RSS."""
-    source = CustomFeedSource(
-        name=body.name, url=body.url, category=body.category, enabled=body.enabled
-    )
+    source = CustomFeedSource(name=body.name, url=body.url, category=body.category, enabled=body.enabled)
     db.add(source)
     await db.flush()
 

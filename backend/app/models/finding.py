@@ -59,9 +59,7 @@ class CyberFinding(Base):
     # ─── Identité & Source ──────────────────────────────────────────────────
     source: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     external_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    finding_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # "rss", "paste", "github", "leak"
+    finding_type: Mapped[str] = mapped_column(String(50), nullable=False)  # "rss", "paste", "github", "leak"
 
     # ─── Contenu ───────────────────────────────────────────────────────────
     title: Mapped[str] = mapped_column(String(512), nullable=False)

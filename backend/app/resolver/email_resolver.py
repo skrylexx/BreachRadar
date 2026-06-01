@@ -55,9 +55,7 @@ class EmailResolver:
                         email = line.strip().lower()
                         if email and email.endswith(f"@{self.domain}"):
                             emails.add(email)
-                logger.info(
-                    f"[Resolver] {len(emails) - len(self.common_prefixes)} emails chargés depuis emails.txt"
-                )
+                logger.info(f"[Resolver] {len(emails) - len(self.common_prefixes)} emails chargés depuis emails.txt")
             except Exception as e:
                 logger.error(f"[Resolver] Erreur lecture {emails_file}: {e}")
 
@@ -71,9 +69,7 @@ class EmailResolver:
         emails.update(harvester_emails)
 
         resolved = sorted(emails)
-        logger.info(
-            f"[Resolver] Total : {len(resolved)} adresses email uniques trouvées pour {self.domain}"
-        )
+        logger.info(f"[Resolver] Total : {len(resolved)} adresses email uniques trouvées pour {self.domain}")
         return resolved
 
     async def _run_hunter(self) -> list[str]:
@@ -132,9 +128,7 @@ class EmailResolver:
                             found.append(line.lower())
                 logger.info(f"[Resolver] theHarvester: {len(found)} emails trouvés")
             else:
-                logger.warning(
-                    f"[Resolver] theHarvester a retourné le code {process.returncode}. (Non installé ?)"
-                )
+                logger.warning(f"[Resolver] theHarvester a retourné le code {process.returncode}. (Non installé ?)")
         except FileNotFoundError:
             logger.warning("[Resolver] theHarvester n'est pas installé ou n'est pas dans le PATH.")
         except Exception as e:

@@ -127,8 +127,6 @@ async def list_ransomware_alerts(
         total = len(filtered)
         items = filtered[offset : offset + limit]
 
-        return PaginatedResponse(
-            items=items, total=total, page=(offset // limit) + 1, page_size=limit
-        )
+        return PaginatedResponse(items=items, total=total, page=(offset // limit) + 1, page_size=limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"RansomLook API error: {str(e)}")

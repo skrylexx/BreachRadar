@@ -38,9 +38,7 @@ def validate_password_strength(password: str, is_admin: bool = False) -> tuple[b
     Returns:
         (is_valid: bool, error_message: str)
     """
-    min_length = (
-        settings.password_min_length_admin if is_admin else settings.password_min_length_viewer
-    )
+    min_length = settings.password_min_length_admin if is_admin else settings.password_min_length_viewer
 
     if len(password) < min_length:
         return False, f"Password must be at least {min_length} characters"
@@ -74,9 +72,7 @@ def is_password_rotation_required(last_password_change: datetime, password_lengt
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Crée un JWT access token (durée courte : 15 min)."""
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (
-        expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes)
-    )
+    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes))
     to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 

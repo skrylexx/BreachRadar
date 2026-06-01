@@ -110,8 +110,7 @@ class SourceRegistry:
                 # Cas spécial Dehashed : nécessite DEHASHED_EMAIL + DEHASHED_API_KEY
                 if source_name == "dehashed":
                     api_key_present = bool(
-                        env.get("DEHASHED_EMAIL", "").strip()
-                        and env.get("DEHASHED_API_KEY", "").strip()
+                        env.get("DEHASHED_EMAIL", "").strip() and env.get("DEHASHED_API_KEY", "").strip()
                     )
                 # Cas spécial Telegram : nécessite API_ID + API_HASH
                 elif source_name == "telegram":
@@ -240,24 +239,16 @@ class SourceRegistry:
 
         for name, status in self.sources.items():
             icon = status.icon
-            state = (
-                "ACTIVE  "
-                if status.available
-                else ("IGNORÉE " if not status.enabled_in_config else "MANQUANT")
-            )
+            state = "ACTIVE  " if status.available else ("IGNORÉE " if not status.enabled_in_config else "MANQUANT")
             detail = status.skip_reason or status.description[:46] or ""
             detail = detail[:46]  # Tronquer pour l'affichage
 
             lines.append(f"│ {name:<19} │ {icon} {state:<6} │ {detail:<47} │")
 
-        lines.append(
-            "└─────────────────────┴──────────┴─────────────────────────────────────────────────┘"
-        )
+        lines.append("└─────────────────────┴──────────┴─────────────────────────────────────────────────┘")
 
         if self.missing_api_keys:
-            lines.append(
-                "\n⚠️  Clés API manquantes (sources activées dans sources.yaml mais sans clé) :"
-            )
+            lines.append("\n⚠️  Clés API manquantes (sources activées dans sources.yaml mais sans clé) :")
             for source_name, env_key in self.missing_api_keys:
                 lines.append(f"   • {env_key}=<votre_clé>  → active '{source_name}'")
             lines.append("\n   Ajouter ces clés dans .env pour activer ces sources.")

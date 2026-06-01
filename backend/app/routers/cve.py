@@ -18,9 +18,7 @@ from app.models.settings import SystemSettings
 
 async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Vérifie si l'affichage des données de démonstration est activé."""
-    result = await db.execute(
-        select(SystemSettings).where(SystemSettings.key == "mock_data_enabled")
-    )
+    result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
 
@@ -80,9 +78,7 @@ def _get_mock_cve_alerts(limit: int, offset: int) -> PaginatedResponse[CVEAlertS
                 published_at=datetime.now(UTC) - timedelta(hours=i * 5),
             )
         )
-    return PaginatedResponse(
-        items=mock_items, total=100, page=(offset // limit) + 1, page_size=limit
-    )
+    return PaginatedResponse(items=mock_items, total=100, page=(offset // limit) + 1, page_size=limit)
 
 
 @router.get("/trend")

@@ -46,9 +46,7 @@ class ScanScheduler:
             )
             logger.info(f"Job de scan planifié avec le cron : '{self.settings.schedule_cron}'")
         except ValueError as e:
-            logger.error(
-                f"Expression cron invalide pour le scan : {self.settings.schedule_cron} - {e}"
-            )
+            logger.error(f"Expression cron invalide pour le scan : {self.settings.schedule_cron} - {e}")
 
         # 2. Job de Veille CVE (si callback fourni)
         if self.cve_callback:
@@ -74,9 +72,7 @@ class ScanScheduler:
             logger.info("Planificateur APScheduler arrêté.")
 
     async def _run_scan_job(self) -> None:
-        logger.info(
-            f"[{datetime.now().isoformat()}] Démarrage automatique du scan via Scheduler..."
-        )
+        logger.info(f"[{datetime.now().isoformat()}] Démarrage automatique du scan via Scheduler...")
         try:
             await self.scan_callback()
         except Exception as e:
