@@ -141,7 +141,9 @@ class IntelligenceMonitor:
                 # Normalisation de la date
                 pub_date = None
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    pub_date = datetime(*entry.published_parsed[:6], tzinfo=UTC)
+                    # published_parsed est un struct_time (9 éléments)
+                    p = entry.published_parsed
+                    pub_date = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
 
                 # Calcul automatique de la sévérité
                 severity = self._analyze_severity(content)

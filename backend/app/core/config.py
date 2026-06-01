@@ -24,35 +24,30 @@ class Settings(BaseSettings):
     )
 
     # ─── Application ─────────────────────────────────────────────────────────
-    environment: str = "production"  # "development" | "production"
+    environment: str = "development"  # "development" | "production"
     app_name: str = "BreachRadar WebUI"
 
     # ─── Base de données ─────────────────────────────────────────────────────
-    database_url: str  # postgresql+asyncpg://user:pass@host:5432/dbname
-
-    # ─── Redis ───────────────────────────────────────────────────────────────
-    redis_url: str  # redis://:password@host:6379/0
-
-    # ─── JWT ─────────────────────────────────────────────────────────────────
-    jwt_secret_key: str
+    database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/breachradar") 
+    redis_url: str = Field(default="redis://localhost:6379/0")
+    jwt_secret_key: str = Field(default="dev_secret_key_at_least_32_characters_long")
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 15
     jwt_refresh_token_expire_days: int = 7
 
     # ─── Chiffrement (Clés API, SMTP) ────────────────────────────────────────
     encryption_key: str = Field(
-        default="",
-        description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",
+        default="knkoNM10_D0QLRM8PHihA23w0k50EQnUGwtmqRmbLyY=",
+        description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",    
     )
 
     # ─── Admin initial ────────────────────────────────────────────────────────
-    initial_admin_email: EmailStr
-    initial_admin_password: str
+    initial_admin_email: EmailStr = Field(default="admin@example.com")
+    initial_admin_password: str = Field(default="InitialAdminPassword123!")
 
     # ─── CORS & Sécurité ─────────────────────────────────────────────────────
     cors_origins: list[str] = ["http://localhost:3000"]
-    allowed_hosts: list[str] = ["localhost", "127.0.0.1", "breachradar-ui"]
-
+    allowed_hosts: list[str] = ["localhost", "127.0.0.1", "breachradar-ui", "test"]
     # ─── Politique mot de passe ───────────────────────────────────────────────
     password_min_length_admin: int = 16
     password_min_length_viewer: int = 12
@@ -89,6 +84,13 @@ class Settings(BaseSettings):
     # ─── Telegram ────────────────────────────────────────────────────────────
     telegram_api_id: int = Field(default=0, description="Telegram API ID")
     telegram_api_hash: str = Field(default="", description="Telegram API hash")
+
+    @field_validator("telegram_api_id", mode="before")
+    @classmethod
+    def empty_str_to_zero(cls, v: Any) -> int:
+        if v == "":
+            return 0
+        return int(v) if v is not None else 0
 
     # ─── RansomLook ──────────────────────────────────────────────────────────
     ransomlook_mode: Literal["local", "saas"] = Field(

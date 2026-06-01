@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 
 from app.engine.aggregator import ResultAggregator
 from app.models.finding import LeakFinding, Severity
@@ -124,7 +124,7 @@ class TestOnionUrlNotInReport:
             group_name="lockbit3",
             group_display_name="LockBit 3.0",
             victim_name="MonDomaine SA",
-            discovered_at="2025-01-14T14:32:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-14T14:32:00Z".replace("Z", "+00:00")),
             status=RansomStatus.LISTED,
             portal_url="http://lockbit3abc.onion/post/abc123",
             search_term_matched="mondomaine.fr",
@@ -169,7 +169,7 @@ class TestRansomForcesGlobalCritical:
             group_name="play",
             group_display_name="Play",
             victim_name="MonDomaine SA",
-            discovered_at="2025-01-14T14:32:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-14T14:32:00Z".replace("Z", "+00:00")),
             status=RansomStatus.LISTED,
             search_term_matched="mondomaine.fr",
         )

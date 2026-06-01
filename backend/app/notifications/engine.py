@@ -104,7 +104,7 @@ class NotificationEngine:
 
     async def send_email(self, to_address: str, subject: str, message: str) -> None:
         """Envoi d'email SMTP de manière asynchrone."""
-        if not self.settings.smtp_server or not self.settings.smtp_username:
+        if not self.settings.smtp_host or not self.settings.smtp_user:
             logger.warning("Configuration SMTP manquante, impossible d'envoyer l'email.")
             return
 
@@ -115,16 +115,17 @@ class NotificationEngine:
         msg = EmailMessage()
         msg.set_content(message)
         msg["Subject"] = subject
-        msg["From"] = self.settings.smtp_from or self.settings.smtp_username
+        msg["From"] = self.settings.smtp_from_email or self.settings.smtp_user
         msg["To"] = to_address
 
         def _send():
             try:
                 server = smtplib.SMTP(
-                    self.settings.smtp_server, self.settings.smtp_port, timeout=10
+                    self.settings.smtp_host, self.settings.smtp_port, timeout=10
                 )
-                server.starttls()
-                server.login(self.settings.smtp_username, self.settings.smtp_password)
+                if self.settings.smtp_tls:
+                    server.starttls()
+                server.login(self.settings.smtp_user, self.settings.smtp_password)
                 server.send_message(msg)
                 server.quit()
                 logger.info(f"Alerte email envoyée avec succès à {to_address}")

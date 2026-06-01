@@ -184,7 +184,9 @@ def encrypt_secret(value: str) -> str:
     return f.encrypt(value.encode()).decode()
 
 
-def decrypt_secret(token: str) -> str:
+def decrypt_secret(token: str | None) -> str:
     """Déchiffre un token Fernet."""
+    if token is None:
+        return ""
     f = _get_fernet()
     return f.decrypt(token.encode()).decode()

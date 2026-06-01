@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -78,7 +79,11 @@ class EmailResolver:
     async def _run_hunter(self) -> list[str]:
         logger.info(f"[Resolver] Interrogation de Hunter.io pour {self.domain}")
         url = "https://api.hunter.io/v2/domain-search"
-        params = {"domain": self.domain, "api_key": self.settings.hunter_api_key, "limit": 100}
+        params: dict[str, Any] = {
+            "domain": self.domain,
+            "api_key": self.settings.hunter_api_key,
+            "limit": 100,
+        }
 
         async with httpx.AsyncClient(timeout=15.0) as client:
             try:

@@ -73,6 +73,6 @@ async def mark_all_as_read(current_user: ViewerUser, db: AsyncSession = Depends(
     """Marque toutes les trouvailles comme lues."""
     from sqlalchemy import update
 
-    await db.execute(update(CyberFinding).where(not CyberFinding.is_read).values(is_read=True))
+    await db.execute(update(CyberFinding).where(CyberFinding.is_read.is_(False)).values(is_read=True))
     await db.commit()
     return {"status": "ok"}

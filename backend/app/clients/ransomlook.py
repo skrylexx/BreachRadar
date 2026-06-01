@@ -141,6 +141,8 @@ class RansomLookClient(BaseLeakClient):
         path = "/api/v1/stats" if self.mode == "saas" else "/api/stats"
         try:
             data = await self._get(path)
+            if not isinstance(data, dict):
+                raise ValueError("RansomLook API returned unexpected format")
             return RansomStats(
                 groups_tracked=data.get("groups", 0),
                 total_posts=data.get("posts", 0),
@@ -230,7 +232,9 @@ class RansomLookClient(BaseLeakClient):
         try:
             # Note: Local API doesn't support 'days' param yet, it returns last 100
             params = {"days": days} if self.mode == "saas" else {}
-            return await self._get(path, params=params)
+            res = await self._get(path, params=params)
+            from typing import cast
+            return cast(list[dict], res)
         except Exception as e:
             logger.error("Erreur récupération victimes récentes RansomLook : %s", e)
             return []
@@ -250,11 +254,16 @@ class RansomLookClient(BaseLeakClient):
             elif item.get("discovered") or item.get("added"):
                 status = RansomStatus.LISTED
 
-            discovered_at = item.get("added") or item.get("discovered")
-            if not discovered_at:
-                from datetime import datetime
+            from datetime import datetime
 
-                discovered_at = datetime.utcnow().isoformat()
+            discovered_at_str = item.get("added") or item.get("discovered")
+            if discovered_at_str:
+                try:
+                    discovered_at = datetime.fromisoformat(str(discovered_at_str).replace("Z", "+00:00"))
+                except ValueError:
+                    discovered_at = datetime.utcnow()
+            else:
+                discovered_at = datetime.utcnow()
 
             return RansomFinding(
                 group_name=group_name,

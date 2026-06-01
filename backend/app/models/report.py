@@ -128,4 +128,6 @@ class FinalReport(BaseModel):
             Severity.MEDIUM: "🟡 MEDIUM",
             Severity.LOW: "🟢 LOW",
         }
+        if not self.summary.global_severity:
+            return "✅ Aucune fuite détectée"
         return labels.get(self.summary.global_severity, "✅ Aucune fuite détectée")

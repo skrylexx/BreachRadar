@@ -13,6 +13,7 @@ Couverture :
 
 from __future__ import annotations
 
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -92,7 +93,7 @@ class TestRansomwareTrackerRun:
             group_name="lockbit3",
             group_display_name="LockBit 3.0",
             victim_name="MonDomaine SA",
-            discovered_at="2025-01-14T14:32:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-14T14:32:00Z".replace("Z", "+00:00")),
             status=RansomStatus.LISTED,
             search_term_matched="mondomaine.fr",
         )
@@ -100,7 +101,7 @@ class TestRansomwareTrackerRun:
             group_name="play",
             group_display_name="Play",
             victim_name="MonDomaine Group",
-            discovered_at="2025-01-10T09:00:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-10T09:00:00Z".replace("Z", "+00:00")),
             status=RansomStatus.PUBLISHED,
             search_term_matched="MonDomaine",
         )

@@ -79,7 +79,7 @@ class TelegramMonitorClient(BaseLeakClient):
         if not client:
             return []
 
-        findings = []
+        findings: list[LeakFinding] = []
         try:
             # Recherche globale de messages contenant le query.
             # Note: L'API Telegram limite fortement la recherche globale par mot-clé pour les utilisateurs.

@@ -94,7 +94,6 @@ async def test_admin_reset_mfa_success(async_client):
     assert response.status_code == 200
     assert target_user.mfa_enabled is False
     assert target_user.mfa_secret is None
-    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -124,7 +123,6 @@ async def test_admin_require_mfa_success(async_client):
 
     assert response.status_code == 200
     assert target_user.mfa_required is True
-    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -157,4 +155,3 @@ async def test_login_with_mfa_required(async_client):
         assert response.status_code == 200
         assert response.json()["requires_mfa"] is True
         mock_store.assert_called_once()
-    app.dependency_overrides.clear()

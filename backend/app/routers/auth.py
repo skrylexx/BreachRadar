@@ -6,9 +6,13 @@ Endpoints : /auth/login, /auth/logout, /auth/refresh,
             /auth/password/change
 """
 
+import logging
 import secrets
 import uuid
+
+logger = logging.getLogger(__name__)
 from datetime import UTC, datetime
+from typing import Literal, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from slowapi import Limiter
@@ -58,7 +62,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # ─── Constantes Cookie ────────────────────────────────────────────────────────
 COOKIE_SECURE = settings.environment == "production"
-COOKIE_SAMESITE = "lax"
+COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
 
 
 def _set_auth_cookies(
@@ -199,11 +203,11 @@ async def mfa_verify(
             detail="User not found or inactive",
         )
 
-    # Vérification du code (TOTP standard ou Backup Code de secours)
+    # VÃ©rification du code (TOTP standard ou Backup Code de secours)
     is_valid = False
     is_backup_used = False
 
-    # Accepter les codes de secours (12 caractères)
+    # Accepter les codes de secours (12 caractÃ¨res)
     if len(body.totp_code) == 12:
         # Tentative via code de secours
         if user.mfa_backup_codes:
@@ -215,14 +219,14 @@ async def mfa_verify(
                     flag_modified(user, "mfa_backup_codes")
                     is_valid = True
                     is_backup_used = True
-                    # Si un code de secours est utilisé, on force la réinitialisation du MFA
+                    # Si un code de secours est utilisÃ©, on force la rÃ©initialisation du MFA
                     user.mfa_enabled = False
                     user.mfa_required = True
-                    user.token_version += 1  # Invalider les autres sessions par sécurité
+                    user.token_version += 1  # Invalider les autres sessions par sÃ©curitÃ©
                     break
     else:
         # Tentative via TOTP standard
-        is_valid = verify_totp(decrypt_secret(user.mfa_secret), body.totp_code)
+        is_valid = verify_totp(decrypt_secret(cast(str, user.mfa_secret)), body.totp_code)
 
     if not is_valid:
         await increment_mfa_failures(user_id)
@@ -313,7 +317,7 @@ async def mfa_confirm(
 ) -> User:
     """Valide le premier code TOTP pour activer définitivement le MFA."""
     code = body.get("totp_code")
-    if not code or not verify_totp(decrypt_secret(current_user.mfa_secret), code):
+    if not code or not verify_totp(decrypt_secret(cast(str, current_user.mfa_secret)), code):
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = True
@@ -346,12 +350,14 @@ async def mfa_disable(
         raise HTTPException(status_code=400, detail="MFA is not enabled")
 
     code = body.get("totp_code")
-    if not code or not verify_totp(decrypt_secret(current_user.mfa_secret), code):
+    if not code or not verify_totp(decrypt_secret(cast(str, current_user.mfa_secret)), code):
         await _log_action(db, "auth.mfa.disable.failure", request, current_user.email)
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = False
     current_user.mfa_secret = None
+    if current_user.mfa_required is None:
+        current_user.mfa_required = False
     current_user.token_version += 1
 
     # Rafraîchir les cookies avec la nouvelle version

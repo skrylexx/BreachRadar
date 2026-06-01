@@ -48,7 +48,7 @@ class BaseLeakClient(ABC):
         self._logger = logging.getLogger(f"breachradar.clients.{self.name}")
 
     @abstractmethod
-    async def check_email(self, email: str) -> list[LeakFinding]:
+    async def check_email(self, email: str) -> list[Any]:
         """
         Vérifie si une adresse email spécifique est présente dans des fuites.
 
@@ -56,7 +56,7 @@ class BaseLeakClient(ABC):
             email: Adresse email à vérifier
 
         Returns:
-            Liste de LeakFinding (vide si aucune fuite détectée)
+            Liste de findings (vide si aucune fuite détectée)
 
         Note:
             Ne jamais logguer le contenu des mots de passe ou hashs reçus.
@@ -64,7 +64,7 @@ class BaseLeakClient(ABC):
         ...
 
     @abstractmethod
-    async def check_domain(self, domain: str) -> list[LeakFinding]:
+    async def check_domain(self, domain: str) -> list[Any]:
         """
         Vérifie si un domaine est présent dans des fuites (recherche générale).
 
@@ -72,7 +72,7 @@ class BaseLeakClient(ABC):
             domain: Domaine à vérifier (ex: "mondomaine.fr")
 
         Returns:
-            Liste de LeakFinding (vide si aucune fuite détectée)
+            Liste de findings (vide si aucune fuite détectée)
         """
         ...
 

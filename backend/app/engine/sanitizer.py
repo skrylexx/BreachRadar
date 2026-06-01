@@ -24,6 +24,7 @@ import gc
 import logging
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class SanitizedResult:
     has_base64_token: bool = False
 
     # Données sûres (données sensibles remplacées par des marqueurs)
-    sanitized_data: dict | str | None = None
+    sanitized_data: Any = None
 
     # Métadonnées
     patterns_matched: list[str] = field(default_factory=list)
@@ -170,7 +171,7 @@ class DataSanitizer:
 
     def _sanitize_dict(self, data: dict, result: SanitizedResult) -> dict:
         """Sanitise récursivement un dictionnaire."""
-        sanitized = {}
+        sanitized: dict[Any, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 sanitized[key] = self._sanitize_string(value, result)

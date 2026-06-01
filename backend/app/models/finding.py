@@ -31,11 +31,15 @@ class Severity(enum.StrEnum):
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
-    def __gt__(self, other: Severity) -> bool:
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, Severity):
+            return NotImplemented
         order = [Severity.LOW, Severity.MEDIUM, Severity.HIGH, Severity.CRITICAL]
         return order.index(self) > order.index(other)
 
-    def __ge__(self, other: Severity) -> bool:
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, Severity):
+            return NotImplemented
         return self == other or self.__gt__(other)
 
 
