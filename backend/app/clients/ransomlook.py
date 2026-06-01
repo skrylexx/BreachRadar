@@ -87,9 +87,7 @@ class RansomLookClient(BaseLeakClient):
             self.base_url = base_url or settings.ransomlook_saas_api_url.rstrip("/")
             key = api_key or settings.ransomlook_saas_api_key
             if not key:
-                raise RuntimeError(
-                    "RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas"
-                )
+                raise RuntimeError("RANSOMLOOK_SAAS_API_KEY est requis lorsque RANSOMLOOK_MODE=saas")
             self.headers = {
                 "Authorization": key,
             }
@@ -97,15 +95,13 @@ class RansomLookClient(BaseLeakClient):
         self.search_terms = settings.all_ransomlook_terms
         self.timeout = httpx.Timeout(settings.request_timeout_seconds)
 
-        logger.info(
-            "RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url
-        )
+        logger.info("RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url)
 
     async def _fetch_local_key(self) -> str | None:
         """Récupère la clé API auto-générée depuis l'instance locale."""
         if self.mode != "local":
             return None
-        
+
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.get(f"{self.base_url}/api/key")
@@ -143,6 +139,8 @@ class RansomLookClient(BaseLeakClient):
         path = "/api/v1/stats" if self.mode == "saas" else "/api/stats"
         try:
             data = await self._get(path)
+            if not isinstance(data, dict):
+                raise ValueError("RansomLook API returned unexpected format")
             return RansomStats(
                 groups_tracked=data.get("groups", 0),
                 total_posts=data.get("posts", 0),
@@ -185,9 +183,7 @@ class RansomLookClient(BaseLeakClient):
                 results = await self._get(path, params={"name": term})
 
                 if not isinstance(results, list):
-                    logger.warning(
-                        "RansomLook: réponse inattendue pour '%s' : %s", term, type(results)
-                    )
+                    logger.warning("RansomLook: réponse inattendue pour '%s' : %s", term, type(results))
                     continue
 
                 for item in results:
@@ -232,7 +228,10 @@ class RansomLookClient(BaseLeakClient):
         try:
             # Note: Local API doesn't support 'days' param yet, it returns last 100
             params = {"days": days} if self.mode == "saas" else {}
-            return await self._get(path, params=params)
+            res = await self._get(path, params=params)
+            from typing import cast
+
+            return cast(list[dict], res)
         except Exception as e:
             logger.error("Erreur récupération victimes récentes RansomLook : %s", e)
             return []
@@ -252,11 +251,16 @@ class RansomLookClient(BaseLeakClient):
             elif item.get("discovered") or item.get("added"):
                 status = RansomStatus.LISTED
 
-            discovered_at = item.get("added") or item.get("discovered")
-            if not discovered_at:
-                from datetime import datetime
+            from datetime import datetime
 
-                discovered_at = datetime.utcnow().isoformat()
+            discovered_at_str = item.get("added") or item.get("discovered")
+            if discovered_at_str:
+                try:
+                    discovered_at = datetime.fromisoformat(str(discovered_at_str).replace("Z", "+00:00"))
+                except ValueError:
+                    discovered_at = datetime.utcnow()
+            else:
+                discovered_at = datetime.utcnow()
 
             return RansomFinding(
                 group_name=group_name,

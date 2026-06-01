@@ -8,7 +8,6 @@ La planification avancée (via APScheduler) est prévue pour la Phase 2.
 from __future__ import annotations
 
 import logging
-import asyncio
 from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -18,10 +17,12 @@ from app.core.config import Settings
 
 logger = logging.getLogger(__name__)
 
+
 class ScanScheduler:
     """
     Planificateur de tâches utilisant APScheduler.
     """
+
     def __init__(self, settings: Settings, scan_callback, cve_callback=None) -> None:
         self.settings = settings
         self.scheduler = AsyncIOScheduler()
@@ -41,7 +42,7 @@ class ScanScheduler:
                 trigger=trigger,
                 id="main_scan_job",
                 name="Scan Complet Périodique",
-                replace_existing=True
+                replace_existing=True,
             )
             logger.info(f"Job de scan planifié avec le cron : '{self.settings.schedule_cron}'")
         except ValueError as e:
@@ -57,12 +58,18 @@ class ScanScheduler:
                 minutes=interval_minutes,
                 id="cve_polling_job",
                 name="Veille CVE Périodique",
-                replace_existing=True
+                replace_existing=True,
             )
             logger.info(f"Job de veille CVE planifié toutes les {interval_minutes} minutes.")
 
         self.scheduler.start()
         logger.info("Planificateur APScheduler démarré.")
+
+    def stop(self) -> None:
+        """Arrête le planificateur."""
+        if self.scheduler.running:
+            self.scheduler.shutdown()
+            logger.info("Planificateur APScheduler arrêté.")
 
     async def _run_scan_job(self) -> None:
         logger.info(f"[{datetime.now().isoformat()}] Démarrage automatique du scan via Scheduler...")

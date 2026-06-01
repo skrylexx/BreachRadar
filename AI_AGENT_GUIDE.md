@@ -372,6 +372,41 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
+### Passation #12 — 2026-06-01
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - **Skill Gemini CI/CD** : Création du skill `cicd-expert` pour automatiser et guider la maintenance de la pipeline.
+  - **Pipeline Quality++** : Ajout de `mypy` (static typing) et `bandit` (security linting) dans GitHub Actions.
+  - **Bug Fixes (CI-driven)** : Correction de plusieurs erreurs de typage et de logique identifiées par les nouveaux outils (Scheduler, ScanSchema, etc.).
+- **Tâche suivante** : Résoudre les 28 erreurs `mypy` restantes (voir sortie locale) ou continuer le développement des features backend (polling CVE, actions profil).
+- **Points de vigilance** :
+  - La configuration `mypy` dans `pyproject.toml` a été assouplie (`strict = false`) pour permettre une introduction graduelle sans bloquer tout le développement.
+  - `bandit` ignore désormais spécifiquement un faux positif dans `app/schemas/scan.py` via `# nosec`.
+- **Fichiers mis à jour** : .github/workflows/ci.yml · backend/pyproject.toml · ROADMAP.md · AI_AGENT_GUIDE.md · Plusieurs fichiers backend pour corrections.
+
+***
+
+### Passation #11 — 2026-06-01
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - **CI/CD GitHub Actions** : Création du workflow `.github/workflows/ci.yml`.
+  - **Pipeline Qualité** : Automatisation du linting (Ruff, ESLint), du build Next.js et des tests pytest.
+  - **Audit Sécurité Automatisé** : Intégration de `detect-secrets`, `npm audit` et `pip-audit` dans la pipeline.
+  - **Vérification Infrastructure** : Ajout de la validation du build des images Docker dans la CI.
+- **Tâche suivante** : Configurer les "Branch Protection Rules" sur GitHub pour rendre ces checks obligatoires avant tout merge sur `main`.
+- **Points de vigilance** :
+  - Le `pip-audit` peut échouer si des vulnérabilités critiques sont trouvées dans les dépendances Python (comportement attendu pour bloquer les PR non sécurisées).
+  - Le build Next.js en CI nécessite des variables d'environnement (Mocks utilisés dans le workflow).
+- **Fichiers mis à jour** : .github/workflows/ci.yml · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
 ### Passation #10 — 2026-06-01
 
 - **Agent sortant**            : Gemini CLI

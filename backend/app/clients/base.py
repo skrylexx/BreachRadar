@@ -48,7 +48,7 @@ class BaseLeakClient(ABC):
         self._logger = logging.getLogger(f"breachradar.clients.{self.name}")
 
     @abstractmethod
-    async def check_email(self, email: str) -> list[LeakFinding]:
+    async def check_email(self, email: str) -> list[Any]:
         """
         Vérifie si une adresse email spécifique est présente dans des fuites.
 
@@ -56,7 +56,7 @@ class BaseLeakClient(ABC):
             email: Adresse email à vérifier
 
         Returns:
-            Liste de LeakFinding (vide si aucune fuite détectée)
+            Liste de findings (vide si aucune fuite détectée)
 
         Note:
             Ne jamais logguer le contenu des mots de passe ou hashs reçus.
@@ -64,7 +64,7 @@ class BaseLeakClient(ABC):
         ...
 
     @abstractmethod
-    async def check_domain(self, domain: str) -> list[LeakFinding]:
+    async def check_domain(self, domain: str) -> list[Any]:
         """
         Vérifie si un domaine est présent dans des fuites (recherche générale).
 
@@ -72,7 +72,7 @@ class BaseLeakClient(ABC):
             domain: Domaine à vérifier (ex: "mondomaine.fr")
 
         Returns:
-            Liste de LeakFinding (vide si aucune fuite détectée)
+            Liste de findings (vide si aucune fuite détectée)
         """
         ...
 
@@ -88,9 +88,7 @@ class BaseLeakClient(ABC):
         wait_time = self.rate_limit_delay - elapsed
 
         if wait_time > 0:
-            self._logger.debug(
-                f"Rate limit [{self.name}] : attente {wait_time:.2f}s"
-            )
+            self._logger.debug(f"Rate limit [{self.name}] : attente {wait_time:.2f}s")
             await asyncio.sleep(wait_time)
 
         self._last_request_time = time.monotonic()
@@ -123,19 +121,14 @@ class BaseLeakClient(ABC):
         Log la détection d'un finding de manière sécurisée.
         RÈGLE : Ne jamais logguer les données sensibles (passwords, hashs).
         """
-        self._logger.info(
-            f"[{self.name}] Finding détecté : email={email}, breach={breach_name}"
-        )
+        self._logger.info(f"[{self.name}] Finding détecté : email={email}, breach={breach_name}")
 
     def _log_sensitive_data_detected(self, email: str, data_type: str) -> None:
         """
         Log la présence de données sensibles SANS les logguer elles-mêmes.
         RÈGLE : Utiliser uniquement des flags booléens dans les logs.
         """
-        self._logger.debug(
-            f"[{self.name}] Donnée sensible détectée pour {email} "
-            f"(type: {data_type}) — masquée"
-        )
+        self._logger.debug(f"[{self.name}] Donnée sensible détectée pour {email} (type: {data_type}) — masquée")
 
     @retry(
         stop=stop_after_attempt(3),
@@ -161,15 +154,9 @@ class BaseLeakClient(ABC):
             if e.response.status_code == 404:
                 return None
             if e.response.status_code == 429:
-                self._logger.warning(
-                    f"[{self.name}] Rate limit atteint (429) sur {url} — "
-                    f"attente avant retry"
-                )
+                self._logger.warning(f"[{self.name}] Rate limit atteint (429) sur {url} — attente avant retry")
             elif e.response.status_code >= 500:
-                self._logger.error(
-                    f"[{self.name}] Erreur serveur (500+) sur {url} — "
-                    f"status={e.response.status_code}"
-                )
+                self._logger.error(f"[{self.name}] Erreur serveur (500+) sur {url} — status={e.response.status_code}")
             raise
         except httpx.RequestError as e:
             self._logger.error(f"[{self.name}] Erreur réseau sur {url} : {e}")

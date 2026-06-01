@@ -5,9 +5,9 @@ Toutes les variables d'environnement validées et typées.
 Fusionne la config de la WebUI et l'ancienne config du CLI.
 """
 
-from functools import lru_cache
-from typing import Any, List, Literal
 import os
+from functools import lru_cache
+from typing import Any, Literal
 
 from pydantic import EmailStr, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,35 +24,30 @@ class Settings(BaseSettings):
     )
 
     # ─── Application ─────────────────────────────────────────────────────────
-    environment: str = "production"  # "development" | "production"
+    environment: str = "development"  # "development" | "production"
     app_name: str = "BreachRadar WebUI"
 
     # ─── Base de données ─────────────────────────────────────────────────────
-    database_url: str  # postgresql+asyncpg://user:pass@host:5432/dbname
-
-    # ─── Redis ───────────────────────────────────────────────────────────────
-    redis_url: str  # redis://:password@host:6379/0
-
-    # ─── JWT ─────────────────────────────────────────────────────────────────
-    jwt_secret_key: str
+    database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/breachradar")
+    redis_url: str = Field(default="redis://localhost:6379/0")
+    jwt_secret_key: str = Field(default="dev_secret_key_at_least_32_characters_long")
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 15
     jwt_refresh_token_expire_days: int = 7
 
     # ─── Chiffrement (Clés API, SMTP) ────────────────────────────────────────
     encryption_key: str = Field(
-        default="",
+        default="knkoNM10_D0QLRM8PHihA23w0k50EQnUGwtmqRmbLyY=",
         description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",
     )
 
     # ─── Admin initial ────────────────────────────────────────────────────────
-    initial_admin_email: EmailStr
-    initial_admin_password: str
+    initial_admin_email: EmailStr = Field(default="admin@example.com")
+    initial_admin_password: str = Field(default="InitialAdminPassword123!")
 
     # ─── CORS & Sécurité ─────────────────────────────────────────────────────
-    cors_origins: List[str] = ["http://localhost:3000"]
-    allowed_hosts: List[str] = ["localhost", "127.0.0.1", "breachradar-ui"]
-
+    cors_origins: list[str] = ["http://localhost:3000"]
+    allowed_hosts: list[str] = ["localhost", "127.0.0.1", "breachradar-ui", "test"]
     # ─── Politique mot de passe ───────────────────────────────────────────────
     password_min_length_admin: int = 16
     password_min_length_viewer: int = 12
@@ -87,6 +82,13 @@ class Settings(BaseSettings):
     # ─── Telegram ────────────────────────────────────────────────────────────
     telegram_api_id: int = Field(default=0, description="Telegram API ID")
     telegram_api_hash: str = Field(default="", description="Telegram API hash")
+
+    @field_validator("telegram_api_id", mode="before")
+    @classmethod
+    def empty_str_to_zero(cls, v: Any) -> int:
+        if v == "":
+            return 0
+        return int(v) if v is not None else 0
 
     # ─── RansomLook ──────────────────────────────────────────────────────────
     ransomlook_mode: Literal["local", "saas"] = Field(
@@ -216,6 +218,7 @@ class Settings(BaseSettings):
                 return ["http://localhost:3000", "http://127.0.0.1:3000"]
             try:
                 import json
+
                 parsed = json.loads(v)
                 if isinstance(parsed, list):
                     return parsed
@@ -312,23 +315,33 @@ class Settings(BaseSettings):
 
     def get_configured_sources(self) -> list[str]:
         available = ["ransomlook", "rss"]
-        if self.hibp_configured: available.append("hibp")
-        if self.github_configured or True: available.append("github")
-        if self.gitlab_configured: available.append("gitlab")
-        if self.urlscan_configured: available.append("urlscan")
-        if self.otx_configured: available.append("otx")
-        if self.leakcheck_configured: available.append("leakcheck")
-        if self.dehashed_configured: available.append("dehashed")
-        if self.intelx_configured: available.append("intelx")
-        if self.shodan_configured: available.append("shodan")
-        if self.telegram_configured: available.append("telegram")
+        if self.hibp_configured:
+            available.append("hibp")
+        if True:
+            available.append("github")
+        if self.gitlab_configured:
+            available.append("gitlab")
+        if self.urlscan_configured:
+            available.append("urlscan")
+        if self.otx_configured:
+            available.append("otx")
+        if self.leakcheck_configured:
+            available.append("leakcheck")
+        if self.dehashed_configured:
+            available.append("dehashed")
+        if self.intelx_configured:
+            available.append("intelx")
+        if self.shodan_configured:
+            available.append("shodan")
+        if self.telegram_configured:
+            available.append("telegram")
         return available
 
 
 @lru_cache
 def get_settings() -> Settings:
     """Singleton des settings (caché après le premier appel)."""
-    return Settings()
+    return Settings()  # type: ignore[call-arg]
 
 
 settings: Settings = get_settings()

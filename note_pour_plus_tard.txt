@@ -1,2 +1,11 @@
-branch : i18n config
-mettre à jour i18n + rendre fonctionnel le switch de langue
+step 1 :
+
+lire AI_AGENT_GUIDE.md pour compréhension du projet
+lire les autres fichiers pour mieux comprendre, et lire aussi la cicd github (.github/)
+créer un skill pour gemini en tant qu'expert ci-cd
+
+
+step 2 :
+
+lire les fichiers du dossier "ci_reports/" pour voir les logs de run
+corriger et push pour tester

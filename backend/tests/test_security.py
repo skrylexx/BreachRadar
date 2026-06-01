@@ -14,24 +14,21 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date
-
-import pytest
+from datetime import date, datetime
 
 from app.engine.aggregator import ResultAggregator
-from app.engine.sanitizer import DataSanitizer
 from app.models.finding import LeakFinding, Severity
 from app.models.ransom import RansomFinding, RansomStatus
 from app.models.report import ReportMetadata
 
 # Patterns sensibles qui ne doivent JAMAIS apparaître dans un rapport final
 FORBIDDEN_PATTERNS = [
-    r"(?i)password\s*[:=]\s*\S+",       # Mot de passe en clair
-    r"\b[a-f0-9]{32}\b",                # Hash MD5
-    r"\b[a-f0-9]{40}\b",                # Hash SHA-1
-    r"\b[a-f0-9]{64}\b",                # Hash SHA-256
-    r"\$2[ayb]\$.{56}",                 # Hash bcrypt
-    r"ghp_[A-Za-z0-9]{36,}",           # Token GitHub
+    r"(?i)password\s*[:=]\s*\S+",  # Mot de passe en clair
+    r"\b[a-f0-9]{32}\b",  # Hash MD5
+    r"\b[a-f0-9]{40}\b",  # Hash SHA-1
+    r"\b[a-f0-9]{64}\b",  # Hash SHA-256
+    r"\$2[ayb]\$.{56}",  # Hash bcrypt
+    r"ghp_[A-Za-z0-9]{36,}",  # Token GitHub
 ]
 
 
@@ -69,28 +66,25 @@ class TestNoSensitiveDataInReport:
         """
         finding = _make_finding_with_sensitive_breach()
         finding_dict = finding.model_dump()
-        
+
         class DateTimeEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, date):
                     return obj.isoformat()
                 return super().default(obj)
-        
+
         finding_json = json.dumps(finding_dict, cls=DateTimeEncoder)
 
         # Vérifier l'absence de champs "password", "hash_value", "token"
         forbidden_field_names = {"password", "hash_value", "hash", "token", "api_key_value"}
         for field_name in forbidden_field_names:
             assert field_name not in finding_dict, (
-                f"Champ sensible '{field_name}' trouvé dans LeakFinding — "
-                "ce champ ne doit pas exister dans le modèle"
+                f"Champ sensible '{field_name}' trouvé dans LeakFinding — ce champ ne doit pas exister dans le modèle"
             )
 
         # Vérifier que les patterns sensibles ne sont pas dans la sérialisation JSON
         for pattern in FORBIDDEN_PATTERNS:
-            assert not re.search(pattern, finding_json), (
-                f"Pattern sensible détecté dans LeakFinding JSON : {pattern}"
-            )
+            assert not re.search(pattern, finding_json), f"Pattern sensible détecté dans LeakFinding JSON : {pattern}"
 
     def test_report_does_not_contain_passwords(self) -> None:
         """Le rapport final ne doit contenir aucun mot de passe."""
@@ -127,7 +121,7 @@ class TestOnionUrlNotInReport:
             group_name="lockbit3",
             group_display_name="LockBit 3.0",
             victim_name="MonDomaine SA",
-            discovered_at="2025-01-14T14:32:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-14T14:32:00Z".replace("Z", "+00:00")),
             status=RansomStatus.LISTED,
             portal_url="http://lockbit3abc.onion/post/abc123",
             search_term_matched="mondomaine.fr",
@@ -139,6 +133,7 @@ class TestOnionUrlNotInReport:
     def test_data_integrity_flags_onion_excluded(self) -> None:
         """Le flag DataIntegrity.onion_urls_excluded_from_report est True."""
         from app.models.report import DataIntegrity
+
         integrity = DataIntegrity()
         assert integrity.onion_urls_excluded_from_report is True
 
@@ -171,7 +166,7 @@ class TestRansomForcesGlobalCritical:
             group_name="play",
             group_display_name="Play",
             victim_name="MonDomaine SA",
-            discovered_at="2025-01-14T14:32:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-14T14:32:00Z".replace("Z", "+00:00")),
             status=RansomStatus.LISTED,
             search_term_matched="mondomaine.fr",
         )

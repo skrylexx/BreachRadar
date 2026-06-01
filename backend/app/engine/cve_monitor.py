@@ -7,17 +7,15 @@ Phase 9 du TODO.md.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Any, List, Optional
+from datetime import UTC, datetime, timedelta
 
-import httpx
 import feedparser
-from sqlalchemy import select, delete
+import httpx
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.cve import CVEAlert, CVESeverity, CVESourceType
-from app.schemas.cve import CVESource
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +29,7 @@ CVEFEED_HIGH_URL = "https://cvefeed.io/rssfeed/severity/high.xml"
 
 # ─── Moteur Principal ───────────────────────────────────────────────────────
 
+
 class CVEMonitor:
     """
     Orchestre la collecte des CVE depuis les différentes sources.
@@ -39,24 +38,21 @@ class CVEMonitor:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.client = httpx.AsyncClient(
-            timeout=30.0,
-            headers={"User-Agent": "BreachRadar/1.0 (Cyber-Governance-Tool)"}
-        )
+        self.client = httpx.AsyncClient(timeout=30.0, headers={"User-Agent": "BreachRadar/1.0 (Cyber-Governance-Tool)"})
 
-    async def poll_all(self, active_categories: List[str]):
+    async def poll_all(self, active_categories: list[str]):
         """Lance la collecte pour toutes les catégories actives."""
         logger.info(f"Démarrage du polling CVE pour {len(active_categories)} catégories.")
-        
+
         # 1. Collecte NVD (Rate limited)
         await self._poll_nvd(active_categories)
-        
+
         # 2. Collecte OSV.dev
         await self._poll_osv(active_categories)
-        
+
         # 3. Collecte GitHub Advisories
         await self._poll_github_advisories()
-        
+
         # 4. Collecte CVEFeed
         await self._poll_cvefeed()
 
@@ -65,7 +61,7 @@ class CVEMonitor:
 
     # ─── NVD (NIST) ──────────────────────────────────────────────────────────
 
-    async def _poll_nvd(self, categories: List[str]):
+    async def _poll_nvd(self, categories: list[str]):
         """Interroge l'API NVD 2.0."""
         # Filtre les catégories NVD (ex: nvd_windows, nvd_linux)
         nvd_cats = [c for c in categories if c.startswith("nvd_")]
@@ -82,31 +78,31 @@ class CVEMonitor:
             keyword = self._get_nvd_keyword(cat)
             if not keyword:
                 continue
-            
+
             try:
                 # On récupère les CVE publiées dans les dernières 24h par défaut
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
                 start_date = (now - timedelta(days=1)).isoformat()
-                
+
                 params = {
                     "keywordSearch": keyword,
                     "pubStartDate": start_date,
-                    "pubEndDate": now.isoformat()
+                    "pubEndDate": now.isoformat(),
                 }
-                
+
                 response = await self.client.get(NVD_API_URL, params=params, headers=headers)
                 if response.status_code == 200:
                     data = response.json()
                     await self._process_nvd_data(data, cat)
                 elif response.status_code == 429:
                     logger.warning("Rate limit NVD atteint. Pause nécessaire.")
-                
+
             except Exception as e:
                 logger.error(f"Erreur lors du polling NVD pour {cat}: {e}")
-            
+
             await asyncio.sleep(delay)
 
-    def _get_nvd_keyword(self, cat: str) -> Optional[str]:
+    def _get_nvd_keyword(self, cat: str) -> str | None:
         mapping = {
             "nvd_windows": "Microsoft Windows",
             "nvd_linux": "Linux Kernel",
@@ -121,13 +117,13 @@ class CVEMonitor:
             cve_id = cve.get("id")
             if not cve_id:
                 continue
-            
+
             # Extraction sévérité et score
             metrics = cve.get("metrics", {})
             cvss_v31 = metrics.get("cvssMetricV31", [{}])[0].get("cvssData", {})
             score = cvss_v31.get("baseScore")
             severity_str = cvss_v31.get("baseSeverity", "UNKNOWN").upper()
-            
+
             description = ""
             for desc in cve.get("descriptions", []):
                 if desc.get("lang") == "en":
@@ -143,7 +139,9 @@ class CVEMonitor:
                 category=category,
                 source_type=CVESourceType.NVD,
                 url=f"https://nvd.nist.gov/vuln/detail/{cve_id}",
-                published_at=datetime.fromisoformat(cve.get("published", datetime.now(timezone.utc).isoformat()).replace("Z", "+00:00"))
+                published_at=datetime.fromisoformat(
+                    cve.get("published", datetime.now(UTC).isoformat()).replace("Z", "+00:00")
+                ),
             )
             await self._upsert_cve(alert)
 
@@ -160,30 +158,31 @@ class CVEMonitor:
                     cve_id = None
                     if "CVE-" in entry.title:
                         import re
+
                         match = re.search(r"CVE-\d{4}-\d+", entry.title)
                         if match:
                             cve_id = match.group(0)
-                    
+
                     if not cve_id:
                         cve_id = f"GHSA-{entry.id.split('/')[-1]}"
 
                     # Extraction de la date avec fallback
                     if hasattr(entry, "published_parsed") and entry.published_parsed:
-                        published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                        published_at = datetime(*entry.published_parsed[:6], tzinfo=UTC)
                     elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=UTC)
                     else:
-                        published_at = datetime.now(timezone.utc)
+                        published_at = datetime.now(UTC)
 
                     alert = CVEAlert(
                         cve_id=cve_id,
                         title=entry.title,
                         description=entry.summary,
-                        severity=CVESeverity.HIGH, # GitHub ne donne pas toujours le score direct en RSS
+                        severity=CVESeverity.HIGH,  # GitHub ne donne pas toujours le score direct en RSS
                         category="GitHub Advisories",
                         source_type=CVESourceType.GITHUB,
                         url=entry.link,
-                        published_at=published_at
+                        published_at=published_at,
                     )
                     await self._upsert_cve(alert)
         except Exception as e:
@@ -191,7 +190,7 @@ class CVEMonitor:
 
     # ─── OSV (Google) ────────────────────────────────────────────────────────
 
-    async def _poll_osv(self, categories: List[str]):
+    async def _poll_osv(self, categories: list[str]):
         """
         Interroge l'API OSV.dev par écosystème.
         Utilise modified_id.csv pour lister les IDs récents et GET /v1/vulns/<id> pour les détails.
@@ -209,28 +208,30 @@ class CVEMonitor:
                 "Go": "Go",
             }
             osv_ecosystem = ecosystem_map.get(ecosystem, ecosystem)
-            
+
             try:
                 csv_url = f"https://storage.googleapis.com/osv-vulnerabilities/{osv_ecosystem}/modified_id.csv"
                 response = await self.client.get(csv_url)
                 if response.status_code != 200:
                     logger.error(f"Erreur CSV OSV pour {osv_ecosystem}: {response.status_code}")
                     continue
-                
+
                 # On prend les 10 plus récentes vulnérabilités (reverse chrono)
                 lines = response.text.strip().split("\n")
                 latest_vulns = lines[:10]
-                
+
                 for line in latest_vulns:
-                    if not line: continue
+                    if not line:
+                        continue
                     parts = line.split(",")
-                    if len(parts) < 2: continue
-                    
+                    if len(parts) < 2:
+                        continue
+
                     vuln_id = parts[1].strip()
                     await self._fetch_osv_detail(vuln_id, cat)
                     # Pause pour éviter de spammer api.osv.dev
                     await asyncio.sleep(0.2)
-                    
+
             except Exception as e:
                 logger.error(f"Erreur OSV pour {cat}: {e}")
 
@@ -241,11 +242,11 @@ class CVEMonitor:
             res = await self.client.get(url)
             if res.status_code == 200:
                 data = res.json()
-                
+
                 # Extraction sévérité (OSV utilise souvent CVSS v3)
                 severity_str = "UNKNOWN"
                 cvss_score = None
-                
+
                 # Check for severity field
                 if "severity" in data:
                     for s in data["severity"]:
@@ -253,7 +254,7 @@ class CVEMonitor:
                             # On tente de parser le score depuis le vector ou le field
                             # Note: OSV score est souvent absent, on peut avoir juste le vector
                             pass
-                
+
                 # Check for database_specific field which sometimes contains severity
                 db_spec = data.get("database_specific", {})
                 severity_str = db_spec.get("severity", "UNKNOWN").upper()
@@ -267,7 +268,9 @@ class CVEMonitor:
                     category=category,
                     source_type=CVESourceType.OSV,
                     url=f"https://osv.dev/vulnerability/{vuln_id}",
-                    published_at=datetime.fromisoformat(data.get("published", datetime.now(timezone.utc).isoformat()).replace("Z", "+00:00"))
+                    published_at=datetime.fromisoformat(
+                        data.get("published", datetime.now(UTC).isoformat()).replace("Z", "+00:00")
+                    ),
                 )
                 await self._upsert_cve(alert)
         except Exception as e:
@@ -287,7 +290,7 @@ class CVEMonitor:
         stmt = select(CVEAlert).where(CVEAlert.cve_id == alert.cve_id)
         result = await self.db.execute(stmt)
         existing = result.scalar_one_or_none()
-        
+
         if existing:
             existing.title = alert.title
             existing.description = alert.description
@@ -299,21 +302,25 @@ class CVEMonitor:
 
     async def _poll_cvefeed(self):
         """Parse les flux RSS de CVEFeed.io."""
-        for url, sev in [(CVEFEED_CRITICAL_URL, CVESeverity.CRITICAL), (CVEFEED_HIGH_URL, CVESeverity.HIGH)]:
+        for url, sev in [
+            (CVEFEED_CRITICAL_URL, CVESeverity.CRITICAL),
+            (CVEFEED_HIGH_URL, CVESeverity.HIGH),
+        ]:
             try:
                 response = await self.client.get(url)
                 feed = feedparser.parse(response.text)
                 for entry in feed.entries:
                     cve_id = entry.title.split(":")[0].strip()
-                    if not cve_id.startswith("CVE-"): continue
-                    
+                    if not cve_id.startswith("CVE-"):
+                        continue
+
                     # Extraction de la date avec fallback
                     if hasattr(entry, "published_parsed") and entry.published_parsed:
-                        published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                        published_at = datetime(*entry.published_parsed[:6], tzinfo=UTC)
                     elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=UTC)
                     else:
-                        published_at = datetime.now(timezone.utc)
+                        published_at = datetime.now(UTC)
 
                     alert = CVEAlert(
                         cve_id=cve_id,
@@ -324,7 +331,7 @@ class CVEMonitor:
                         category="General",
                         source_type=CVESourceType.CVEFEED,
                         url=entry.link,
-                        published_at=published_at
+                        published_at=published_at,
                     )
                     await self._upsert_cve(alert)
             except Exception as e:

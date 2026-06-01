@@ -8,12 +8,12 @@ L'intégration avec des outils comme Hunter.io ou theHarvester est prévue pour 
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from pathlib import Path
+from typing import Any
 
 import httpx
-import asyncio
-import subprocess
 
 from app.core.config import get_settings
 
@@ -68,19 +68,19 @@ class EmailResolver:
         harvester_emails = await self._run_theharvester()
         emails.update(harvester_emails)
 
-        resolved = sorted(list(emails))
+        resolved = sorted(emails)
         logger.info(f"[Resolver] Total : {len(resolved)} adresses email uniques trouvées pour {self.domain}")
         return resolved
 
     async def _run_hunter(self) -> list[str]:
         logger.info(f"[Resolver] Interrogation de Hunter.io pour {self.domain}")
-        url = f"https://api.hunter.io/v2/domain-search"
-        params = {
+        url = "https://api.hunter.io/v2/domain-search"
+        params: dict[str, Any] = {
             "domain": self.domain,
             "api_key": self.settings.hunter_api_key,
-            "limit": 100
+            "limit": 100,
         }
-        
+
         async with httpx.AsyncClient(timeout=15.0) as client:
             try:
                 response = await client.get(url, params=params)
@@ -100,9 +100,15 @@ class EmailResolver:
         try:
             # On exécute de manière asynchrone pour ne pas bloquer
             process = await asyncio.create_subprocess_exec(
-                "theHarvester", "-d", self.domain, "-b", "duckduckgo,yahoo", "-l", "100",
+                "theHarvester",
+                "-d",
+                self.domain,
+                "-b",
+                "duckduckgo,yahoo",
+                "-l",
+                "100",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
             if process.returncode == 0:
@@ -127,5 +133,5 @@ class EmailResolver:
             logger.warning("[Resolver] theHarvester n'est pas installé ou n'est pas dans le PATH.")
         except Exception as e:
             logger.error(f"[Resolver] Erreur theHarvester : {e}")
-        
+
         return found

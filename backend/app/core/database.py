@@ -4,7 +4,7 @@ BreachRadar WebUI — Base de données (SQLAlchemy Async)
 Configuration de l'engine async PostgreSQL et session factory.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
-
 
 # ─── Engine async ─────────────────────────────────────────────────────────────
 engine = create_async_engine(
@@ -36,6 +35,7 @@ AsyncSessionLocal = async_sessionmaker(
 # ─── Base déclarative ─────────────────────────────────────────────────────────
 class Base(DeclarativeBase):
     """Base pour tous les modèles SQLAlchemy."""
+
     pass
 
 

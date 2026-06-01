@@ -5,6 +5,7 @@ Client Redis pour les sessions JWT révoquées (blacklist) et le rate limiting.
 """
 
 import redis.asyncio as aioredis
+
 from app.core.config import settings
 
 # ─── Client Redis singleton ───────────────────────────────────────────────────
@@ -38,10 +39,14 @@ async def verify_mfa_challenge(challenge_token: str) -> str | None:
     Vérifie et consomme le challenge MFA (usage unique).
     Retourne le user_id si valide, None sinon.
     """
-    return await redis_client.getdel(f"mfa_challenge:{challenge_token}")
+    res = await redis_client.getdel(f"mfa_challenge:{challenge_token}")
+    if res is None:
+        return None
+    return res.decode("utf-8") if isinstance(res, bytes) else str(res)
 
 
 # ─── Brute-force protection (MFA) ───────────────────────────────────────────
+
 
 async def increment_mfa_failures(user_id: str) -> int:
     """Incrémente le compteur d'échecs MFA et retourne la nouvelle valeur."""

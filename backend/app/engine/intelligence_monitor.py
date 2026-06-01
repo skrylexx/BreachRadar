@@ -6,25 +6,24 @@ Supporte RSS/Atom, GitHub, Pastebin et Telegram.
 """
 
 import asyncio
-import logging
-import re
-import uuid
 import hashlib
-from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
+import logging
+from datetime import UTC, datetime
+from typing import Any
 
-import httpx
 import feedparser
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.source_registry import SourceRegistry
-from app.models.finding import CyberFinding, Severity
 from app.models.cve import CustomFeedSource
+from app.models.finding import CyberFinding, Severity
 from app.notifications.engine import NotificationEngine
 
 logger = logging.getLogger(__name__)
+
 
 class IntelligenceMonitor:
     """
@@ -38,19 +37,21 @@ class IntelligenceMonitor:
         self.client = httpx.AsyncClient(
             timeout=30.0,
             follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            },
         )
 
     async def run_all(self):
         """Lance toutes les collectes actives."""
         logger.info("Démarrage de la veille numérique globale.")
-        
+
         tasks = []
-        
+
         # 1. Polling des flux RSS (Statiques + DB)
         if self.registry.is_available("rss"):
             tasks.append(self._poll_rss_feeds())
-            
+
         # 2. Polling GitHub (Monitors statiques)
         if self.registry.is_available("github"):
             tasks.append(self._poll_github_monitors())
@@ -66,7 +67,7 @@ class IntelligenceMonitor:
         if tasks:
             await asyncio.gather(*tasks)
             await self.db.commit()
-            
+
         logger.info("Veille numérique globale terminée.")
 
     # ─── RSS / Atom ──────────────────────────────────────────────────────────
@@ -76,33 +77,37 @@ class IntelligenceMonitor:
         # A. Flux statiques depuis sources.yaml
         rss_status = self.registry.sources.get("rss")
         static_feeds = rss_status.config.get("feeds", []) if rss_status else []
-        
+
         # B. Flux dynamiques depuis la DB
-        result = await self.db.execute(select(CustomFeedSource).where(CustomFeedSource.enabled == True))
+        result = await self.db.execute(select(CustomFeedSource).where(CustomFeedSource.enabled))
         db_feeds = result.scalars().all()
-        
+
         # Fusionner pour le traitement
         all_feeds = []
         for f in static_feeds:
-            all_feeds.append({
-                "name": f.get("name"),
-                "url": f.get("url"),
-                "category": f.get("category", "General"),
-                "source_type": "static"
-            })
+            all_feeds.append(
+                {
+                    "name": f.get("name"),
+                    "url": f.get("url"),
+                    "category": f.get("category", "General"),
+                    "source_type": "static",
+                }
+            )
         for f in db_feeds:
-            all_feeds.append({
-                "name": f.name,
-                "url": f.url,
-                "category": f.category,
-                "source_type": "db",
-                "model": f
-            })
+            all_feeds.append(
+                {
+                    "name": f.name,
+                    "url": f.url,
+                    "category": f.category,
+                    "source_type": "db",
+                    "model": f,
+                }
+            )
 
         for feed_cfg in all_feeds:
             await self._process_single_rss(feed_cfg)
 
-    async def _process_single_rss(self, cfg: Dict[str, Any]):
+    async def _process_single_rss(self, cfg: dict[str, Any]):
         """Parse et stocke les items d'un flux unique."""
         url = cfg["url"]
         try:
@@ -113,30 +118,32 @@ class IntelligenceMonitor:
 
             feed = feedparser.parse(response.text)
             new_items_count = 0
-            
+
             # Mots-clés de filtrage pour pertinence
             keywords = [settings.target_domain.lower()]
-            domain_name = settings.target_domain.split('.')[0]
+            domain_name = settings.target_domain.split(".")[0]
             if len(domain_name) > 3:
                 keywords.append(domain_name.lower())
 
             for entry in feed.entries:
                 content = (entry.get("title", "") + " " + entry.get("summary", "")).lower()
-                
+
                 # Filtrage : On garde si mention du domaine OU si la source est une source d'alerte critique (CERT/CISA)
                 is_relevant = any(k in content for k in keywords) or cfg["category"] == "Alerts"
-                
+
                 if not is_relevant:
                     continue
 
                 # Générer un ID unique basé sur l'URL de l'item ou le lien
                 link = entry.get("link", url)
                 external_id = hashlib.sha256(link.encode()).hexdigest()
-                
+
                 # Normalisation de la date
                 pub_date = None
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    pub_date = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                    # published_parsed est un struct_time (9 éléments)
+                    p = entry.published_parsed
+                    pub_date = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
 
                 # Calcul automatique de la sévérité
                 severity = self._analyze_severity(content)
@@ -152,20 +159,20 @@ class IntelligenceMonitor:
                     published_at=pub_date,
                     extra_metadata={
                         "category": cfg["category"],
-                        "author": entry.get("author", "Unknown")
-                    }
+                        "author": entry.get("author", "Unknown"),
+                    },
                 )
-                
+
                 if await self._upsert_finding(finding):
                     new_items_count += 1
 
             # Mettre à jour les stats si c'est une source DB
             if cfg["source_type"] == "db" and "model" in cfg:
-                cfg["model"].last_polled_at = datetime.now(timezone.utc)
+                cfg["model"].last_polled_at = datetime.now(UTC)
                 cfg["model"].last_item_count = new_items_count
-                
+
             logger.debug(f"RSS [{cfg['name']}]: {new_items_count} nouveaux items.")
-            
+
         except Exception as e:
             logger.error(f"Erreur lors du traitement RSS {url}: {e}")
 
@@ -175,7 +182,7 @@ class IntelligenceMonitor:
         """Exécute les recherches GitHub configurées."""
         github_status = self.registry.sources.get("github")
         monitors = github_status.config.get("monitors", []) if github_status else []
-        
+
         for mon in monitors:
             if mon.get("type") == "search":
                 query = mon.get("query", "").replace("{target_domain}", settings.target_domain)
@@ -187,17 +194,17 @@ class IntelligenceMonitor:
         headers = {}
         if settings.github_token:
             headers["Authorization"] = f"token {settings.github_token}"
-        
+
         try:
             params = {"q": query, "sort": "indexed", "order": "desc"}
             response = await self.client.get(api_url, params=params, headers=headers)
-            
+
             if response.status_code == 200:
                 data = response.json()
                 for item in data.get("items", [])[:10]:
                     repo = item.get("repository", {})
                     external_id = f"gh:{item.get('sha')}"
-                    
+
                     finding = CyberFinding(
                         source=f"GitHub:{monitor_name}",
                         external_id=external_id,
@@ -209,8 +216,8 @@ class IntelligenceMonitor:
                         extra_metadata={
                             "repository": repo.get("full_name"),
                             "file_path": item.get("path"),
-                            "owner": repo.get("owner", {}).get("login")
-                        }
+                            "owner": repo.get("owner", {}).get("login"),
+                        },
                     )
                     await self._upsert_finding(finding)
             elif response.status_code == 403:
@@ -227,7 +234,7 @@ class IntelligenceMonitor:
         """
         api_url = "https://scrape.pastebin.com/api_scraping.php"
         params = {"limit": 50}
-        
+
         try:
             response = await self.client.get(api_url, params=params)
             if response.status_code == 200:
@@ -255,18 +262,33 @@ class IntelligenceMonitor:
         """Analyse heuristique simple pour déterminer la sévérité."""
         text = text.lower()
         domain_mention = settings.target_domain.lower() in text
-        
-        critical_keywords = ["exploit", "0-day", "zero-day", "critical", "rce", "unauthenticated", "breach"]
-        high_keywords = ["vulnerability", "leak", "breach", "ransomware", "active attack", "phishing"]
-        
+
+        critical_keywords = [
+            "exploit",
+            "0-day",
+            "zero-day",
+            "critical",
+            "rce",
+            "unauthenticated",
+            "breach",
+        ]
+        high_keywords = [
+            "vulnerability",
+            "leak",
+            "breach",
+            "ransomware",
+            "active attack",
+            "phishing",
+        ]
+
         if domain_mention and any(k in text for k in (critical_keywords + high_keywords)):
             return Severity.CRITICAL
-            
+
         if any(k in text for k in critical_keywords):
             return Severity.CRITICAL
         if any(k in text for k in high_keywords) or domain_mention:
             return Severity.HIGH
-        
+
         return Severity.LOW
 
     async def _upsert_finding(self, finding: CyberFinding) -> bool:
@@ -275,7 +297,7 @@ class IntelligenceMonitor:
         result = await self.db.execute(stmt)
         if result.scalar_one_or_none():
             return False
-        
+
         self.db.add(finding)
 
         # Alerte immédiate si critique

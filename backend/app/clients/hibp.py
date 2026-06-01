@@ -12,6 +12,7 @@ Particularités de ce client :
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import logging
 from datetime import datetime
@@ -32,12 +33,7 @@ class HIBPClient(BaseLeakClient):
 
     name = "hibp"
 
-    def __init__(
-        self, 
-        api_key: str, 
-        sanitizer: DataSanitizer | None = None,
-        rate_limit_delay: float = 1.5
-    ) -> None:
+    def __init__(self, api_key: str, sanitizer: DataSanitizer | None = None, rate_limit_delay: float = 1.5) -> None:
         """
         Args:
             api_key: Clé API HaveIBeenPwned
@@ -75,7 +71,7 @@ class HIBPClient(BaseLeakClient):
         params = {"truncateResponse": "false"}
 
         client = self._build_http_client(headers=headers)
-        
+
         try:
             response = await self._safe_get(client, url, params=params)
         finally:
@@ -100,7 +96,9 @@ class HIBPClient(BaseLeakClient):
         La recherche par domaine sur HIBP nécessite un abonnement spécial (Domain Search).
         Cette méthode retourne une liste vide dans l'implémentation standard.
         """
-        logger.info("La recherche de domaine HIBP requiert l'abonnement Domain Search. Utilisez check_email pour chaque adresse email résolue.")
+        logger.info(
+            "La recherche de domaine HIBP requiert l'abonnement Domain Search. Utilisez check_email pour chaque adresse email résolue."
+        )
         return []
 
     async def check_password(self, password: str) -> int:
@@ -122,10 +120,10 @@ class HIBPClient(BaseLeakClient):
         suffix = sha1[5:]
 
         url = f"https://api.pwnedpasswords.com/range/{prefix}"
-        
+
         # Ce service ne requiert pas de clé API et autorise plus de requêtes
         client = httpx.AsyncClient(headers={"User-Agent": "BreachRadar/0.1.0"})
-        
+
         try:
             response = await client.get(url, timeout=10.0)
             response.raise_for_status()
@@ -133,16 +131,16 @@ class HIBPClient(BaseLeakClient):
             logger.error(f"Erreur lors de la vérification PwnedPasswords: {e}")
             await client.aclose()
             return 0
-            
+
         await client.aclose()
-        
+
         # La réponse contient des lignes 'SUFFIX:COUNT'
         lines = response.text.splitlines()
         for line in lines:
             if line.startswith(f"{suffix}:"):
                 count_str = line.split(":")[1]
                 return int(count_str)
-                
+
         return 0
 
     def _parse_breach(self, email: str, breach: dict) -> LeakFinding | None:
@@ -155,21 +153,21 @@ class HIBPClient(BaseLeakClient):
             breach_date_str = safe_breach.get("BreachDate")
             breach_date = None
             if breach_date_str:
-                try:
+                with contextlib.suppress(ValueError):
                     breach_date = datetime.strptime(breach_date_str, "%Y-%m-%d").date()
-                except ValueError:
-                    pass
 
             data_classes = safe_breach.get("DataClasses", [])
             data_classes_lower = [d.lower() for d in data_classes]
 
             # Déduire les types de données exposées
             has_password = "passwords" in data_classes_lower
-            has_hash = False # HIBP ne dit pas toujours si le mdp est hashé, mais en général "passwords" couvre les deux.
-            
+            has_hash = (
+                False  # HIBP ne dit pas toujours si le mdp est hashé, mais en général "passwords" couvre les deux.
+            )
+
             # Si un mot de passe est exposé, on le marque (l'aggregator gérera la sévérité).
             # On suppose que ce ne sont pas des credentials en clair sauf si c'est spécifié autrement.
-            
+
             is_sensitive = safe_breach.get("IsSensitive", False)
             is_verified = safe_breach.get("IsVerified", True)
 
@@ -184,7 +182,7 @@ class HIBPClient(BaseLeakClient):
                 data_classes=data_classes,
                 has_password=has_password,
                 has_hash=has_hash,
-                has_api_key=False, # HIBP ne précise pas souvent "API keys" dans data classes de la même manière
+                has_api_key=False,  # HIBP ne précise pas souvent "API keys" dans data classes de la même manière
                 severity=severity,
                 verified=is_verified,
                 is_sensitive=is_sensitive,

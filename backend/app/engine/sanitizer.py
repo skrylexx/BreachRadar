@@ -24,6 +24,7 @@ import gc
 import logging
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class SanitizedResult:
     has_base64_token: bool = False
 
     # Données sûres (données sensibles remplacées par des marqueurs)
-    sanitized_data: dict | str | None = None
+    sanitized_data: Any = None
 
     # Métadonnées
     patterns_matched: list[str] = field(default_factory=list)
@@ -51,13 +52,15 @@ class SanitizedResult:
 
     @property
     def has_any_sensitive_data(self) -> bool:
-        return any([
-            self.has_password,
-            self.has_hash,
-            self.has_api_key,
-            self.has_plaintext_credential,
-            self.has_base64_token,
-        ])
+        return any(
+            [
+                self.has_password,
+                self.has_hash,
+                self.has_api_key,
+                self.has_plaintext_credential,
+                self.has_base64_token,
+            ]
+        )
 
 
 class DataSanitizer:
@@ -75,56 +78,48 @@ class DataSanitizer:
     # Ordre important : du plus spécifique au plus général
     SENSITIVE_PATTERNS: list[tuple[str, str, str]] = [
         # (nom_flag, regex_pattern, marqueur_remplacement)
-
         # Mots de passe en format clé:valeur
         (
             "has_password",
             r"(?i)(?:password[s]?|passwd|pwd|pass)\s*[:=]\s*\S+",
             "[PASSWORD MASQUÉ]",
         ),
-
         # Hash bcrypt (priorité haute car spécifique)
         (
             "has_hash",
             r"\$2[ayb]\$.{56}",
             "[HASH BCRYPT MASQUÉ]",
         ),
-
         # Hash SHA-256 (64 caractères hex)
         (
             "has_hash",
             r"\b[a-f0-9]{64}\b",
             "[HASH SHA-256 MASQUÉ]",
         ),
-
         # Hash SHA-1 (40 caractères hex)
         (
             "has_hash",
             r"\b[a-f0-9]{40}\b",
             "[HASH SHA-1 MASQUÉ]",
         ),
-
         # Hash MD5 (32 caractères hex)
         (
             "has_hash",
             r"\b[a-f0-9]{32}\b",
             "[HASH MD5 MASQUÉ]",
         ),
-
         # Clés API et tokens en format clé:valeur
         (
             "has_api_key",
             r"(?i)(?:api[_-]?key|token|secret|bearer|auth)\s*[:=]\s*\S+",
             "[CLÉ API MASQUÉE]",
         ),
-
         # Tokens GitHub (ghp_, ghs_, ghx_, etc.)
         (
             "has_api_key",
             r"\bgh[psouxr]_[A-Za-z0-9]{36,}\b",
             "[TOKEN GITHUB MASQUÉ]",
         ),
-
         # Chaînes Base64 longues (potentiellement des tokens)
         # Seuil : 40+ caractères pour éviter les faux positifs
         (
@@ -137,8 +132,7 @@ class DataSanitizer:
     def __init__(self) -> None:
         # Pré-compiler les regex pour les performances
         self._compiled_patterns = [
-            (flag, re.compile(pattern), replacement)
-            for flag, pattern, replacement in self.SENSITIVE_PATTERNS
+            (flag, re.compile(pattern), replacement) for flag, pattern, replacement in self.SENSITIVE_PATTERNS
         ]
 
     def sanitize(self, raw: dict | list | str) -> SanitizedResult:
@@ -157,7 +151,8 @@ class DataSanitizer:
             result.sanitized_data = self._sanitize_dict(raw, result)
         elif isinstance(raw, list):
             result.sanitized_data = [
-                self._sanitize_dict(item, result) if isinstance(item, dict)
+                self._sanitize_dict(item, result)
+                if isinstance(item, dict)
                 else self._sanitize_string(str(item), result)
                 for item in raw
             ]
@@ -175,7 +170,7 @@ class DataSanitizer:
 
     def _sanitize_dict(self, data: dict, result: SanitizedResult) -> dict:
         """Sanitise récursivement un dictionnaire."""
-        sanitized = {}
+        sanitized: dict[Any, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 sanitized[key] = self._sanitize_string(value, result)
@@ -183,8 +178,10 @@ class DataSanitizer:
                 sanitized[key] = self._sanitize_dict(value, result)
             elif isinstance(value, list):
                 sanitized[key] = [
-                    self._sanitize_dict(item, result) if isinstance(item, dict)
-                    else self._sanitize_string(str(item), result) if isinstance(item, str)
+                    self._sanitize_dict(item, result)
+                    if isinstance(item, dict)
+                    else self._sanitize_string(str(item), result)
+                    if isinstance(item, str)
                     else item
                     for item in value
                 ]
@@ -242,7 +239,4 @@ class DataSanitizer:
         Returns:
             True si aucune donnée sensible détectée
         """
-        for _, pattern, _ in self._compiled_patterns:
-            if pattern.search(text):
-                return False
-        return True
+        return all(not pattern.search(text) for _, pattern, _ in self._compiled_patterns)

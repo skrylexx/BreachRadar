@@ -71,12 +71,14 @@ async def create_user(
     await db.flush()
 
     # Audit log
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="user.created",
-        details={"target_email": body.email, "role": body.role.value},
-        ip_address=request.client.host if request.client else None,
-    ))
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="user.created",
+            details={"target_email": body.email, "role": body.role.value},
+            ip_address=request.client.host if request.client else None,
+        )
+    )
 
     return UserRead.model_validate(user)
 
@@ -91,6 +93,7 @@ async def update_user(
 ) -> UserRead:
     """Met à jour le rôle ou le statut d'un utilisateur."""
     import uuid
+
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
@@ -105,12 +108,14 @@ async def update_user(
         changes["is_active"] = f"{user.is_active}→{body.is_active}"
         user.is_active = body.is_active
 
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="user.updated",
-        details={"target_email": user.email, **changes},
-        ip_address=request.client.host if request.client else None,
-    ))
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="user.updated",
+            details={"target_email": user.email, **changes},
+            ip_address=request.client.host if request.client else None,
+        )
+    )
 
     return UserRead.model_validate(user)
 
@@ -124,6 +129,7 @@ async def delete_user(
 ) -> None:
     """Supprime un utilisateur (soft delete — désactivation)."""
     import uuid
+
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
@@ -133,12 +139,14 @@ async def delete_user(
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
 
     user.is_active = False
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="user.deactivated",
-        details={"target_email": user.email},
-        ip_address=request.client.host if request.client else None,
-    ))
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="user.deactivated",
+            details={"target_email": user.email},
+            ip_address=request.client.host if request.client else None,
+        )
+    )
 
 
 @router.post("/{user_id}/reset-mfa")
@@ -150,6 +158,7 @@ async def reset_mfa(
 ) -> dict:
     """Désactive le MFA pour un utilisateur (Admin uniquement)."""
     import uuid
+
     target_id = uuid.UUID(user_id)
     if target_id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot reset your own MFA")
@@ -163,14 +172,16 @@ async def reset_mfa(
     user.mfa_enabled = False
     user.mfa_secret = None
     user.token_version += 1
-    
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="user.mfa.reset",
-        details={"target_email": user.email},
-        ip_address=request.client.host if request.client else None,
-    ))
-    
+
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="user.mfa.reset",
+            details={"target_email": user.email},
+            ip_address=request.client.host if request.client else None,
+        )
+    )
+
     await db.commit()
     return {"message": f"MFA has been reset for user {user.email}"}
 
@@ -184,6 +195,7 @@ async def require_mfa(
 ) -> dict:
     """Force l'activation du MFA pour un utilisateur (Admin uniquement)."""
     import uuid
+
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
@@ -192,13 +204,15 @@ async def require_mfa(
 
     user.mfa_required = True
     user.token_version += 1
-    
-    db.add(AuditLog(
-        user_email=current_user.email,
-        action="user.mfa.require",
-        details={"target_email": user.email},
-        ip_address=request.client.host if request.client else None,
-    ))
-    
+
+    db.add(
+        AuditLog(
+            user_email=current_user.email,
+            action="user.mfa.require",
+            details={"target_email": user.email},
+            ip_address=request.client.host if request.client else None,
+        )
+    )
+
     await db.commit()
     return {"message": f"MFA is now required for user {user.email}"}

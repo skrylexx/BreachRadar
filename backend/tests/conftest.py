@@ -7,21 +7,40 @@ Fixtures pytest partagées pour tous les tests BreachRadar.
 from __future__ import annotations
 
 import json
+
+# ─── Global Environment Setup ────────────────────────────────────────────────
+import os
 from datetime import date, datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-import respx
+
+os.environ["ENVIRONMENT"] = "development"
+os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:postgres@localhost:5432/breachradar"
+os.environ["REDIS_URL"] = "redis://localhost:6379/0"
+os.environ["JWT_SECRET_KEY"] = "dev_secret_key_at_least_32_characters_long"
+os.environ["ENCRYPTION_KEY"] = "knkoNM10_D0QLRM8PHihA23w0k50EQnUGwtmqRmbLyY="
+os.environ["INITIAL_ADMIN_EMAIL"] = "admin@example.com"
+os.environ["INITIAL_ADMIN_PASSWORD"] = "InitialAdminPassword123!"
+os.environ["TELEGRAM_API_ID"] = "0"
+
+# ─── Mock Global System ──────────────────────────────────────────────────────
+from unittest.mock import patch
 
 from app.models.finding import LeakFinding, Severity
 from app.models.ransom import RansomFinding, RansomStats, RansomStatus
+
+# Mock engine and initialize_database globally before any app import
+patch("app.core.database.engine").start()
+patch("app.core.init_db.initialize_database", new_callable=AsyncMock).start()
 
 # Répertoire des fixtures JSON
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 # ─── Fixtures RansomLook ──────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def ransom_victim_found_json() -> list[dict]:
@@ -83,6 +102,7 @@ def mock_ransom_stats_unhealthy() -> RansomStats:
 
 # ─── Fixtures LeakFinding ─────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_finding_critical() -> LeakFinding:
     """LeakFinding de sévérité CRITICAL (credential en clair)."""
@@ -139,6 +159,7 @@ def mock_finding_low() -> LeakFinding:
 
 # ─── Fixtures Mock Clients ────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_notifier() -> MagicMock:
     """NotificationEngine mocké."""
@@ -149,7 +170,11 @@ def mock_notifier() -> MagicMock:
     return notifier
 
 
-@pytest.fixture
-def test_domain() -> str:
-    """Domaine de test standard."""
-    return "mondomaine.fr"
+from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def manage_overrides():
+    """Gère le nettoyage des overrides entre les tests."""
+    yield
+    app.dependency_overrides.clear()

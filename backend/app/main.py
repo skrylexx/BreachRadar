@@ -4,8 +4,10 @@ BreachRadar WebUI — FastAPI Application Entry Point
 Point d'entrée principal. Configure le middleware, les routes et le cycle de vie.
 """
 
+import asyncio
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from datetime import UTC
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,13 +19,24 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from app.core.config import settings
-from app.core.database import engine, Base
-from app import models # Ensure models are registered
-from app.core.redis import redis_client
-from app.routers import auth, users, scans, api_keys, health, webhooks, ransomlook, cve, settings as settings_router, reports, intelligence
-from app.routers.dashboard import router as dashboard_router
+from app.core.database import Base, engine
 from app.core.init_db import initialize_database
+from app.core.redis import redis_client
 from app.engine.scheduler import ScanScheduler
+from app.routers import (
+    api_keys,
+    auth,
+    cve,
+    health,
+    intelligence,
+    ransomlook,
+    reports,
+    scans,
+    users,
+    webhooks,
+)
+from app.routers import settings as settings_router
+from app.routers.dashboard import router as dashboard_router
 
 # ─── Rate Limiter global ─────────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
@@ -44,28 +57,30 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     scheduler = None
     if getattr(settings, "schedule_enabled", False):
         import logging
+
         logger = logging.getLogger("breachradar.scheduler")
         logger.info("Démarrage du ScanScheduler en tâche de fond...")
-        
+
         async def _scan_callback():
             """Callback déclenché par le scheduler pour un scan complet."""
+            from datetime import datetime
+
             from app.core.database import AsyncSessionLocal
             from app.engine.logic import ScanManager
             from app.models.scan import ScanResult, ScanStatus
-            from datetime import datetime, timezone
-            
+
             async with AsyncSessionLocal() as db:
                 # 1. Créer l'entrée ScanResult en DB
                 scan = ScanResult(
                     target_domain=settings.target_domain,
                     status=ScanStatus.RUNNING,
                     triggered_by="scheduler",
-                    started_at=datetime.now(timezone.utc),
+                    started_at=datetime.now(UTC),
                 )
                 db.add(scan)
                 await db.commit()
                 await db.refresh(scan)
-                
+
                 # 2. Lancer le scan
                 scan_manager = ScanManager()
                 await scan_manager.run_full_scan(scan.id)
@@ -75,34 +90,31 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             from app.core.database import AsyncSessionLocal
             from app.engine.cve_monitor import CVEMonitor
             from app.engine.intelligence_monitor import IntelligenceMonitor
-            
+
             # Catégories par défaut à surveiller pour les CVE
             default_categories = ["nvd_windows", "nvd_linux", "osv_pypi", "osv_npm", "osv_go"]
-            
+
             async with AsyncSessionLocal() as db:
                 # 1. Veille CVE (NVD, OSV...)
                 cve_monitor = CVEMonitor(db)
                 # 2. Veille Numérique (RSS, GitHub...)
                 intel_monitor = IntelligenceMonitor(db)
-                
+
                 try:
                     await asyncio.gather(
                         cve_monitor.poll_all(active_categories=default_categories),
-                        intel_monitor.run_all()
+                        intel_monitor.run_all(),
                     )
                 except Exception as e:
                     import logging
+
                     logger = logging.getLogger("breachradar.scheduler")
                     logger.error(f"Erreur lors de la veille programmée : {e}")
                 finally:
                     await cve_monitor.close()
                     await intel_monitor.close()
-            
-        scheduler = ScanScheduler(
-            settings=settings, 
-            scan_callback=_scan_callback,
-            cve_callback=_watch_callback
-        )
+
+        scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
         scheduler.start()
 
     yield
@@ -145,7 +157,9 @@ app.add_middleware(
 
 # Rate limiting
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+from typing import Any
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.add_middleware(SlowAPIMiddleware)
 
 

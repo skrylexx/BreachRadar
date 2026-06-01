@@ -76,7 +76,7 @@ class GitHubClient(BaseLeakClient):
         }
 
         client = self._build_http_client(headers=self._get_headers())
-        
+
         try:
             response = await self._safe_get(client, url, params=params)
         finally:
@@ -87,24 +87,24 @@ class GitHubClient(BaseLeakClient):
 
         data = response.json()
         items = data.get("items", [])
-        
+
         findings = []
         for item in items:
             repo_name = item.get("repository", {}).get("full_name", "Unknown Repo")
-            file_path = item.get("path", "Unknown File")
-            html_url = item.get("html_url", "")
-            
+            item.get("path", "Unknown File")
+            item.get("html_url", "")
+
             # Dans l'idéal, il faudrait récupérer le contenu du fichier pour vérifier
             # s'il contient réellement un secret. Pour ne pas épuiser le rate limit,
             # on signale la présence du domaine/email dans un contexte suspect.
-            
+
             finding = LeakFinding(
                 source=self.name,
                 email=context if "@" in context else "N/A (Domain Match)",
                 breach_name=f"GitHub Public Repo ({repo_name})",
                 breach_date=datetime.utcnow().date(),
                 data_classes=["Source Code", "Potential Credentials"],
-                severity=Severity.MEDIUM, # Sévérité moyenne car ce sont des faux positifs potentiels
+                severity=Severity.MEDIUM,  # Sévérité moyenne car ce sont des faux positifs potentiels
                 verified=False,
             )
             findings.append(finding)

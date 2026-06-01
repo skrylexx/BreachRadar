@@ -3,10 +3,11 @@ breachradar/clients/intelx.py
 
 Client de recherche Intelligence X (IntelX).
 """
+
 from __future__ import annotations
 
-import logging
 import asyncio
+import logging
 
 from app.clients.base import BaseLeakClient
 from app.engine.sanitizer import DataSanitizer
@@ -14,10 +15,12 @@ from app.models.finding import LeakFinding, Severity
 
 logger = logging.getLogger(__name__)
 
+
 class IntelXClient(BaseLeakClient):
     """
     Client pour l'API Intelligence X.
     """
+
     name = "intelx"
     rate_limit_delay = 2.0
 
@@ -41,47 +44,47 @@ class IntelXClient(BaseLeakClient):
 
         headers = {"x-key": self.api_key}
         client = self._build_http_client(headers=headers)
-        
+
         try:
             # 1. Initier la recherche
             payload = {
                 "term": term,
                 "maxresults": 20,
                 "media": 0,
-                "sort": 2, # Sort by date
-                "terminate": []
+                "sort": 2,  # Sort by date
+                "terminate": [],
             }
             search_resp = await self._safe_request(client, "POST", f"{self.base_url}/intelligent/search", json=payload)
             if not search_resp:
                 return []
-                
+
             search_data = search_resp.json()
             search_id = search_data.get("id")
-            
+
             if not search_id:
                 return []
 
             # 2. Poller les résultats (On attend 2 secondes pour laisser le temps au backend IntelX)
             await asyncio.sleep(2.0)
-            
+
             result_resp = await self._safe_request(
-                client, 
-                "GET", 
-                f"{self.base_url}/intelligent/search/result", 
-                params={"id": search_id, "limit": 20}
+                client,
+                "GET",
+                f"{self.base_url}/intelligent/search/result",
+                params={"id": search_id, "limit": 20},
             )
             if not result_resp:
                 return []
-                
+
             result_data = result_resp.json()
             records = result_data.get("records", [])
-            
+
             findings = []
             for record in records:
                 finding = self._parse_record(term, record)
                 if finding:
                     findings.append(finding)
-                    
+
             return findings
 
         except Exception as e:
@@ -93,16 +96,16 @@ class IntelXClient(BaseLeakClient):
     def _parse_record(self, term: str, record: dict) -> LeakFinding | None:
         try:
             name = record.get("name", "IntelX Dump")
-            date_str = record.get("date", "")
+            record.get("date", "")
             bucket = record.get("bucket", "Unknown Bucket")
-            
+
             return LeakFinding(
                 source=self.name,
                 email=term if "@" in term else f"unknown@{term}",
                 breach_name=f"{bucket} - {name}",
-                breach_date=None, # On pourrait parser date_str si besoin
+                breach_date=None,  # On pourrait parser date_str si besoin
                 data_classes=["IntelX Record"],
-                has_password=False, # Impossible à affirmer sans lire le contenu brut via l'ID
+                has_password=False,  # Impossible à affirmer sans lire le contenu brut via l'ID
                 has_hash=False,
                 has_api_key=False,
                 severity=Severity.MEDIUM,

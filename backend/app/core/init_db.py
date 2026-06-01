@@ -5,10 +5,11 @@ Crée l'administrateur initial au premier démarrage si aucun utilisateur n'exis
 """
 
 import logging
+
 from sqlalchemy import select
-from app.core.database import AsyncSessionLocal, engine, Base
-from app import models # Ensure models are registered
+
 from app.core.config import settings
+from app.core.database import AsyncSessionLocal, Base, engine
 from app.core.security import hash_password
 from app.models.user import User, UserRole
 

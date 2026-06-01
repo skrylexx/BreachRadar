@@ -1,6 +1,6 @@
 # ─── Backend FastAPI — Dockerfile ───────────────────────────────────────────
 # Image slim, non-root, avec uv pour la gestion des paquets
-FROM python:3.12-slim@sha256:452a468a4bf985040037cb6d5392410206e47db9bf5b7278d281f94d1c2d0931 AS base
+FROM python:3.12-slim@sha256:73dbd1a2ad74137451593a8ac30f7bdd0f5010fc05fb34644190cffa7696bbf3 AS base
 
 # Métadonnées
 LABEL maintainer="BreachRadar Team"
@@ -24,14 +24,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer uv via l'image officielle (plus sécurisé que curl | sh)
-COPY --from=ghcr.io/astral-sh/uv@sha256:34f919409ae82303e722cc625cfaa52bef090fb73dcd1ca5e6d999b2fe8337e5 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /uvx /bin/
 
 WORKDIR /app
 
 # Copier et installer les dépendances Python
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 COPY README.md ./
-RUN uv pip install --system ".[pdf]"
+RUN uv sync --frozen --no-dev --extra pdf
+
+# Mettre le venv dans le PATH
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copier le code source
 COPY app/ ./app/

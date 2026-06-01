@@ -3,6 +3,7 @@ breachradar/clients/pastebin_monitor.py
 
 Client de monitoring pour Pastebin (via un service OSINT public ou scrapé).
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,6 +14,7 @@ from app.models.finding import LeakFinding, Severity
 
 logger = logging.getLogger(__name__)
 
+
 class PastebinClient(BaseLeakClient):
     """
     Client de recherche sur Pastebin.
@@ -20,6 +22,7 @@ class PastebinClient(BaseLeakClient):
     ce client peut s'appuyer sur des APIs OSINT tierces ou agir comme stub
     jusqu'à configuration d'un compte Pro Pastebin ou IntelX.
     """
+
     name = "pastebin"
     rate_limit_delay = 2.0
 
@@ -68,21 +71,19 @@ class PastebinClient(BaseLeakClient):
             paste_id = item.get("id")
             if not paste_id:
                 continue
-                
-            paste_url = f"https://pastebin.com/{paste_id}"
-            
+
             finding = LeakFinding(
                 source=self.name,
                 email=query if "@" in query else f"unknown@{query}",
                 breach_name=f"Pastebin Dump ({paste_id})",
                 breach_date=None,
                 data_classes=["Paste/Dump Text"],
-                has_password=False, # Impossible de savoir sans télécharger et analyser le texte brut
+                has_password=False,  # Impossible de savoir sans télécharger et analyser le texte brut
                 has_hash=False,
                 has_api_key=False,
-                severity=Severity.MEDIUM, # Sévérité modérée pour un dump brut, nécessite investigation manuelle
+                severity=Severity.MEDIUM,  # Sévérité modérée pour un dump brut, nécessite investigation manuelle
                 verified=False,
-                is_sensitive=False, # Le texte brut n'est pas téléchargé ici pour des raisons de perf/privacy
+                is_sensitive=False,  # Le texte brut n'est pas téléchargé ici pour des raisons de perf/privacy
             )
             findings.append(finding)
 

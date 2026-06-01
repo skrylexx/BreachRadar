@@ -39,14 +39,14 @@ class SourceStatus:
     """État d'une source au moment du lancement."""
 
     name: str
-    enabled_in_config: bool          # enabled: true/false dans sources.yaml
+    enabled_in_config: bool  # enabled: true/false dans sources.yaml
     requires_api_key: bool
-    env_key: str | None              # Variable d'env attendue
-    api_key_present: bool            # Clé trouvée dans l'environnement
-    available: bool                  # Sera effectivement utilisée ?
-    skip_reason: str | None = None   # Raison d'exclusion (si available=False)
+    env_key: str | None  # Variable d'env attendue
+    api_key_present: bool  # Clé trouvée dans l'environnement
+    available: bool  # Sera effectivement utilisée ?
+    skip_reason: str | None = None  # Raison d'exclusion (si available=False)
     description: str = ""
-    config: dict = field(default_factory=dict) # Données de config supplémentaires (ex: feeds RSS)
+    config: dict = field(default_factory=dict)  # Données de config supplémentaires (ex: feeds RSS)
 
     @property
     def icon(self) -> str:
@@ -71,7 +71,7 @@ class SourceRegistry:
     sources: dict[str, SourceStatus] = field(default_factory=dict)
 
     @classmethod
-    def load(cls, env_override: dict[str, str] | None = None) -> "SourceRegistry":
+    def load(cls, env_override: dict[str, str] | None = None) -> SourceRegistry:
         """
         Charge sources.yaml et croise avec l'environnement courant.
 
@@ -95,10 +95,11 @@ class SourceRegistry:
             requires_key = source_cfg.get("requires_api_key", False)
             env_key = source_cfg.get("env_key")
             description = source_cfg.get("description", "")
-            
+
             # Capturer toutes les autres clés comme configuration générique
             config_data = {
-                k: v for k, v in source_cfg.items() 
+                k: v
+                for k, v in source_cfg.items()
                 if k not in ["enabled", "requires_api_key", "env_key", "description"]
             }
 
@@ -109,8 +110,7 @@ class SourceRegistry:
                 # Cas spécial Dehashed : nécessite DEHASHED_EMAIL + DEHASHED_API_KEY
                 if source_name == "dehashed":
                     api_key_present = bool(
-                        env.get("DEHASHED_EMAIL", "").strip()
-                        and env.get("DEHASHED_API_KEY", "").strip()
+                        env.get("DEHASHED_EMAIL", "").strip() and env.get("DEHASHED_API_KEY", "").strip()
                     )
                 # Cas spécial Telegram : nécessite API_ID + API_HASH
                 elif source_name == "telegram":
@@ -182,11 +182,7 @@ class SourceRegistry:
     @property
     def skipped_sources(self) -> dict[str, str]:
         """Dict source_name → raison d'exclusion pour les sources ignorées."""
-        return {
-            name: (s.skip_reason or "")
-            for name, s in self.sources.items()
-            if not s.available
-        }
+        return {name: (s.skip_reason or "") for name, s in self.sources.items() if not s.available}
 
     @property
     def missing_api_keys(self) -> list[tuple[str, str]]:
@@ -202,28 +198,30 @@ class SourceRegistry:
 
     def is_available(self, source_name: str) -> bool:
         """Vérifie si une source spécifique est disponible."""
-        return self.sources.get(source_name, SourceStatus(
-            name=source_name, enabled_in_config=False, requires_api_key=False,
-            env_key=None, api_key_present=False, available=False,
-        )).available
+        return self.sources.get(
+            source_name,
+            SourceStatus(
+                name=source_name,
+                enabled_in_config=False,
+                requires_api_key=False,
+                env_key=None,
+                api_key_present=False,
+                available=False,
+            ),
+        ).available
 
     def _log_summary(self) -> None:
         """Log un résumé de l'état des sources au démarrage."""
         active = self.active_sources
         skipped = self.skipped_sources
 
-        logger.info(
-            f"Sources disponibles : {len(active)}/{len(self.sources)} — "
-            f"actives: {active}"
-        )
+        logger.info(f"Sources disponibles : {len(active)}/{len(self.sources)} — actives: {active}")
 
         for source_name, reason in skipped.items():
             status = self.sources[source_name]
             if status.enabled_in_config and status.requires_api_key and not status.api_key_present:
                 # Source voulue mais clé manquante → warning visible
-                logger.warning(
-                    f"Source '{source_name}' ignorée — {reason}"
-                )
+                logger.warning(f"Source '{source_name}' ignorée — {reason}")
             else:
                 # Source désactivée volontairement → debug seulement
                 logger.debug(f"Source '{source_name}' ignorée — {reason}")
@@ -245,13 +243,9 @@ class SourceRegistry:
             detail = status.skip_reason or status.description[:46] or ""
             detail = detail[:46]  # Tronquer pour l'affichage
 
-            lines.append(
-                f"│ {name:<19} │ {icon} {state:<6} │ {detail:<47} │"
-            )
+            lines.append(f"│ {name:<19} │ {icon} {state:<6} │ {detail:<47} │")
 
-        lines.append(
-            "└─────────────────────┴──────────┴─────────────────────────────────────────────────┘"
-        )
+        lines.append("└─────────────────────┴──────────┴─────────────────────────────────────────────────┘")
 
         if self.missing_api_keys:
             lines.append("\n⚠️  Clés API manquantes (sources activées dans sources.yaml mais sans clé) :")

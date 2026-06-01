@@ -13,7 +13,8 @@ Couverture :
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -92,7 +93,7 @@ class TestRansomwareTrackerRun:
             group_name="lockbit3",
             group_display_name="LockBit 3.0",
             victim_name="MonDomaine SA",
-            discovered_at="2025-01-14T14:32:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-14T14:32:00Z".replace("Z", "+00:00")),
             status=RansomStatus.LISTED,
             search_term_matched="mondomaine.fr",
         )
@@ -100,7 +101,7 @@ class TestRansomwareTrackerRun:
             group_name="play",
             group_display_name="Play",
             victim_name="MonDomaine Group",
-            discovered_at="2025-01-10T09:00:00Z",
+            discovered_at=datetime.fromisoformat("2025-01-10T09:00:00Z".replace("Z", "+00:00")),
             status=RansomStatus.PUBLISHED,
             search_term_matched="MonDomaine",
         )
@@ -158,9 +159,7 @@ class TestRansomwareTrackerContext:
     """Tests de la méthode get_context()."""
 
     @pytest.mark.asyncio
-    async def test_get_context_returns_stats(
-        self, mock_ransom_stats_healthy: RansomStats
-    ) -> None:
+    async def test_get_context_returns_stats(self, mock_ransom_stats_healthy: RansomStats) -> None:
         """get_context() retourne les stats de l'instance."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)

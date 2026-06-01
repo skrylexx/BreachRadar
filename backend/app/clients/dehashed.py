@@ -3,6 +3,7 @@ breachradar/clients/dehashed.py
 
 Client Dehashed API.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,10 +14,12 @@ from app.models.finding import LeakFinding, Severity
 
 logger = logging.getLogger(__name__)
 
+
 class DehashedClient(BaseLeakClient):
     """
     Client pour l'API Dehashed.
     """
+
     name = "dehashed"
     rate_limit_delay = 0.5
 
@@ -109,13 +112,13 @@ class DehashedClient(BaseLeakClient):
 
             has_password = bool(password)
             has_hash = bool(hashed_password)
-            
+
             data_classes = ["Email addresses"]
             if has_password:
                 data_classes.append("Passwords")
             if has_hash:
                 data_classes.append("Hashed Passwords")
-            
+
             if safe_entry.get("username"):
                 data_classes.append("Usernames")
 

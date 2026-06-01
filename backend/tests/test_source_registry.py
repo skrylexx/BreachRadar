@@ -6,8 +6,6 @@ Tests unitaires du SourceRegistry — disponibilité des sources selon les clés
 
 from __future__ import annotations
 
-import pytest
-
 from app.core.source_registry import SourceRegistry
 
 
@@ -93,8 +91,7 @@ class TestSourceRegistryAvailability:
         for source in active:
             status = registry.sources[source]
             assert not status.requires_api_key or source == "github", (
-                f"Source '{source}' nécessite une clé mais est marquée active "
-                "sans clé dans l'environnement"
+                f"Source '{source}' nécessite une clé mais est marquée active sans clé dans l'environnement"
             )
 
     def test_missing_api_keys_reported(self) -> None:

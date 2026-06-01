@@ -4,13 +4,12 @@ BreachRadar WebUI — Routeur Scans
 Endpoints : liste, détail, stats, déclenchement manuel, export rapport.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -30,11 +29,11 @@ async def list_scans(
     db: AsyncSession = Depends(get_db),
     page: int = 1,
     page_size: int = Query(25, ge=1, le=100),
-    severity: Optional[ScanSeverity] = None,
+    severity: ScanSeverity | None = None,
 ) -> PaginatedResponse[ScanResultRead]:
     """Liste les résultats de scan (Viewer + Admin)."""
     offset = (page - 1) * page_size
-    
+
     # Count total
     count_query = select(func.count(ScanResult.id))
     if severity:
@@ -50,12 +49,12 @@ async def list_scans(
     query = query.offset(offset).limit(page_size)
     result = await db.execute(query)
     scans = result.scalars().all()
-    
+
     return PaginatedResponse(
         items=[ScanResultRead.model_validate(s) for s in scans],
         total=total,
         page=page,
-        page_size=page_size
+        page_size=page_size,
     )
 
 
@@ -70,7 +69,7 @@ async def get_scan_stats(
     Retourne des points de données pour le graphique à bâtonnets.
     """
     period_days = {"7d": 7, "1m": 30, "6m": 180, "12m": 365}[period]
-    since = datetime.now(timezone.utc) - timedelta(days=period_days)
+    since = datetime.now(UTC) - timedelta(days=period_days)
 
     result = await db.execute(
         select(ScanResult)
@@ -82,6 +81,7 @@ async def get_scan_stats(
 
     # Grouper par jour
     from collections import defaultdict
+
     daily: dict = defaultdict(lambda: {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0})
     for scan in scans:
         day = scan.started_at.date().isoformat()
@@ -108,6 +108,7 @@ async def get_scan(
 ) -> ScanResultRead:
     """Détail d'un scan."""
     import uuid
+
     result = await db.execute(select(ScanResult).where(ScanResult.id == uuid.UUID(scan_id)))
     scan = result.scalar_one_or_none()
     if not scan:
@@ -127,7 +128,7 @@ async def trigger_scan(
     """
     Déclenche un scan manuel (Admin uniquement).
     """
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     scan = ScanResult(
         target_domain=body.target_domain or settings.target_domain,
         status=ScanStatus.RUNNING,
@@ -140,6 +141,7 @@ async def trigger_scan(
 
     # Déclencher le scan en arrière-plan
     from app.engine.logic import ScanManager
+
     scan_manager = ScanManager()
     background_tasks.add_task(scan_manager.run_full_scan, scan.id, body.target_domain)
 

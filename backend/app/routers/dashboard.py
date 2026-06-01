@@ -9,11 +9,11 @@ Endpoints consommés par le frontend Server Component (page.tsx) :
 """
 
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -28,25 +28,26 @@ router = APIRouter()
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
+
 async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Vérifie si l'affichage des données de démonstration est activé."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
 
+
 async def _ransomlook_active(db: AsyncSession) -> bool:
     """Vérifie si RansomLook est réellement joignable."""
-    from app.models.api_key import APIKey
     from app.clients.ransomlook import RansomLookClient
-    from app.core.security import decrypt_secret
+    from app.models.api_key import APIKey
 
     mode = settings.ransomlook_mode
-    
+
     # 1. SaaS Mode: check for key in .env or DB
     if mode == "saas":
         if settings.ransomlook_saas_api_key:
             return True
-        
+
         # Check database
         result = await db.execute(select(APIKey).where(APIKey.service_name == "ransomlook_saas"))
         key = result.scalar_one_or_none()
@@ -60,6 +61,7 @@ async def _ransomlook_active(db: AsyncSession) -> bool:
         return stats.is_healthy
     except Exception:
         return False
+
 
 def _source_to_type(source: str) -> str:
     mapping = {
@@ -77,7 +79,9 @@ def _source_to_type(source: str) -> str:
     }
     return mapping.get(source.lower(), "Other")
 
+
 # ─── /dashboard/stats ─────────────────────────────────────────────────────────
+
 
 @router.get("/dashboard/stats")
 async def dashboard_stats(
@@ -85,7 +89,7 @@ async def dashboard_stats(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """KPIs affichés dans les 4 cards du haut du dashboard."""
-    since_7d = datetime.now(timezone.utc) - timedelta(days=7)
+    since_7d = datetime.now(UTC) - timedelta(days=7)
 
     result = await db.execute(
         select(ScanResult)
@@ -100,40 +104,35 @@ async def dashboard_stats(
             "scans_7d": 12,
             "critical_count": 2,
             "total_findings": 145,
-            "last_scan_at": (datetime.now(timezone.utc) - timedelta(hours=4)).isoformat(),
-            "is_mock": True
+            "last_scan_at": (datetime.now(UTC) - timedelta(hours=4)).isoformat(),
+            "is_mock": True,
         }
 
     last_scan = scans[0] if scans else None
 
     return {
         "scans_7d": len(scans),
-        "critical_count": sum(
-            1 for s in scans if s.severity == ScanSeverity.CRITICAL
-        ),
+        "critical_count": sum(1 for s in scans if s.severity == ScanSeverity.CRITICAL),
         "total_findings": sum(s.total_findings for s in scans),
-        "last_scan_at": (
-            last_scan.completed_at.isoformat()
-            if last_scan and last_scan.completed_at
-            else None
-        ),
+        "last_scan_at": (last_scan.completed_at.isoformat() if last_scan and last_scan.completed_at else None),
     }
 
 
 # ─── /dashboard/chart ─────────────────────────────────────────────────────────
+
 
 @router.get("/dashboard/chart")
 async def dashboard_chart(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
     period: str = Query("7d", pattern="^(7d|1m|6m|12m)$"),
-    source: Optional[str] = None,
+    source: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Données pour le graphique Detection Volume (stacked bar chart).
     """
     period_days = {"7d": 7, "1m": 30, "6m": 180, "12m": 365}[period]
-    since = datetime.now(timezone.utc) - timedelta(days=period_days)
+    since = datetime.now(UTC) - timedelta(days=period_days)
 
     result = await db.execute(
         select(ScanResult)
@@ -159,36 +158,37 @@ async def dashboard_chart(
     }
 
     for scan in scans:
-        day = scan.started_at.astimezone(timezone.utc).strftime("%b %d")
+        day = scan.started_at.astimezone(UTC).strftime("%b %d")
         daily[day]["total"] += scan.total_findings
         if scan.severity and scan.severity in severity_key:
             daily[day][severity_key[scan.severity]] += scan.total_findings
 
     return [{"date": d, **v} for d, v in sorted(daily.items())]
 
+
 def _get_mock_chart_data(days: int) -> list[dict[str, Any]]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     data = []
     for i in range(days, -1, -1):
         date = now - timedelta(days=i)
-        data.append({
-            "date": date.strftime("%b %d"),
-            "critical": (i % 3),
-            "high": (i % 5),
-            "medium": (i % 7),
-            "low": (i % 4),
-            "total": (i % 3) + (i % 5) + (i % 7) + (i % 4)
-        })
+        data.append(
+            {
+                "date": date.strftime("%b %d"),
+                "critical": (i % 3),
+                "high": (i % 5),
+                "medium": (i % 7),
+                "low": (i % 4),
+                "total": (i % 3) + (i % 5) + (i % 7) + (i % 4),
+            }
+        )
     return data
 
 
 # ─── /connectors/status ───────────────────────────────────────────────────────
 
+
 @router.get("/connectors/status")
-async def connectors_status(
-    current_user: ViewerUser,
-    db: AsyncSession = Depends(get_db)
-) -> list[dict[str, Any]]:
+async def connectors_status(current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
     """
     État de TOUS les connecteurs disponibles dans l'application.
     Ajoute un flag 'is_mock' si le connecteur n'est pas configuré mais que le mode mock est activé.
@@ -197,10 +197,11 @@ async def connectors_status(
     mock_enabled = await _get_mock_data_enabled(db)
 
     def _get_status(configured: bool):
-        if configured: return "ok"
+        if configured:
+            return "ok"
         return "mock" if mock_enabled else "error"
 
-    connectors = [
+    return [
         {
             "name": "ransomlook",
             "label": "RansomLook",
@@ -293,10 +294,9 @@ async def connectors_status(
         },
     ]
 
-    return connectors
-
 
 # ─── /findings ────────────────────────────────────────────────────────────────
+
 
 @router.get("/findings", response_model=PaginatedResponse[FindingRead])
 async def list_findings(
@@ -305,15 +305,19 @@ async def list_findings(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     sort: str = Query("discovered_at:desc"),
-    source: Optional[str] = None,
-    period: Optional[str] = None,
+    source: str | None = None,
+    period: str | None = None,
 ) -> PaginatedResponse[FindingRead]:
     """
     Dernières trouvailles pour la table Latest Findings du dashboard.
     Génère des données mockées si configuré et pas de données réelles.
     """
     # 1. Vérification données réelles
-    count_query = select(func.count(ScanResult.id)).where(ScanResult.status == ScanStatus.COMPLETED).where(ScanResult.total_findings > 0)
+    count_query = (
+        select(func.count(ScanResult.id))
+        .where(ScanResult.status == ScanStatus.COMPLETED)
+        .where(ScanResult.total_findings > 0)
+    )
     total_result = await db.execute(count_query)
     total_scans = total_result.scalar_one()
 
@@ -328,69 +332,67 @@ async def list_findings(
     scans = result.scalars().all()
 
     rows: list[FindingRead] = []
-    
+
     for scan in scans:
         if scan.findings_by_source:
             for src, count in scan.findings_by_source.items():
                 if source and src.lower() != source.lower():
                     continue
                 if count and count > 0:
-                    rows.append(FindingRead(
-                        id=f"{scan.id}-{src}",
-                        severity=(
-                            scan.severity.value.upper() if scan.severity else "LOW"
-                        ),
-                        source=src,
-                        domain=scan.target_domain,
-                        type=_source_to_type(src),
-                        count=count,
-                        discovered_at=scan.started_at,
-                    ))
+                    rows.append(
+                        FindingRead(
+                            id=f"{scan.id}-{src}",
+                            severity=(scan.severity.value.upper() if scan.severity else "LOW"),
+                            source=src,
+                            domain=scan.target_domain,
+                            type=_source_to_type(src),
+                            count=count,
+                            discovered_at=scan.started_at,
+                        )
+                    )
         else:
             if not source:
-                rows.append(FindingRead(
-                    id=str(scan.id),
-                    severity=(
-                        scan.severity.value.upper() if scan.severity else "LOW"
-                    ),
-                    source=scan.triggered_by or "scheduler",
-                    domain=scan.target_domain,
-                    type="Scan",
-                    count=scan.total_findings,
-                    discovered_at=scan.started_at,
-                ))
+                rows.append(
+                    FindingRead(
+                        id=str(scan.id),
+                        severity=(scan.severity.value.upper() if scan.severity else "LOW"),
+                        source=scan.triggered_by or "scheduler",
+                        domain=scan.target_domain,
+                        type="Scan",
+                        count=scan.total_findings,
+                        discovered_at=scan.started_at,
+                    )
+                )
 
     # 2. Si aucune donnée et mock activé
     if not rows and await _get_mock_data_enabled(db):
         return _get_mock_findings(source, limit, offset)
 
-    return PaginatedResponse(
-        items=rows,
-        total=total_scans,
-        page=(offset // limit) + 1,
-        page_size=limit
-    )
+    return PaginatedResponse(items=rows, total=total_scans, page=(offset // limit) + 1, page_size=limit)
 
-def _get_mock_findings(source: Optional[str], limit: int, offset: int) -> PaginatedResponse[FindingRead]:
+
+def _get_mock_findings(source: str | None, limit: int, offset: int) -> PaginatedResponse[FindingRead]:
     """Génère des données factices réalistes."""
     sources = [source] if source else ["hibp", "leakcheck", "github", "ransomlook", "urlscan"]
     mock_items = []
-    
+
     for i in range(limit):
         src = sources[i % len(sources)]
-        mock_items.append(FindingRead(
-            id=f"mock-{offset + i}",
-            severity="HIGH" if i % 3 == 0 else "MEDIUM" if i % 2 == 0 else "LOW",
-            source=src,
-            domain="example-demo.com",
-            type=_source_to_type(src),
-            count=(i + 1) * 10,
-            discovered_at=datetime.now(timezone.utc) - timedelta(hours=i * 2),
-        ))
-        
+        mock_items.append(
+            FindingRead(
+                id=f"mock-{offset + i}",
+                severity="HIGH" if i % 3 == 0 else "MEDIUM" if i % 2 == 0 else "LOW",
+                source=src,
+                domain="example-demo.com",
+                type=_source_to_type(src),
+                count=(i + 1) * 10,
+                discovered_at=datetime.now(UTC) - timedelta(hours=i * 2),
+            )
+        )
+
     return PaginatedResponse(
         items=mock_items,
-        total=100, # Mock total
+        total=100,  # Mock total
         page=(offset // limit) + 1,
-        page_size=limit
+        page_size=limit,
     )

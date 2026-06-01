@@ -6,19 +6,20 @@ Gestion des utilisateurs avec RBAC et politique de mot de passe.
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Integer, JSON, String, func
+from sqlalchemy import JSON, Boolean, DateTime, Enum, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     """Rôles RBAC disponibles."""
-    ADMIN = "admin"   # Gestion clés API, utilisateurs, SMTP — peut déclencher les scans
-    VIEWER = "viewer" # Lecture et export des rapports uniquement
+
+    ADMIN = "admin"  # Gestion clés API, utilisateurs, SMTP — peut déclencher les scans
+    VIEWER = "viewer"  # Lecture et export des rapports uniquement
 
 
 class User(Base):
@@ -60,7 +61,7 @@ class User(Base):
     # ─── Gestion des mots de passe ─────────────────────────────────────────
     last_password_change: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     # Longueur du dernier MDP pour calculer l'exemption de rotation

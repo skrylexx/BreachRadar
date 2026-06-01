@@ -12,13 +12,13 @@ import logging
 from typing import TYPE_CHECKING
 
 from app.clients.base import BaseLeakClient
+from app.clients.dehashed import DehashedClient
 from app.clients.github_monitor import GitHubClient
 from app.clients.hibp import HIBPClient
+from app.clients.leakcheck import LeakCheckClient
 from app.core.config import Settings
 from app.core.source_registry import SourceRegistry
 from app.engine.sanitizer import DataSanitizer
-from app.clients.leakcheck import LeakCheckClient
-from app.clients.dehashed import DehashedClient
 
 if TYPE_CHECKING:
     from app.models.finding import LeakFinding
@@ -48,45 +48,51 @@ class ScanOrchestrator:
             return self.api_keys.get(service) or settings_val
 
         if "hibp" in active_sources:
-            clients.append(HIBPClient(
-                api_key=_get_key("hibp", self.settings.hibp_api_key), 
-                sanitizer=self.sanitizer,
-                rate_limit_delay=self.settings.hibp_rate_limit_ms / 1000.0
-            ))
+            clients.append(
+                HIBPClient(
+                    api_key=_get_key("hibp", self.settings.hibp_api_key),
+                    sanitizer=self.sanitizer,
+                    rate_limit_delay=self.settings.hibp_rate_limit_ms / 1000.0,
+                )
+            )
 
         if "github" in active_sources:
-            clients.append(GitHubClient(
-                token=_get_key("github", self.settings.github_token), 
-                sanitizer=self.sanitizer
-            ))
+            clients.append(GitHubClient(token=_get_key("github", self.settings.github_token), sanitizer=self.sanitizer))
 
         if "leakcheck" in active_sources:
-            clients.append(LeakCheckClient(
-                api_key=_get_key("leakcheck", self.settings.leakcheck_api_key), 
-                sanitizer=self.sanitizer
-            ))
+            clients.append(
+                LeakCheckClient(
+                    api_key=_get_key("leakcheck", self.settings.leakcheck_api_key),
+                    sanitizer=self.sanitizer,
+                )
+            )
 
         if "dehashed" in active_sources:
-            clients.append(DehashedClient(
-                dehashed_email=_get_key("dehashed_email", self.settings.dehashed_email),
-                api_key=_get_key("dehashed", self.settings.dehashed_api_key),
-                sanitizer=self.sanitizer
-            ))
-        
+            clients.append(
+                DehashedClient(
+                    dehashed_email=_get_key("dehashed_email", self.settings.dehashed_email),
+                    api_key=_get_key("dehashed", self.settings.dehashed_api_key),
+                    sanitizer=self.sanitizer,
+                )
+            )
+
         if "intelx" in active_sources:
             from app.clients.intelx import IntelXClient
-            clients.append(IntelXClient(
-                api_key=_get_key("intelx", self.settings.intelx_api_key),
-                sanitizer=self.sanitizer
-            ))
+
+            clients.append(
+                IntelXClient(
+                    api_key=_get_key("intelx", self.settings.intelx_api_key),
+                    sanitizer=self.sanitizer,
+                )
+            )
 
         return clients
 
     async def scan_emails(self, emails: list[str]) -> list[LeakFinding]:
         """
         Lance la recherche pour une liste d'emails en parallèle sur tous les clients.
-        Attention: Pour les API comme HIBP qui ont un rate limit par requête, 
-        l'exécution par client doit se faire email par email de façon séquentielle 
+        Attention: Pour les API comme HIBP qui ont un rate limit par requête,
+        l'exécution par client doit se faire email par email de façon séquentielle
         à l'intérieur du client, ou le client lui-même gère le rate_limit via son delay.
         """
         if not emails or not self.clients:

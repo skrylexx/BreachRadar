@@ -45,8 +45,8 @@ class RansomwareTracker:
 
     def __init__(
         self,
-        client: "RansomLookClient",
-        notifier: "NotificationEngine | None" = None,
+        client: RansomLookClient,
+        notifier: NotificationEngine | None = None,
     ) -> None:
         """
         Args:
@@ -84,9 +84,7 @@ class RansomwareTracker:
             return []
 
         logger.info(
-            f"RansomLook opérationnel : "
-            f"{stats.groups_tracked} groupes suivis, "
-            f"{stats.total_posts} victimes indexées"
+            f"RansomLook opérationnel : {stats.groups_tracked} groupes suivis, {stats.total_posts} victimes indexées"
         )
 
         # 2. Recherche multi-termes
@@ -113,9 +111,7 @@ class RansomwareTracker:
         """
         return await self.client.check_health()
 
-    async def _send_immediate_alert(
-        self, finding: RansomFinding, domain: str
-    ) -> None:
+    async def _send_immediate_alert(self, finding: RansomFinding, domain: str) -> None:
         """
         Envoie une alerte d'urgence immédiate pour un RansomFinding.
 
@@ -142,12 +138,6 @@ class RansomwareTracker:
 
         try:
             await self.notifier.send_ransom_alert(finding)
-            logger.info(
-                f"Alerte ransomware envoyée pour '{domain}' — "
-                f"groupe: {finding.group_display_name}"
-            )
+            logger.info(f"Alerte ransomware envoyée pour '{domain}' — groupe: {finding.group_display_name}")
         except Exception as e:
-            logger.error(
-                f"Échec envoi alerte ransomware pour '{domain}' : {e} — "
-                "vérifier la configuration du notifier"
-            )
+            logger.error(f"Échec envoi alerte ransomware pour '{domain}' : {e} — vérifier la configuration du notifier")

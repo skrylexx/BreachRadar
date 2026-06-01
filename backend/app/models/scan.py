@@ -15,20 +15,22 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
 
-class ScanStatus(str, enum.Enum):
+class ScanStatus(enum.StrEnum):
     """Statut d'un scan."""
+
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
-class ScanSeverity(str, enum.Enum):
+class ScanSeverity(enum.StrEnum):
     """Sévérité globale d'un scan (code couleur cyber standard)."""
+
     CRITICAL = "critical"  # Rouge — RansomLook positif
-    HIGH = "high"          # Orange
-    MEDIUM = "medium"      # Jaune
-    LOW = "low"            # Bleu/Gris
-    NONE = "none"          # Vert — aucune trouvaille
+    HIGH = "high"  # Orange
+    MEDIUM = "medium"  # Jaune
+    LOW = "low"  # Bleu/Gris
+    NONE = "none"  # Vert — aucune trouvaille
 
 
 class ScanResult(Base):

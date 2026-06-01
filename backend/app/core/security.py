@@ -4,21 +4,18 @@ BreachRadar WebUI — Sécurité (JWT + Bcrypt + TOTP)
 Toutes les fonctions de sécurité centralisées ici.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+import base64
+from datetime import UTC, datetime, timedelta
+from io import BytesIO
 
-from cryptography.fernet import Fernet
 import pyotp
 import qrcode
 import qrcode.image.svg
-from io import BytesIO
-import base64
-
+from cryptography.fernet import Fernet
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
-
 
 # ─── Hachage des mots de passe (Bcrypt) ──────────────────────────────────────
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -37,14 +34,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def validate_password_strength(password: str, is_admin: bool = False) -> tuple[bool, str]:
     """
     Valide la force du mot de passe selon la politique RBAC.
-    
+
     Returns:
         (is_valid: bool, error_message: str)
     """
-    min_length = (
-        settings.password_min_length_admin if is_admin
-        else settings.password_min_length_viewer
-    )
+    min_length = settings.password_min_length_admin if is_admin else settings.password_min_length_viewer
 
     if len(password) < min_length:
         return False, f"Password must be at least {min_length} characters"
@@ -69,17 +63,16 @@ def is_password_rotation_required(last_password_change: datetime, password_lengt
         return False  # Exempt de rotation
 
     rotation_deadline = last_password_change + timedelta(days=settings.password_rotation_days)
-    return datetime.now(timezone.utc) > rotation_deadline
+    return datetime.now(UTC) > rotation_deadline
 
 
 # ─── JWT Tokens ──────────────────────────────────────────────────────────────
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Crée un JWT access token (durée courte : 15 min)."""
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes)
-    )
+    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes))
     to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
@@ -87,25 +80,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def create_refresh_token(data: dict) -> str:
     """Crée un JWT refresh token (durée longue : 7 jours)."""
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(days=settings.jwt_refresh_token_expire_days)
+    expire = datetime.now(UTC) + timedelta(days=settings.jwt_refresh_token_expire_days)
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def decode_token(token: str) -> Optional[dict]:
+def decode_token(token: str) -> dict | None:
     """Décode et valide un JWT. Retourne None si invalide."""
     try:
-        payload = jwt.decode(
+        return jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
         )
-        return payload
     except JWTError:
         return None
 
 
 # ─── TOTP — MFA (RFC 6238) ───────────────────────────────────────────────────
+
 
 def generate_totp_secret() -> str:
     """Génère un secret TOTP unique pour un utilisateur."""
@@ -147,19 +140,22 @@ def verify_totp(secret: str, code: str) -> bool:
 
 # ─── Backup Codes ────────────────────────────────────────────────────────────
 
+
 def generate_backup_codes(count: int = 10) -> list[str]:
     """Génère une liste de codes de secours aléatoires."""
     import secrets
     import string
+
     codes = []
     for _ in range(count):
         # Format: 12 caractères alphanumériques (ex: ABCD-EFGH-IJKL)
-        code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(12))
+        code = "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(12))
         codes.append(code)
     return codes
 
 
 # ─── Chiffrement Fernet (Secrets en base) ────────────────────────────────────
+
 
 def _get_fernet() -> Fernet:
     """
@@ -169,10 +165,11 @@ def _get_fernet() -> Fernet:
     """
     if settings.encryption_key:
         return Fernet(settings.encryption_key.encode())
-    
+
     # Dérivation déterministe simple
-    import hashlib
     import base64
+    import hashlib
+
     key_bytes = hashlib.sha256(settings.jwt_secret_key.encode()).digest()
     return Fernet(base64.urlsafe_b64encode(key_bytes))
 
@@ -183,7 +180,9 @@ def encrypt_secret(value: str) -> str:
     return f.encrypt(value.encode()).decode()
 
 
-def decrypt_secret(token: str) -> str:
+def decrypt_secret(token: str | None) -> str:
     """Déchiffre un token Fernet."""
+    if token is None:
+        return ""
     f = _get_fernet()
     return f.decrypt(token.encode()).decode()
