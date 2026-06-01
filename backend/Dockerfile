@@ -24,14 +24,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer uv via l'image officielle (plus sécurisé que curl | sh)
-COPY --from=ghcr.io/astral-sh/uv@sha256:34f919409ae82303e722cc625cfaa52bef090fb73dcd1ca5e6d999b2fe8337e5 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /uvx /bin/
 
 WORKDIR /app
 
 # Copier et installer les dépendances Python
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 COPY README.md ./
-RUN uv pip install --system ".[pdf]"
+RUN uv pip install --system --frozen ".[pdf]"
 
 # Copier le code source
 COPY app/ ./app/

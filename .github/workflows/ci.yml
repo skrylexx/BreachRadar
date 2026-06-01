@@ -48,7 +48,7 @@ jobs:
       - name: 🛠️ Install dependencies
         run: |
           cd backend
-          uv pip install --system -e ".[dev,pdf]"
+          uv pip install --system --frozen -e ".[dev,pdf]"
 
       - name: 🔍 Lint & Format (Ruff)
         run: cd backend && uv run ruff check app/ tests/
