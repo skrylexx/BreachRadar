@@ -372,6 +372,24 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
+### Passation #11 — 2026-06-01
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - **CI/CD GitHub Actions** : Création du workflow `.github/workflows/ci.yml`.
+  - **Pipeline Qualité** : Automatisation du linting (Ruff, ESLint), du build Next.js et des tests pytest.
+  - **Audit Sécurité Automatisé** : Intégration de `detect-secrets`, `npm audit` et `pip-audit` dans la pipeline.
+  - **Vérification Infrastructure** : Ajout de la validation du build des images Docker dans la CI.
+- **Tâche suivante** : Configurer les "Branch Protection Rules" sur GitHub pour rendre ces checks obligatoires avant tout merge sur `main`.
+- **Points de vigilance** :
+  - Le `pip-audit` peut échouer si des vulnérabilités critiques sont trouvées dans les dépendances Python (comportement attendu pour bloquer les PR non sécurisées).
+  - Le build Next.js en CI nécessite des variables d'environnement (Mocks utilisés dans le workflow).
+- **Fichiers mis à jour** : .github/workflows/ci.yml · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
 ### Passation #10 — 2026-06-01
 
 - **Agent sortant**            : Gemini CLI
