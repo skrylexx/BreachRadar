@@ -26,21 +26,20 @@ export function Header() {
     if (path.startsWith("/admin/users")) return t("admin_users");
     if (path.startsWith("/admin/api-keys")) return t("admin_api_keys");
     if (path.startsWith("/profile")) return t("profile");
-    // Fallbacks for tools and others can remain hardcoded or we can add them to translations later
-    if (path.startsWith("/tools/hibp")) return "HIBP & Fuites Emails";
-    if (path.startsWith("/tools/github")) return "GitHub & GitLab";
-    if (path.startsWith("/tools/ransomlook")) return "RansomLook";
-    if (path.startsWith("/tools/leakcheck")) return "LeakCheck";
-    if (path.startsWith("/tools/urlscan")) return "URLScan";
-    if (path.startsWith("/tools/dehashed")) return "Dehashed";
-    if (path.startsWith("/tools/otx")) return "AlienVault OTX";
-    if (path.startsWith("/tools/intelx")) return "Intelligence X";
-    if (path.startsWith("/admin/smtp")) return "Configuration SMTP";
-    if (path.startsWith("/admin/scheduling")) return "Scheduling";
-    if (path.startsWith("/admin/audit")) return "Audit Trail";
-    if (path.startsWith("/admin/settings")) return "Paramètres";
-    if (path === "/admin") return "Administration";
-    if (path === "/changelog") return "Changelog";
+    if (path.startsWith("/tools/hibp")) return t("tools_hibp");
+    if (path.startsWith("/tools/github")) return t("tools_github");
+    if (path.startsWith("/tools/ransomlook")) return t("tools_ransomlook");
+    if (path.startsWith("/tools/leakcheck")) return t("tools_leakcheck");
+    if (path.startsWith("/tools/urlscan")) return t("tools_urlscan");
+    if (path.startsWith("/tools/dehashed")) return t("tools_dehashed");
+    if (path.startsWith("/tools/otx")) return t("tools_otx");
+    if (path.startsWith("/tools/intelx")) return t("tools_intelx");
+    if (path.startsWith("/admin/smtp")) return t("admin_smtp");
+    if (path.startsWith("/admin/scheduling")) return t("admin_scheduling");
+    if (path.startsWith("/admin/audit")) return t("admin_audit");
+    if (path.startsWith("/admin/settings")) return t("admin_settings");
+    if (path === "/admin") return t("administration");
+    if (path === "/changelog") return t("changelog");
     return "BreachRadar";
   };
 
@@ -56,7 +55,7 @@ export function Header() {
         <button
           onClick={toggle}
           className="lg:hidden p-2 -ml-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-label={isOpen ? t("close_menu") : t("open_menu")}
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -138,6 +137,7 @@ function LanguageSelector() {
 
 // ─── Menu utilisateur ─────────────────────────────────────────────────────────
 function UserMenu() {
+  const t = useTranslations("Common");
   const handleLogout = async () => {
     await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/auth/logout`, {
       method: "POST",
@@ -171,7 +171,7 @@ function UserMenu() {
                       translate-y-1 group-hover:translate-y-0">
         <div className="px-4 py-3 border-b border-border/50">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">
-            Connected as
+            {t("connected_as")}
           </p>
           <p className="text-xs text-foreground font-data truncate">admin@yourdomain.com</p>
         </div>
@@ -184,7 +184,7 @@ function UserMenu() {
                        text-xs text-foreground hover:bg-accent transition-colors"
           >
             <User className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Mon Profil
+            {t("my_profile")}
           </button>
           <button
             id="user-menu-settings"
@@ -192,7 +192,7 @@ function UserMenu() {
                        text-xs text-foreground hover:bg-accent transition-colors"
           >
             <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Paramètres
+            {t("settings")}
           </button>
           
           <div className="h-px bg-border/50 my-1.5" />
@@ -204,7 +204,7 @@ function UserMenu() {
                        text-xs text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Se déconnecter
+            {t("logout")}
           </button>
         </div>
       </div>

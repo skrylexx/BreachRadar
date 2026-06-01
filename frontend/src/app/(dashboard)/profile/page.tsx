@@ -24,8 +24,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function ProfilePage() {
+  const t = useTranslations("Profile");
+  const tc = useTranslations("Common");
+  const locale = useLocale();
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -78,9 +82,9 @@ export default function ProfilePage() {
     try {
       // Simulate profile update (only specific fields if implemented)
       await new Promise((resolve) => setTimeout(resolve, 800));
-      setMessage({ type: "success", text: "Profil mis à jour avec succès." });
+      setMessage({ type: "success", text: t("success_update") });
     } catch {
-      setMessage({ type: "error", text: "Erreur lors de la mise à jour." });
+      setMessage({ type: "error", text: t("error_update") });
     } finally {
       setSaving(false);
     }
@@ -88,7 +92,7 @@ export default function ProfilePage() {
 
   const handlePasswordChange = async () => {
     if (pwdData.new !== pwdData.confirm) {
-      alert("Les mots de passe ne correspondent pas.");
+      alert(t("pwd_mismatch"));
       return;
     }
     setPwdLoading(true);
@@ -101,9 +105,9 @@ export default function ProfilePage() {
       setUser(updatedUser);
       setPwdDialogOpen(false);
       setPwdData({ current: "", new: "", confirm: "" });
-      alert("Mot de passe modifié avec succès.");
+      alert(t("pwd_success"));
     } catch (err: any) {
-      alert(err.message || "Erreur lors du changement de mot de passe.");
+      alert(err.message || tc("error"));
     } finally {
       setPwdLoading(false);
     }
@@ -116,7 +120,7 @@ export default function ProfilePage() {
       setMfaSetupData(data);
       setMfaStep("confirm");
     } catch (err: any) {
-      alert("Erreur lors de l'initialisation du MFA.");
+      alert(tc("error"));
     } finally {
       setMfaLoading(false);
     }
@@ -130,7 +134,7 @@ export default function ProfilePage() {
       setMfaStep("backup"); // Passer à l'étape des backup codes
       setMfaCode("");
     } catch (err: any) {
-      alert("Code invalide. Veuillez réessayer.");
+      alert(t("error_load"));
     } finally {
       setMfaLoading(false);
     }
@@ -138,7 +142,7 @@ export default function ProfilePage() {
 
   const downloadBackupCodes = () => {
     if (!mfaSetupData?.backup_codes) return;
-    const content = `BREACHRADAR - CODES DE SECOURS MFA\nGénéré le: ${new Date().toLocaleString()}\n\n${mfaSetupData.backup_codes.join("\n")}\n\nGardez ces codes précieusement. Chaque code est à usage unique.`;
+    const content = `BREACHRADAR - ${t("mfa_backup_title").toUpperCase()}\n${tc("date")}: ${new Date().toLocaleString()}\n\n${mfaSetupData.backup_codes.join("\n")}\n\n${t("mfa_backup_desc")}`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -154,25 +158,25 @@ export default function ProfilePage() {
       setUser(updatedUser);
       setMfaDisableDialogOpen(false);
       setMfaDisableCode("");
-      alert("MFA désactivé avec succès.");
+      alert(t("success_update"));
     } catch (err: any) {
-      alert(err.message || "Code invalide. Impossible de désactiver le MFA.");
+      alert(err.message || tc("error"));
     } finally {
       setMfaLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="p-8 text-muted-foreground animate-pulse">Chargement du profil...</div>;
+    return <div className="p-8 text-muted-foreground animate-pulse">{t("loading")}</div>;
   }
 
   if (!user) {
-    return <div className="p-8 text-red-400">Impossible de charger le profil utilisateur.</div>;
+    return <div className="p-8 text-red-400">{t("error_load")}</div>;
   }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
-      <PageHeader title="Mon Profil" icon={User} />
+      <PageHeader title={t("title")} icon={User} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Colonne gauche : Infos générales */}
@@ -180,13 +184,13 @@ export default function ProfilePage() {
           <Card className="p-6 bg-card/30">
             <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
               <Shield className="w-4 h-4 text-radar" />
-              Informations Personnelles
+              {t("personal_info")}
             </h3>
 
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Adresse Email</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("email_label")}</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
@@ -200,7 +204,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Rôle</label>
+                  <label className="text-xs font-medium text-muted-foreground">{t("role_label")}</label>
                   <div className="relative">
                     <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
@@ -216,7 +220,7 @@ export default function ProfilePage() {
 
               <div className="pt-4 border-t border-border/50 flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
-                  L'adresse email et le rôle ne peuvent être modifiés que par un administrateur.
+                  {t("admin_only_note")}
                 </p>
                 <button
                   type="submit"
@@ -226,7 +230,7 @@ export default function ProfilePage() {
                              disabled:opacity-50 transition-all"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Enregistrer
+                  {t("btn_save")}
                 </button>
               </div>
               
@@ -241,13 +245,12 @@ export default function ProfilePage() {
           <Card className="p-6 bg-card/30">
             <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
               <Lock className="w-4 h-4 text-radar" />
-              Sécurité & Mot de passe
+              {t("security_title")}
             </h3>
 
             <div className="space-y-4">
               <p className="text-xs text-muted-foreground">
-                Votre mot de passe doit comporter au moins 16 caractères (Admin) ou 12 caractères (Viewer).
-                Il expire tous les 180 jours.
+                {t("password_note")}
               </p>
               
               <Button
@@ -256,7 +259,7 @@ export default function ProfilePage() {
                 className="flex items-center gap-2"
               >
                 <Key className="w-4 h-4" />
-                Changer de mot de passe
+                {t("btn_change_password")}
               </Button>
             </div>
           </Card>
@@ -267,15 +270,15 @@ export default function ProfilePage() {
           <Card className="p-6 bg-card/30">
             <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
               <Shield className="w-4 h-4 text-radar" />
-              Authentification MFA
+              {t("mfa_title")}
             </h3>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Double Authentification (TOTP)</p>
+                  <p className="text-sm font-medium">{t("mfa_label")}</p>
                   <p className="text-xs text-muted-foreground">
-                    {user.mfa_enabled ? "Activé" : "Non activé"}
+                    {user.mfa_enabled ? t("mfa_enabled") : t("mfa_disabled")}
                   </p>
                 </div>
                 <div className={`w-2 h-2 rounded-full ${user.mfa_enabled ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-red-500"}`} />
@@ -287,7 +290,7 @@ export default function ProfilePage() {
                   onClick={() => setMfaDialogOpen(true)}
                   className="w-full border-radar/20 text-radar hover:bg-radar/5"
                 >
-                  Activer le MFA
+                  {t("btn_activate_mfa")}
                 </Button>
               )}
 
@@ -302,13 +305,13 @@ export default function ProfilePage() {
                           disabled={user.mfa_required}
                           className="w-full border-destructive/20 text-destructive hover:bg-destructive/5 disabled:opacity-50"
                         >
-                          Désactiver le MFA
+                          {t("btn_deactivate_mfa")}
                         </Button>
                       </div>
                     </TooltipTrigger>
                     {user.mfa_required && (
                       <TooltipContent side="top" className="text-xs bg-destructive text-destructive-foreground">
-                        Le MFA est obligatoire pour votre compte (politique admin).
+                        {t("mfa_required_tooltip")}
                       </TooltipContent>
                     )}
                   </Tooltip>
@@ -318,10 +321,10 @@ export default function ProfilePage() {
           </Card>
 
           <Card className="p-6 bg-card/30">
-            <h3 className="text-sm font-semibold mb-6">Dernière Connexion</h3>
+            <h3 className="text-sm font-semibold mb-6">{t("last_login_title")}</h3>
             <div className="space-y-1">
               <p className="text-sm font-data">
-                {user.last_login_at ? new Date(user.last_login_at).toLocaleString() : "Première connexion"}
+                {user.last_login_at ? new Date(user.last_login_at).toLocaleString(locale === 'en' ? 'en-GB' : 'fr-FR') : t("first_login")}
               </p>
               <p className="text-[10px] text-muted-foreground font-data uppercase">
                 IP: 127.0.0.1 (Local)
@@ -335,15 +338,15 @@ export default function ProfilePage() {
       <Dialog open={pwdDialogOpen} onOpenChange={setPwdDialogOpen}>
         <DialogContent className="card-soc border-border/60 max-w-md">
           <DialogHeader>
-            <DialogTitle>Changer mon mot de passe</DialogTitle>
+            <DialogTitle>{t("pwd_dialog_title")}</DialogTitle>
             <DialogDescription className="text-xs">
-              Saisissez votre mot de passe actuel ainsi que le nouveau.
+              {t("pwd_dialog_desc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Mot de passe actuel</Label>
+              <Label className="text-xs">{t("pwd_current_label")}</Label>
               <Input
                 type="password"
                 autoFocus
@@ -354,7 +357,7 @@ export default function ProfilePage() {
             </div>
             <Separator className="bg-border/20" />
             <div className="space-y-1.5">
-              <Label className="text-xs">Nouveau mot de passe</Label>
+              <Label className="text-xs">{t("pwd_new_label")}</Label>
               <Input
                 type="password"
                 value={pwdData.new}
@@ -363,7 +366,7 @@ export default function ProfilePage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Confirmer le nouveau mot de passe</Label>
+              <Label className="text-xs">{t("pwd_confirm_label")}</Label>
               <Input
                 type="password"
                 value={pwdData.confirm}
@@ -374,14 +377,14 @@ export default function ProfilePage() {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setPwdDialogOpen(false)}>Annuler</Button>
+            <Button variant="ghost" onClick={() => setPwdDialogOpen(false)}>{t("btn_cancel")}</Button>
             <Button
               onClick={handlePasswordChange}
               disabled={pwdLoading || !pwdData.current || !pwdData.new}
               className="bg-radar/20 text-radar border border-radar/30"
             >
               {pwdLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-              Mettre à jour
+              {t("btn_save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -398,10 +401,10 @@ export default function ProfilePage() {
         <DialogContent className="card-soc border-border/60 max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {mfaStep === "backup" ? "Sauvegardez vos codes de secours" : "Configuration Double Authentification"}
+              {mfaStep === "backup" ? t("mfa_dialog_title_backup") : t("mfa_dialog_title_setup")}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              {mfaStep === "backup" ? "C'est votre seule chance de les voir." : "Renforcez la sécurité de votre compte avec TOTP."}
+              {mfaStep === "backup" ? t("mfa_dialog_desc_backup") : t("mfa_dialog_desc_setup")}
             </DialogDescription>
           </DialogHeader>
 
@@ -409,10 +412,10 @@ export default function ProfilePage() {
             <div className="py-8 text-center space-y-4">
               <Shield className="w-12 h-12 text-radar mx-auto opacity-50" />
               <p className="text-sm text-muted-foreground px-4">
-                Une clé secrète va être générée. Vous devrez la scanner avec votre application (Google Authenticator, Bitwarden, etc.).
+                {t("mfa_setup_intro")}
               </p>
               <Button onClick={startMfaSetup} disabled={mfaLoading}>
-                {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Générer ma clé secrète"}
+                {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : t("mfa_btn_generate")}
               </Button>
             </div>
           ) : mfaStep === "confirm" ? (
@@ -422,9 +425,9 @@ export default function ProfilePage() {
               </div>
               
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Clé manuelle : <span className="font-data text-foreground select-all">{mfaSetupData?.manual_entry_key}</span></Label>
+                <Label className="text-xs text-muted-foreground">{t("mfa_manual_key")} : <span className="font-data text-foreground select-all">{mfaSetupData?.manual_entry_key}</span></Label>
                 <Separator className="bg-border/20 my-4" />
-                <Label className="text-xs">Code de vérification (6 chiffres)</Label>
+                <Label className="text-xs">{t("mfa_input_label")}</Label>
                 <Input
                   placeholder="000000"
                   maxLength={6}
@@ -442,14 +445,14 @@ export default function ProfilePage() {
               </div>
               
               <DialogFooter>
-                <Button variant="ghost" onClick={() => { setMfaStep("setup"); setMfaDialogOpen(false); }}>Annuler</Button>
+                <Button variant="ghost" onClick={() => { setMfaStep("setup"); setMfaDialogOpen(false); }}>{t("btn_cancel")}</Button>
                 <Button
                   onClick={handleMfaConfirm}
                   disabled={mfaLoading || mfaCode.length !== 6}
                   className="bg-radar/20 text-radar border border-radar/30"
                 >
                   {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                  Vérifier et Activer
+                  {t("mfa_btn_verify")}
                 </Button>
               </DialogFooter>
             </div>
@@ -457,20 +460,19 @@ export default function ProfilePage() {
             <div className="space-y-6 py-4">
               <div className="p-4 rounded-md bg-green-500/5 border border-green-500/20 text-center">
                 <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                <h4 className="text-sm font-semibold text-green-400">MFA Activé avec succès !</h4>
+                <h4 className="text-sm font-semibold text-green-400">{t("mfa_success_title")}</h4>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Codes de secours</Label>
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("mfa_backup_title")}</Label>
                   <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={downloadBackupCodes}>
-                    <DownloadCloud className="w-3 h-3 mr-1" /> Télécharger (.txt)
+                    <DownloadCloud className="w-3 h-3 mr-1" /> {t("mfa_btn_download")}
                   </Button>
                 </div>
                 
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Conservez ces codes en lieu sûr. Ils vous permettront d'accéder à votre compte si vous perdez votre appareil.
-                  <strong> Chaque code n'est utilisable qu'une seule fois.</strong>
+                  {t("mfa_backup_desc")}
                 </p>
 
                 <div className="grid grid-cols-2 gap-2 bg-secondary/30 p-3 rounded border border-border/40 font-data text-xs">
@@ -482,7 +484,7 @@ export default function ProfilePage() {
 
               <DialogFooter>
                 <Button className="w-full bg-radar text-background font-bold hover:bg-radar-glow" onClick={() => { setMfaDialogOpen(false); setMfaStep("setup"); }}>
-                  J'ai enregistré mes codes
+                  {t("mfa_btn_finished")}
                 </Button>
               </DialogFooter>
             </div>
@@ -495,19 +497,19 @@ export default function ProfilePage() {
           <DialogHeader>
             <DialogTitle className="text-destructive flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
-              Désactiver le MFA
+              {t("mfa_disable_title")}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              La désactivation du MFA réduit la sécurité de votre compte.
+              {t("mfa_disable_desc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Pour confirmer la désactivation, veuillez saisir le code TOTP actuel de votre application.
+              {t("mfa_disable_confirm_text")}
             </p>
             <div className="space-y-1.5">
-              <Label className="text-xs">Code de vérification (6 chiffres)</Label>
+              <Label className="text-xs">{t("mfa_input_label")}</Label>
               <Input
                 placeholder="000000"
                 maxLength={6}
@@ -526,20 +528,19 @@ export default function ProfilePage() {
             
             <div className="p-3 rounded-md bg-yellow-500/5 border border-yellow-500/20">
               <p className="text-[11px] text-yellow-500/80 leading-relaxed">
-                <strong>Accès perdu ?</strong> Si vous n'avez plus accès à votre application TOTP, 
-                veuillez contacter un administrateur pour réinitialiser votre MFA manuellement.
+                {t("mfa_lost_access")}
               </p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setMfaDisableDialogOpen(false)}>Annuler</Button>
+            <Button variant="ghost" onClick={() => setMfaDisableDialogOpen(false)}>{t("btn_cancel")}</Button>
             <Button
               onClick={handleMfaDisable}
               disabled={mfaLoading || mfaDisableCode.length !== 6}
               className="bg-destructive/20 text-destructive border border-destructive/30"
             >
-              {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Confirmer la désactivation"}
+              {mfaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : t("btn_confirm_deactivate")}
             </Button>
           </DialogFooter>
         </DialogContent>

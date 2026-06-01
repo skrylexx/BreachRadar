@@ -50,6 +50,32 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 36 — 2026-06-01 (Gemini CLI)
+
+**Objectif de l'itération** : Mise en place complète de l'internationalisation (FR/EN) sur le frontend.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/messages/en.json` | Modification | Ajout de toutes les clés de traduction pour le Dashboard, Auth, MFA, Profil, Veille et Scans. |
+| `frontend/messages/fr.json` | Modification | Traduction vivante et contextuelle en français de l'ensemble de l'interface. |
+| `frontend/src/app/(dashboard)/page.tsx` | Modification | Internationalisation du Dashboard (Server Component). |
+| `frontend/src/components/layout/Header.tsx` | Modification | Traduction des titres de pages, menus utilisateur et sélecteur de langue. |
+| `frontend/src/app/(auth)/login/page.tsx` | Modification | Traduction complète du flux de connexion et des messages d'erreur. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Modification | Traduction du flux MFA (TOTP et codes de secours). |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Traduction de la gestion du profil, du changement de mot de passe et de l'activation MFA. |
+| `frontend/src/app/(dashboard)/intelligence/page.tsx` | Modification | Traduction de la veille numérique et gestion dynamique des locales de date. |
+| `frontend/src/app/(dashboard)/scans/page.tsx` | Modification | Traduction de l'historique des scans. |
+| `frontend/src/app/(dashboard)/reports/page.tsx` | Modification | Traduction de la gestion des rapports et exports. |
+
+#### ✅ Résultats i18n
+- **Couverture** : L'ensemble du parcours utilisateur critique (Login -> Dashboard -> Profil) est désormais traduit.
+- **Qualité** : Utilisation de termes métiers adaptés (ex: "Trouvailles" pour "Findings", "Veille" pour "Intelligence").
+- **Localisation** : Les dates, durées et formats de nombres respectent les standards FR et EN.
+
+---
+
 ### Itération 35 — 2026-06-01 (Gemini CLI)
 
 **Objectif de l'itération** : Exécution complète de l'audit de sécurité et durcissement de l'application (Phases 1 à 4).

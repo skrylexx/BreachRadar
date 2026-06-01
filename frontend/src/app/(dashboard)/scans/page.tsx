@@ -3,7 +3,7 @@ import { ScansClient } from "./client";
 import { fetchJSON } from "@/lib/fetch";
 import { PaginatedResponse, Scan } from "@/lib/api";
 import { PageHeader } from "@/components/ui/page-header";
-import { Activity } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: "Scans History | BreachRadar",
@@ -15,6 +15,7 @@ export default async function ScansPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const t = await getTranslations("Scans");
   const resolvedParams = await searchParams;
   const page = typeof resolvedParams.page === "string" ? parseInt(resolvedParams.page, 10) : 1;
   const limit = 25;
@@ -26,11 +27,11 @@ export default async function ScansPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Scans History"
-        description="View past scans and trigger new ones."
+        title={t("title")}
+        description={t("description")}
         breadcrumb={[
-          { label: "Dashboard", href: "/" },
-          { label: "Scans" },
+          { label: t("breadcrumb_dashboard"), href: "/" },
+          { label: t("breadcrumb_scans") },
         ]}
       />
 
