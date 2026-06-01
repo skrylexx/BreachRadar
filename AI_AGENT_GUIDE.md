@@ -379,12 +379,15 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Commit de fin de session** : *(voir commit associé à ce push)*
 - **Tâches accomplies** :
   - **Docker Stack Fix** : Correction des digests SHA256 erronés dans `docker-compose.yml` pour Postgres, Redis, TorProxy et RansomLook.
+  - **CSP & Black Screen Fix** : Résolution de l'écran noir sur le frontend en relaxant la politique CSP (`unsafe-inline`, `unsafe-eval`) dans `next.config.ts` et suppression de `interest-cohort`.
+  - **Database Race Condition Fix** : Implémentation d'un verrou Redis distribué dans `initialize_database` pour éviter les erreurs `IntegrityError` (UniqueViolation) sur les Enums lors du démarrage simultané de plusieurs workers backend.
   - **Orchestration** : Relance réussie de la stack complète (7 services).
   - **Health Validation** : Vérification de la santé de tous les conteneurs (tous sont `healthy`).
 - **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) ou résoudre les erreurs `mypy` restantes de l'itération #12.
 - **Points de vigilance** :
-  - Les digests SHA256 ont été synchronisés avec les versions locales fonctionnelles. Si le build échoue sur une autre architecture, il faudra peut-être re-générer les digests ou utiliser des tags simples.
-- **Fichiers mis à jour** : docker-compose.yml · ROADMAP.md · AI_AGENT_GUIDE.md
+  - Les digests SHA256 ont été synchronisés avec les versions locales fonctionnelles.
+  - Le CSP a été assoupli pour permettre le fonctionnement normal de Next.js en production sans nonces complexes.
+- **Fichiers mis à jour** : docker-compose.yml · frontend/next.config.ts · backend/app/main.py · backend/app/core/init_db.py · ROADMAP.md · AI_AGENT_GUIDE.md
 
 ***
 

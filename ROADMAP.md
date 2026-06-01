@@ -52,18 +52,22 @@ Phase 5 — Validation  [██████████] 100%
 
 ### Itération 39 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker et relance de la stack complète.
+**Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker, correction du "Black Screen" (CSP) et fiabilisation du démarrage Backend (Race Condition).
 
 #### Fichiers créés/modifiés
 
 | Fichier | Nature | Description |
 |---|---|---|
-| `docker-compose.yml` | Modification | Mise à jour des digests SHA256 pour Redis, Postgres, TorProxy et RansomLook vers les versions fonctionnelles. |
+| `docker-compose.yml` | Modification | Mise à jour des digests SHA256 pour les images tierces. |
+| `frontend/next.config.ts` | Modification | Relaxation du CSP (`unsafe-inline`, `unsafe-eval`) pour permettre l'hydratation Next.js et suppression de `interest-cohort`. |
+| `backend/app/main.py` | Modification | Suppression de l'appel redondant à `create_all` dans le lifespan. |
+| `backend/app/core/init_db.py` | Modification | Implémentation d'un verrou Redis distribué pour éviter les collisions lors de la création du schéma par plusieurs workers. |
 | `ROADMAP.md` | Modification | Journalisation de l'itération 39. |
 
 #### ✅ Maintenance & Stabilité
-- **Image Resolution Fix** : Correction des digests SHA256 erronés qui bloquaient le pull/start des services tiers.
-- **Stack Up & Healthy** : Validation de la santé des 7 services (API, UI, Postgres, 2x Redis, Tor, RansomLook).
+- **Docker Image Fix** : Correction des digests SHA256 bloquants.
+- **CSP Fix** : Résolution de l'écran noir causé par un blocage des scripts Next.js internes par la politique de sécurité trop stricte.
+- **Backend Startup** : Suppression des erreurs `IntegrityError` (UniqueViolation) sur les Enums lors du démarrage concurrent des workers FastAPI.
 
 ---
 

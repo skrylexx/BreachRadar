@@ -47,10 +47,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialisation et nettoyage des ressources."""
     # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    # Initialiser l'administrateur par défaut si la DB est vide
+    # Initialiser la base de données (Schéma + Admin)
     await initialize_database()
 
     # Démarrage du planificateur (Scheduler) en arrière-plan
