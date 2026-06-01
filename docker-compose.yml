@@ -9,9 +9,17 @@ services:
 
   # ─── RansomLook — Redis (stockage des données scrapées) ─────────────────────
   ransomlook-redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:ffba80df6855a0cdf853f0c020cfb4404797522a03d91c7512254325403327f9
     container_name: ransomlook-redis
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
     volumes:
       - ransomlook_redis_data:/data
     networks:
@@ -24,9 +32,17 @@ services:
 
   # ─── RansomLook — Tor (accès aux portails .onion des groupes ransomware) ─────
   ransomlook-tor:
-    image: dperson/torproxy:latest
+    image: dperson/torproxy:latest@sha256:5a7797ab2303ae19ac67e175818b4bf50aa7c28d54cf945f0a16c56e1f43a275
     container_name: ransomlook-tor
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
     networks:
       - ransomlook_net
     environment:
@@ -39,9 +55,16 @@ services:
 
   # ─── RansomLook — Application principale ────────────────────────────────────
   ransomlook-app:
-    image: travishunting/ransomlook:latest
+    image: travishunting/ransomlook:latest@sha256:a3f540278e4c11373e15605311851dd9c64d208f4d63e727bccc0e39f9329310
     container_name: ransomlook-app
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
     command: ["/bin/bash", "-c", "tr -d '\r' < /ransomlook/config/start_local.sh > /tmp/start.sh && bash /tmp/start.sh"]
     depends_on:
       ransomlook-redis:
@@ -81,9 +104,18 @@ services:
 
   # ─── WebUI — PostgreSQL 16 ──────────────────────────────────────────────────
   breachradar-postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:e79918ef780293b6c36cb4a5a2554703a52b92f2fe22174fb001512a90d9a51c
     container_name: breachradar-postgres
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
     environment:
       POSTGRES_DB: ${UI_DB_NAME:-breachradar_ui}
       POSTGRES_USER: ${UI_DB_USER:-br_ui}
@@ -100,9 +132,17 @@ services:
 
   # ─── WebUI — Redis (sessions JWT + rate limiting) ────────────────────────────
   breachradar-ui-redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:ffba80df6855a0cdf853f0c020cfb4404797522a03d91c7512254325403327f9
     container_name: breachradar-ui-redis
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
     command: redis-server --requirepass ${UI_REDIS_PASSWORD:?UI_REDIS_PASSWORD required}
     volumes:
       - ui_redis_data:/data
@@ -122,6 +162,10 @@ services:
       dockerfile: Dockerfile
     container_name: breachradar-api
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     depends_on:
       breachradar-postgres:
         condition: service_healthy
@@ -181,6 +225,10 @@ services:
         - NEXT_PUBLIC_TARGET_DOMAIN=${TARGET_DOMAIN:-example.com}
     container_name: breachradar-ui
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     depends_on:
       breachradar-api:
         condition: service_healthy

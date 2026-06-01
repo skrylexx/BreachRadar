@@ -93,7 +93,7 @@ def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: 
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         max_age=settings.jwt_refresh_token_expire_days * 86400,
-        path="/auth/refresh",  # Restreindre le refresh au seul endpoint dédié
+        path="/api/v1/auth/refresh",  # Restreindre le refresh au seul endpoint dédié
     )
 
 
@@ -270,7 +270,7 @@ async def logout(
             await blacklist_token(jti, ttl)
 
     response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token", path="/auth/refresh")
+    response.delete_cookie("refresh_token", path="/api/v1/auth/refresh")
     await _log_action(db, "auth.logout", request, current_user.email)
     return {"message": "Logged out successfully"}
 

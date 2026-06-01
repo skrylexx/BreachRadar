@@ -7,7 +7,8 @@ import uuid
 from datetime import datetime
 from typing import Dict, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+import re
 
 from app.models.scan import ScanSeverity, ScanStatus
 
@@ -42,6 +43,21 @@ class ScanStats(BaseModel):
 class ScanTriggerRequest(BaseModel):
     """Déclenchement manuel d'un scan (admin uniquement)."""
     target_domain: Optional[str] = None  # Si None, utilise le domaine configuré
+
+    @field_validator("target_domain")
+    @classmethod
+    def validate_domain(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        # Validation simple de domaine pour éviter SSRF et injections
+        # Doit contenir au moins un point, pas d'espaces, pas de caractères spéciaux louches
+        if not re.match(r"^[a-zA-Z0-9][-a-zA-Z0-9.]+\.[a-zA-Z]{2,}$", v):
+            raise ValueError("Invalid target domain format")
+        # Interdire localhost et IPs locales pour prévenir SSRF
+        blacklist = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]
+        if v.lower() in blacklist:
+            raise ValueError("Target domain not allowed")
+        return v
 
 
 class ScanTriggerResponse(BaseModel):

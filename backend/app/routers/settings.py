@@ -44,7 +44,7 @@ class CustomSourceRead(BaseModel):
 
 @router.get("/general")
 async def get_general_settings(
-    current_user: ViewerUser,
+    current_user: AdminUser,
     db: AsyncSession = Depends(get_db)
 ) -> dict:
     """Récupère tous les paramètres système."""

@@ -1,6 +1,6 @@
 # ─── Backend FastAPI — Dockerfile ───────────────────────────────────────────
 # Image slim, non-root, avec uv pour la gestion des paquets
-FROM python:3.12-slim AS base
+FROM python:3.12-slim@sha256:452a468a4bf985040037cb6d5392410206e47db9bf5b7278d281f94d1c2d0931 AS base
 
 # Métadonnées
 LABEL maintainer="BreachRadar Team"
@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_SYSTEM_PYTHON=1
 
-# Installer uv + dépendances système minimales
+# Installer les dépendances système minimales
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libpango-1.0-0 \
@@ -23,9 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-# Le script installe uv dans ~/.local/bin
-ENV PATH="/root/.local/bin:$PATH"
+# Installer uv via l'image officielle (plus sécurisé que curl | sh)
+COPY --from=ghcr.io/astral-sh/uv@sha256:34f919409ae82303e722cc625cfaa52bef090fb73dcd1ca5e6d999b2fe8337e5 /uv /uvx /bin/
 
 WORKDIR /app
 

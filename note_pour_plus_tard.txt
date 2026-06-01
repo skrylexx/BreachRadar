@@ -9,7 +9,7 @@ http://localhost:3000/admin/users --> bloc utilisateurs charge en boucle avec un
 scans non fonctionnels, rapports donc pas possible
 erreur en boucle dans le menu /admin/api-keys malgré un affichage correct
 http://localhost:3000/admin/settings, bloc au milieu à gauche affiche les options en ligne, ce qui n'est pas beau et pas lisible, mettre de l'ordre là dedans pour avoir un bloc plus facilement lisible
-
+!!!! fini??? !!!!
 
 branch : security audit
 audit de securité

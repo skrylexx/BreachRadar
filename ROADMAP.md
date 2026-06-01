@@ -1,7 +1,7 @@
 # ROADMAP — BreachRadar
 
 > Journal de bord structuré — mis à jour à chaque itération IA ou humaine.
-> **Protocole handoff** : Lire ce fichier + README.md avant toute contribution.
+> **Protocole handoff** : Lire ce fichier + README.md + CYBER_SECURITY_CHECKLIST.md avant toute contribution.
 
 ---
 
@@ -49,6 +49,51 @@ Phase 5 — Validation  [██████████] 100%
 ---
 
 ## CHANGELOG
+
+### Itération 35 — 2026-06-01 (Gemini CLI)
+
+**Objectif de l'itération** : Exécution complète de l'audit de sécurité et durcissement de l'application (Phases 1 à 4).
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/Dockerfile` | Modification | Pinning base image SHA256 + Installation UV sécurisée (COPY from image). |
+| `frontend/Dockerfile` | Modification | Pinning base image SHA256. |
+| `docker-compose.yml` | Modification | Pinning de toutes les images tierces (Redis, Postgres, Tor, RansomLook) + Hardening (cap_drop, no-new-privileges). |
+| `backend/app/schemas/scan.py` | Modification | Ajout de validation stricte du `target_domain` pour prévenir les SSRF. |
+| `backend/app/routers/settings.py` | Modification | Restriction de `/settings/general` aux administrateurs uniquement. |
+| `backend/app/routers/auth.py` | Modification | Correction des chemins de cookies `refresh_token` pour une isolation correcte. |
+| `frontend/next.config.ts` | Modification | Durcissement CSP (suppression unsafe-*) + Ajout HSTS et Permissions-Policy. |
+| `TODO.md` | Modification | Mise à jour de l'état d'avancement (toutes phases terminées). |
+
+#### ✅ Résultats de l'audit
+- **Supply Chain** : Images Docker verrouillées par digest, plus de `curl | sh`.
+- **RBAC** : Endpoints sensibles strictement protégés par `AdminUser`.
+- **Pentest** : Validation des entrées renforcée, protection MFA complète avec brute-force protection.
+- **Comm Front-Back** : Cookies sécurisés et headers HTTP durcis.
+
+---
+
+### Itération 34 — 2026-06-01 (Gemini CLI)
+
+**Objectif de l'itération** : Initialisation de la roadmap de sécurité complète et préparation de la stratégie de tests.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `TODO.md` | Modification | Remplacement complet par une roadmap de sécurité en 4 phases (Audit, Code/Pentest, RBAC, Comm Front-Back). |
+| `ROADMAP.md` | Modification | Mise à jour de l'état d'avancement et ajout de l'itération 34. |
+| `AI_AGENT_GUIDE.md` | Modification | Ajout de la passation #9. |
+
+#### ✅ Stratégie de Sécurité
+- [x] **Immersion Projet** : Lecture et analyse de l'architecture, du guide agent et des best practices de sécurité.
+- [x] **Activation Skill** : Utilisation du skill `senior-webapp-cyber-auditor` pour guider les futurs audits.
+- [x] **Roadmap de Sécurité** : Création d'un plan d'action détaillé dans `TODO.md` pour sécuriser l'application avant mise en ligne.
+- [x] **Piliers d'audit** : Intégration des vérifications de permissions (RBAC), pentest applicatif et durcissement des communications.
+
+---
 
 ### Itération 33 — 2026-05-23 (Gemini CLI)
 

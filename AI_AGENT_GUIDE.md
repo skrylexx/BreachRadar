@@ -372,6 +372,22 @@ Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.
 - **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
+### Passation #9 — 2026-06-01
+
+- **Agent sortant**            : Gemini CLI
+- **Agent entrant**            : indéfini
+- **Commit de fin de session** : *(voir commit associé à ce push)*
+- **Tâches accomplies** :
+  - **Immersion Projet** : Analyse approfondie de la documentation, de l'architecture et des standards de sécurité.
+  - **Roadmap de Sécurité** : Création d'une stratégie de tests complète dans `TODO.md` (Audit, Code Audit/Pentest, RBAC, Communications Front-Back).
+  - **Activation Skill** : Initialisation du skill `senior-webapp-cyber-auditor` pour guider les prochaines étapes de sécurisation.
+- **Tâche suivante** : Commencer l'audit de la Phase 1 (Supply Chain, Docker tags, Secrets leaks) comme défini dans `TODO.md` et suivre la `CYBER_SECURITY_CHECKLIST.md`.
+- **Points de vigilance** :
+  - Les vulnérabilités critiques de Next.js 15.1.3 doivent être traitées en priorité lors des premiers tests de la Phase 1.
+  - S'assurer que les images Docker sont épinglées via SHA256 pour éviter les attaques par empoisonnement de tag.
+- **Fichiers mis à jour** : TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md · CYBER_SECURITY_CHECKLIST.md
+
+
 ### Passation #8 — 2026-05-23
 
 - **Agent sortant**            : Gemini CLI
