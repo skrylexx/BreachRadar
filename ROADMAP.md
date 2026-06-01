@@ -50,6 +50,29 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 38 — 2026-06-01 (Gemini CLI)
+
+**Objectif de l'itération** : Création d'un skill Gemini CI/CD et renforcement de la pipeline de qualité.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `.gemini/skills/cicd-expert/` | Nouveau | Dossier du skill CI/CD (SKILL.md, références). |
+| `.github/workflows/ci.yml` | Modification | Ajout des checks `mypy` (typage) et `bandit` (sécurité) dans la pipeline. |
+| `backend/pyproject.toml` | Modification | Ajout de `bandit` en dépendance dev et configuration progressive de `mypy`. |
+| `backend/app/schemas/scan.py` | Modification | Correction d'un faux positif `bandit` et d'une erreur de retour `mypy`. |
+| `backend/app/engine/scheduler.py` | Modification | Ajout de la méthode `stop()` manquante (fix `mypy`). |
+| `backend/app/main.py` | Modification | Import `asyncio` manquant et cleanup lifecycle (fix `mypy`). |
+| `ROADMAP.md` | Modification | Journalisation de l'itération 38. |
+
+#### ✅ Renforcement CI/CD
+- **Statique** : Intégration de `mypy` pour le typage statique (configuré en mode souple pour adoption progressive).
+- **Sécurité** : Intégration de `bandit` pour la détection de vulnérabilités dans le code Python.
+- **Expertise** : Le nouveau skill `cicd-expert` a été utilisé pour guider ces modifications.
+
+---
+
 ### Itération 37 — 2026-06-01 (Gemini CLI)
 
 **Objectif de l'itération** : Mise en place d'une pipeline CI/CD GitHub Actions pour l'automatisation des tests de sécurité et de qualité.

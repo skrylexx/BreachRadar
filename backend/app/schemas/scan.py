@@ -53,10 +53,11 @@ class ScanTriggerRequest(BaseModel):
         # Doit contenir au moins un point, pas d'espaces, pas de caractères spéciaux louches
         if not re.match(r"^[a-zA-Z0-9][-a-zA-Z0-9.]+\.[a-zA-Z]{2,}$", v):
             raise ValueError("Invalid target domain format")
-        # Interdire localhost et IPs locales pour prévenir SSRF
-        blacklist = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]
-        if v.lower() in blacklist:
-            raise ValueError("Target domain not allowed")
+        if v:
+            # Interdire localhost et IPs locales pour prévenir SSRF
+            blacklist = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # nosec B104
+            if v.lower() in blacklist:
+                raise ValueError("Target domain cannot be a local address")
         return v
 
 

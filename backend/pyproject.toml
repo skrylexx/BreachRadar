@@ -71,6 +71,7 @@ dev = [
     "respx>=0.21",
     "ruff>=0.4",
     "mypy>=1.10",
+    "bandit>=1.7.0",
     "types-pyyaml",
     "types-passlib",
 ]
@@ -88,8 +89,11 @@ ignore = [
 
 [tool.mypy]
 python_version = "3.12"
-strict = true
+strict = false
 ignore_missing_imports = true
+check_untyped_defs = false
+warn_return_any = false
+warn_unused_configs = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

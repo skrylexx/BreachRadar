@@ -4,6 +4,7 @@ BreachRadar WebUI — FastAPI Application Entry Point
 Point d'entrée principal. Configure le middleware, les routes et le cycle de vie.
 """
 
+import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 

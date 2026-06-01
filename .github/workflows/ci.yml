@@ -62,6 +62,12 @@ jobs:
       - name: 🔍 Lint & Format (Ruff)
         run: cd backend && uv run ruff check app/ tests/
 
+      - name: 🔍 Type Check (Mypy)
+        run: cd backend && uv run mypy app/
+
+      - name: 🛡️ Security Lint (Bandit)
+        run: cd backend && uv run bandit -r app/ -ll
+
       - name: 🧪 Run Unit Tests
         run: cd backend && uv run pytest tests/ -v
 

@@ -38,7 +38,7 @@ class TelegramMonitorClient(BaseLeakClient):
             self.client_class = None
             logger.warning("[Telegram] Telethon n'est pas installé. Lancez 'uv pip install telethon'.")
 
-    async def _ensure_auth(self) -> any:
+    async def _ensure_auth(self) -> Any:
         if not self.client_class or not self.api_id or not self.api_hash:
             return None
 

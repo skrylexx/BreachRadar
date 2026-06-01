@@ -64,6 +64,12 @@ class ScanScheduler:
         self.scheduler.start()
         logger.info("Planificateur APScheduler démarré.")
 
+    def stop(self) -> None:
+        """Arrête le planificateur."""
+        if self.scheduler.running:
+            self.scheduler.shutdown()
+            logger.info("Planificateur APScheduler arrêté.")
+
     async def _run_scan_job(self) -> None:
         logger.info(f"[{datetime.now().isoformat()}] Démarrage automatique du scan via Scheduler...")
         try:
