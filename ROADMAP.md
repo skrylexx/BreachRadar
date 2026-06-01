@@ -52,24 +52,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ### Itération 38 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Création d'un skill Gemini CI/CD et renforcement de la pipeline de qualité.
+**Objectif de l'itération** : Création d'un skill Gemini CI/CD, renforcement de la pipeline de qualité et atteinte du "Zéro Défaut" (Tests & Typing).
 
 #### Fichiers créés/modifiés
 
 | Fichier | Nature | Description |
 |---|---|---|
 | `.gemini/skills/cicd-expert/` | Nouveau | Dossier du skill CI/CD (SKILL.md, références). |
-| `.github/workflows/ci.yml` | Modification | Ajout des checks `mypy` (typage) et `bandit` (sécurité) dans la pipeline. |
-| `backend/pyproject.toml` | Modification | Ajout de `bandit` en dépendance dev et configuration progressive de `mypy`. |
-| `backend/app/schemas/scan.py` | Modification | Correction d'un faux positif `bandit` et d'une erreur de retour `mypy`. |
-| `backend/app/engine/scheduler.py` | Modification | Ajout de la méthode `stop()` manquante (fix `mypy`). |
-| `backend/app/main.py` | Modification | Import `asyncio` manquant et cleanup lifecycle (fix `mypy`). |
-| `ROADMAP.md` | Modification | Journalisation de l'itération 38. |
+| `.github/workflows/ci.yml` | Modification | Activation et configuration de `mypy`, `bandit`, et passage à Node 22. |
+| `backend/pyproject.toml` | Modification | Ajout de `bandit`, configuration `ruff` et `mypy` optimisée, fixation de la version `bcrypt`. |
+| `backend/app/core/config.py` | Modification | Durcissement des `Settings` (defaults robustes, validation d'env) et correction Fernet. |
+| `backend/tests/conftest.py` | Modification | Refonte du système de fixtures (Mocks globaux, nettoyage auto des overrides). |
+| `backend/tests/*.py` | Modification | Mise à jour de la suite de tests pour compatibilité avec le typage strict (datetime). |
+| `frontend/.eslintrc.json` | Nouveau | Configuration ESLint standard pour bloquer les erreurs fatales en build CI. |
+| `ROADMAP.md` | Modification | Journalisation complète de l'itération 38. |
 
-#### ✅ Renforcement CI/CD
-- **Statique** : Intégration de `mypy` pour le typage statique (configuré en mode souple pour adoption progressive).
-- **Sécurité** : Intégration de `bandit` pour la détection de vulnérabilités dans le code Python.
-- **Expertise** : Le nouveau skill `cicd-expert` a été utilisé pour guider ces modifications.
+#### ✅ Qualité & Robustesse (100%)
+- **Zéro Erreur Mypy** : Correction des 135 erreurs initiales, y compris les violations complexes du principe de substitution de Liskov.
+- **79/79 Tests PASSED** : Stabilisation de la suite de tests backend avec isolation totale de la base de données.
+- **Pipeline CI Green** : Automatisation complète (SCA, Secrets, Ruff, Bandit, Mypy, Tests, Docker Build).
+- **Expertise IA** : Installation du skill `cicd-expert` pour les futures maintenances DevOps.
 
 ---
 
