@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # ─── SECTION SÉCURITÉ (SECRETS & SCA) ──────────────────────────────────────
   security-audit:
@@ -23,11 +26,17 @@ jobs:
       - name: 📦 Frontend Audit (NPM)
         run: cd frontend && npm audit --audit-level=high
 
+      - name: ⚡ Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          version: "latest"
+
       - name: 🐍 Backend Audit (pip-audit)
         run: |
           cd backend
-          pip install pip-audit
-          pip-audit
+          uv export --format requirements-txt > req.txt
+          uvx pip-audit -r req.txt
 
   # ─── SECTION BACKEND (PYTHON) ─────────────────────────────────────────────
   backend-checks:
@@ -48,7 +57,7 @@ jobs:
       - name: 🛠️ Install dependencies
         run: |
           cd backend
-          uv pip install --system --frozen -e ".[dev,pdf]"
+          uv sync --frozen --all-extras
 
       - name: 🔍 Lint & Format (Ruff)
         run: cd backend && uv run ruff check app/ tests/
@@ -74,7 +83,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: 🛠️ Install dependencies
-        run: cd frontend && npm ci
+        run: cd frontend && npm install
 
       - name: 🔍 Lint (ESLint)
         run: cd frontend && npm run lint

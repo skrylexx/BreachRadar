@@ -31,7 +31,10 @@ WORKDIR /app
 # Copier et installer les dépendances Python
 COPY pyproject.toml uv.lock ./
 COPY README.md ./
-RUN uv pip install --system --frozen ".[pdf]"
+RUN uv sync --frozen --no-dev --extra pdf
+
+# Mettre le venv dans le PATH
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copier le code source
 COPY app/ ./app/
