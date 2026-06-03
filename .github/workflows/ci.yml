@@ -24,15 +24,18 @@ jobs:
           reporter: github-pr-check
 
       - name: 📦 Frontend Audit (NPM)
+        if: success() || failure()
         run: cd frontend && npm audit --audit-level=high
 
       - name: ⚡ Install uv
+        if: success() || failure()
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           version: "latest"
 
       - name: 🐍 Backend Audit (pip-audit)
+        if: success() || failure()
         run: |
           cd backend
           uv export --format requirements-txt --no-hashes > req.txt
@@ -63,16 +66,16 @@ jobs:
         run: cd backend && uv run ruff check app/ tests/
 
       - name: 🔍 Type Check (Mypy)
+        if: success() || failure()
         run: cd backend && uv run mypy app/
 
       - name: 🛡️ Security Lint (Bandit)
+        if: success() || failure()
         run: cd backend && uv run bandit -r app/ -ll
 
-      - name: 🧪 Run Unit Tests
+      - name: 🧪 Run Unit & Security Tests
+        if: success() || failure()
         run: cd backend && uv run pytest tests/ -v
-
-      - name: 🛡️ Run Security Tests
-        run: cd backend && uv run pytest tests/test_security.py -v
 
   # ─── SECTION FRONTEND (NEXT.JS) ────────────────────────────────────────────
   frontend-checks:
@@ -88,6 +91,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      - name: 💾 Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/package-lock.json') }}-${{ hashFiles('frontend/src/**') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('frontend/package-lock.json') }}-
+
       - name: 🛠️ Install dependencies
         run: cd frontend && npm install
 
@@ -95,6 +106,7 @@ jobs:
         run: cd frontend && npm run lint
 
       - name: 🏗️ Build Check
+        if: success() || failure()
         run: cd frontend && npm run build
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:8000"
@@ -104,6 +116,7 @@ jobs:
   # ─── SECTION DOCKER (BUILD CHECK) ──────────────────────────────────────────
   docker-checks:
     name: 🐳 Docker Build Verify
+    needs: [security-audit, backend-checks, frontend-checks]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,4 +125,5 @@ jobs:
         run: docker build -t breachradar-api-test ./backend
 
       - name: 🏗️ Build Frontend Image
+        if: success() || failure()
         run: docker build -t breachradar-ui-test ./frontend
