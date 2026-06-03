@@ -51,6 +51,24 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 43 — 2026-06-03 (Gemini CLI)
+
+**Iteration Objective**: Make Content Security Policy (CSP) dynamic and based on environment variables.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `frontend/next.config.ts` | Modification | Dynamic CSP implementation using `NEXT_PUBLIC_API_URL` for `connect-src`. |
+| `ROADMAP.md` | Modification | Iteration 43 logging. |
+| `AI_AGENT_GUIDE.md` | Modification | Added handoff #15. |
+
+#### ✅ Security & DX
+- **Dynamic CSP**: The `connect-src` directive now automatically includes the backend URL defined in `NEXT_PUBLIC_API_URL`, preventing blocking issues when the API is not on `localhost:8000`.
+- **Config Refactoring**: Centralized `apiUrl` constant in `next.config.ts` for better maintainability.
+
+---
+
 ### Iteration 42 — 2026-06-03 (Gemini CLI)
 
 **Iteration Objective**: Fix of Docker API startup error (missing database columns) and environment clarification.
