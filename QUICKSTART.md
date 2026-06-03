@@ -14,7 +14,7 @@ Ce guide vous accompagne pas à pas pour configurer l'environnement et lancer Br
    - `UI_DB_PASSWORD` : Un mot de passe fort pour PostgreSQL.
    - `UI_REDIS_PASSWORD` : Un mot de passe fort pour Redis.
    - `UI_JWT_SECRET` : Clé de chiffrement JWT (générer avec `openssl rand -hex 32`).
-   - `UI_ADMIN_EMAIL` & `UI_ADMIN_PASSWORD` : Identifiants du premier compte Admin.
+   - `UI_ADMIN_EMAIL` & `UI_ADMIN_PASSWORD` : Identifiants du premier compte Admin (⚠️ le MFA est désactivé par défaut lors de la création de ce compte pour éviter de vous bloquer. L'interface vous proposera de l'activer à la première connexion).
 
 3. **Choisissez le mode RansomLook** :
    - **Mode local (par défaut)** : `RANSOMLOOK_MODE=local`.

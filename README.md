@@ -34,13 +34,14 @@ BreachRadar fonctionne avec une architecture micro-services complète, englobant
 
 | Couche | Technologie |
 |---|---|
-| **Frontend** | Next.js 15.5 + Shadcn/UI + Tailwind CSS 3.4 |
+| **Frontend** | Next.js 15.5 + Shadcn/UI + Tailwind CSS 3.4 (i18n: FR/EN) |
 | **Backend (Moteur)** | FastAPI (Python 3.12+) |
-| **Base de données** | PostgreSQL 16 |
-| **Cache / Sessions** | Redis 7 |
+| **Base de données** | PostgreSQL 16 (Persistance des alertes et rapports) |
+| **Cache / Sessions** | Redis 7 (Verrous distribués et rate-limiting) |
 | **Authentification** | JWT HttpOnly Cookies |
 | **MFA** | TOTP RFC 6238 (Google Auth, Authy, Microsoft Auth) |
-| **Scheduling** | APScheduler 3.x (intégré dans FastAPI) |
+| **Scheduling** | APScheduler 3.x (intégré dans FastAPI, synchronisé via Redis) |
+| **CI/CD & Sécurité** | GitHub Actions (Mypy, Ruff, Bandit, ESLint, pip-audit, detect-secrets) |
 | **Package manager** | uv (Backend), npm (Frontend) |
 
 ---

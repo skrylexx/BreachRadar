@@ -18,9 +18,10 @@ Ce dossier contient le cœur de l'application BreachRadar : l'API FastAPI et le 
 
 1. **Orchestration des scans** : Pilote les différents modules de recherche (HIBP, GitHub, RansomLook, etc.).
 2. **Système CVE** : Surveille en temps réel les vulnérabilités via les flux NVD (NIST) et OSV.dev.
-3. **Gestion Utilisateurs** : Authentification sécurisée, rôles (Admin/Viewer), et gestion du MFA.
-4. **Génération de rapports** : Agrégation des résultats de scan en rapports HTML, Markdown ou PDF.
-5. **Webhooks** : Endpoint de réception pour les alertes externes (ex: GitHub Secret Scanning).
+3. **Persistance Historique** : Stockage des alertes critiques (ex: Ransomware `CyberFinding`) en base pour le traçage historique.
+4. **Gestion Utilisateurs** : Authentification sécurisée, rôles (Admin/Viewer), et gestion du MFA.
+5. **Génération de rapports** : Agrégation des résultats de scan en rapports HTML, Markdown ou PDF.
+6. **Webhooks** : Endpoint de réception pour les alertes externes (ex: GitHub Secret Scanning).
 
 ## 📡 Endpoints principaux
 
@@ -32,6 +33,7 @@ L'API est documentée via Swagger UI à l'adresse `/docs` (en mode développemen
 - `/api/v1/dashboard` : Statistiques agrégées pour les graphiques du frontend.
 - `/api/v1/cve` : Consultation et filtrage des vulnérabilités détectées.
 - `/api/v1/ransomlook` : Données de surveillance des groupes de ransomware.
+- `/api/v1/intelligence` : Flux de veille et de menaces persistantes (Ransomware, RSS).
 - `/api/v1/settings` : Configuration globale, gestion des clés API OSINT.
 - `/webhooks` : Réception d'alertes externes.
 
