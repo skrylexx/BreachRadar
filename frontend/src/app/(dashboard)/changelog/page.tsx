@@ -9,6 +9,18 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.5.0",
+    date: "2026-06-03",
+    type: "Open Source Launch",
+    description: "Version historique marquant l'ouverture de BreachRadar en Open Source et l'introduction de configurations de sécurité dynamiques.",
+    changes: [
+      { type: "feat", text: "Ouverture officielle du projet en Open Source pour la communauté cyber." },
+      { type: "feat", text: "Implémentation d'une Content Security Policy (CSP) dynamique basée sur les variables d'environnement." },
+      { type: "feat", text: "Mises à jour fonctionnelles globales du code pour une meilleure modularité et extensibilité." },
+      { type: "fix", text: "Optimisation de la configuration Next.js pour faciliter les déploiements multi-environnements." },
+    ],
+  },
+  {
     version: "v0.4.1",
     date: "2026-06-03",
     type: "Security Hardening",

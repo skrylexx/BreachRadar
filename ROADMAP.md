@@ -51,6 +51,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 43 — 2026-06-03 (Gemini CLI)
+
+**Iteration Objective**: Make Content Security Policy (CSP) dynamic and launch v0.5.0 (Open Source).
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `frontend/next.config.ts` | Modification | Dynamic CSP implementation using `NEXT_PUBLIC_API_URL` for `connect-src`. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Added v0.5.0 (Open Source Launch) to the changelog. |
+| `ROADMAP.md` | Modification | Iteration 43 logging. |
+| `AI_AGENT_GUIDE.md` | Modification | Added handoff #15. |
+
+#### ✅ Security & Open Source
+- **Dynamic CSP**: The `connect-src` directive now automatically includes the backend URL defined in `NEXT_PUBLIC_API_URL`, preventing blocking issues when the API is not on `localhost:8000`.
+- **v0.5.0 Launch**: Official transition to Open Source and functional code updates documented in the UI changelog.
+- **Config Refactoring**: Centralized `apiUrl` constant in `next.config.ts` for better maintainability.
+
+---
+
 ### Iteration 42 — 2026-06-03 (Gemini CLI)
 
 **Iteration Objective**: Fix of Docker API startup error (missing database columns) and environment clarification.
@@ -717,15 +737,15 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: Backend foundations in place (Models, Security, Routers). CVE engine initialized.
-**Commit**: `HEAD`
-**What's left (Backend Priority)**:
-- [ ] Finalize `CVEMonitor` (implement OSV.dev and actual polling).
-- [ ] Connect the Profile page to actual actions (Change Password, Toggle MFA).
-- [ ] Implement storage and testing of "Custom Sources" (RSS/Atom).
-- [ ] Finalize actual PDF export and global report generation.
+**Stopped at**: `frontend/next.config.ts` — CSP made dynamic.
+**Commit**: `45c6ce6f29a6f7ea046a86c7ed0210e50d377f65`
+**What's left**:
+- [ ] Resume backend development (CVE polling, profile actions).
+- [ ] Resolve remaining 28 `mypy` errors in the backend.
+- [ ] Finalize OSV.dev fetcher for CVE engine.
 
 **Watch points**:
-- Respect NVD rate-limits (5 req/30s).
-- Use `feedparser` for custom sources (watch out for XSS injections).
-- Properly migrate secrets from `.env` to DB in a secure manner.
+- CSP is now dynamic; ensure `NEXT_PUBLIC_API_URL` is correctly set in production environments.
+- NVD rate-limits (5 req/30s) still apply for CVE polling.
+- Manual `ALTER TABLE` in `init_db.py` is a pragmatic fix for dev; consider Alembic if schema complexity increases.
+
