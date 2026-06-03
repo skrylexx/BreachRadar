@@ -1,0 +1,35 @@
+name: Feature Request
+description: Proposer une nouvelle idée ou amélioration pour BreachRadar
+title: "[FEAT] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de suggérer une nouvelle fonctionnalité ! 🚀
+  - type: textarea
+    id: problem
+    attributes:
+      label: Quel problème essayez-vous de résoudre ?
+      description: Est-ce que cette demande est liée à un problème que vous rencontrez ou un cas d'usage non couvert ?
+      placeholder: C'est toujours très frustrant quand...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Décrivez clairement comment vous imaginez la fonctionnalité idéale.
+      placeholder: J'aimerais qu'il y ait un bouton qui permette de...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considérées
+      description: Avez-vous pensé à d'autres manières de faire ?
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexte supplémentaire
+      description: Ajoutez ici tout contexte, lien vers une API tierce, ou maquette.

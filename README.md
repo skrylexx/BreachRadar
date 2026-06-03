@@ -8,6 +8,8 @@
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org)
 [![Next.js 15.5](https://img.shields.io/badge/Next.js-15.5-black.svg)](https://nextjs.org/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![CI/CD Security Audit](https://github.com/skrylexx/BreachRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/skrylexx/BreachRadar/actions)
 
 ---
 
