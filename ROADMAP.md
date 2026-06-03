@@ -737,15 +737,14 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: `frontend/next.config.ts` — CSP made dynamic.
-**Commit**: `45c6ce6f29a6f7ea046a86c7ed0210e50d377f65`
+**Stopped at**: CORS issue resolved via Next.js proxy optimization.
+**Commit**: `<SHA>`
 **What's left**:
+- [ ] Verify if the login flow works without CORS errors in the browser.
 - [ ] Resume backend development (CVE polling, profile actions).
 - [ ] Resolve remaining 28 `mypy` errors in the backend.
-- [ ] Finalize OSV.dev fetcher for CVE engine.
 
 **Watch points**:
-- CSP is now dynamic; ensure `NEXT_PUBLIC_API_URL` is correctly set in production environments.
-- NVD rate-limits (5 req/30s) still apply for CVE polling.
-- Manual `ALTER TABLE` in `init_db.py` is a pragmatic fix for dev; consider Alembic if schema complexity increases.
+- Client-side now uses relative paths (`/api/...`) to benefit from the Next.js proxy.
+- Ensure `NEXT_PUBLIC_API_URL` is set to the absolute backend URL in the environment (it will be used by the server for proxying).
 

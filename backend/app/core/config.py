@@ -219,7 +219,12 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             v = v.strip()
             if not v:
-                return ["http://localhost:3000", "http://127.0.0.1:3000"]
+                return [
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000",
+                    "http://localhost:8000",
+                    "http://127.0.0.1:8000",
+                ]
             try:
                 import json
 
@@ -229,7 +234,7 @@ class Settings(BaseSettings):
             except Exception:
                 # Fallback to comma separated
                 return [item.strip() for item in v.split(",") if item.strip()]
-        return v
+        return v or ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     @field_validator("ransomlook_search_terms", mode="before")
     @classmethod

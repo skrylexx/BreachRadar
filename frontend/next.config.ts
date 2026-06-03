@@ -3,7 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   // Output standalone pour Docker (optimise le bundle)
@@ -16,7 +16,8 @@ const nextConfig: NextConfig = {
   env: {
     // Variable sans préfixe — accessible UNIQUEMENT côté serveur
     TARGET_DOMAIN: process.env.TARGET_DOMAIN ?? "",
-    NEXT_PUBLIC_API_URL: apiUrl,
+    // On force le client à utiliser des chemins relatifs pour passer par le proxy Next.js (évite CORS)
+    NEXT_PUBLIC_API_URL: "",
   },
 
   // Proxy API : toutes les requêtes /api/* sont redirigées vers FastAPI
@@ -24,7 +25,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${apiUrl}/:path*`,
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
@@ -48,7 +49,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob:",
-              `connect-src 'self' ${apiUrl} http://localhost:8000 http://127.0.0.1:8000`,
+              `connect-src 'self' ${backendUrl} http://localhost:8000 http://127.0.0.1:8000`,
             ].join("; "),
           },
         ],
