@@ -20,7 +20,7 @@
 ## 🤖 Next Agent — Resume Here
 
 **Stopped at**: Backend fully finalized with Zero Defects (`mypy --strict`).
-**Commit**: `e3895e69196b0266100140280287b47426610014`  # SHA placeholder, will update
+**Commit**: `d7b3f8964cd81e2f59bf2b7e06338cef207e4448`  # SHA placeholder, will update
 **What's left**:
 - [ ] Perform a full end-to-end manual test of the v0.5.0 Open Source version.
 - [ ] Prepare deployment documentation for the Open Source community.
