@@ -285,7 +285,7 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 - **Outgoing Agent**           : Gemini CLI
 - **Incoming Agent**           : undefined
-- **End-of-session commit**    : *(see commit associated with this push)*
+- **End-of-session commit**    : `45c6ce6f29a6f7ea046a86c7ed0210e50d377f65`
 - **Tasks accomplished**:
   - **Dynamic CSP**: Refactored `frontend/next.config.ts` to make the `Content-Security-Policy` header dynamic. It now uses `NEXT_PUBLIC_API_URL` (with a fallback to `localhost:8000`) for the `connect-src` directive.
   - **v0.5.0 Open Source**: Updated `frontend/src/app/(dashboard)/changelog/page.tsx` to announce the v0.5.0 Open Source launch and functional updates.
