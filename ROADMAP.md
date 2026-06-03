@@ -737,14 +737,23 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: CORS issue resolved via Next.js proxy optimization.
-**Commit**: `6634dcf1f76bb3f45d691745849c0b09ca70d8aa`
+**Stopped at**: Roadmap update to define the final path to v0.5.0 Open Source (all code changes from previous attempt were reset).
+**Commit**: `30a6c0b`  # SHA of the current roadmap update
 **What's left**:
-- [ ] Verify if the login flow works without CORS errors in the browser.
-- [ ] Resume backend development (CVE polling, profile actions).
-- [ ] Resolve remaining 28 `mypy` errors in the backend.
+- [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
+- [ ] **Feature Finalization**: 
+    - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
+    - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
+    - Finalize Global Reporting logic and verify PDF export availability.
+- [ ] **CORS & Proxy Optimization**: Finalize the Next.js rewrite proxy configuration and backend `cors_origins` for robust cross-environment support.
+- [ ] **Internationalization (Code)**: Translate all French comments and docstrings in the source code to English to facilitate Open Source contributions.
+- [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
+- [ ] **Documentation**: Prepare deployment documentation and polish the Open Source community guides.
+- [ ] **UI Polish**: Resolve any remaining visual inconsistencies in the frontend components.
 
 **Watch points**:
-- Client-side now uses relative paths (`/api/...`) to benefit from the Next.js proxy.
-- Ensure `NEXT_PUBLIC_API_URL` is set to the absolute backend URL in the environment (it will be used by the server for proxying).
+- The backend must maintain strict typing standards for any new contributions.
+- PDF generation requires `weasyprint` (install via `pip install .[pdf]`).
+- The frontend client should use relative paths (`/api/...`) to leverage the Next.js proxy.
+- `NEXT_PUBLIC_API_URL` must be correctly set in the environment for server-side proxying.
 
