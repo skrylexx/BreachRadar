@@ -258,9 +258,9 @@ class RansomLookClient(BaseLeakClient):
                 try:
                     discovered_at = datetime.fromisoformat(str(discovered_at_str).replace("Z", "+00:00"))
                 except ValueError:
-                    discovered_at = datetime.utcnow()
+                    discovered_at = datetime.now(UTC)
             else:
-                discovered_at = datetime.utcnow()
+                discovered_at = datetime.now(UTC)
 
             return RansomFinding(
                 group_name=group_name,

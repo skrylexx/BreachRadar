@@ -50,7 +50,7 @@ export function MfaRecoveryPrompt() {
     // Petit délai pour laisser le temps au middleware/cookies de se stabiliser
     const timer = setTimeout(checkMfaStatus, 1000);
     return () => clearTimeout(timer);
-  }, [pathname]);
+  }, [pathname, checking]);
 
   const handleDismiss = () => {
     sessionStorage.setItem("mfa_prompt_dismissed", "true");

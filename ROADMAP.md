@@ -50,6 +50,45 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Itération 41 — 2026-06-03 (Gemini CLI)
+
+**Objectif de l'itération** : Mise à jour v0.4.1 (Durcissement RBAC) et audit de la pipeline CI/CD.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Ajout de la version v0.4.1. |
+| `ROADMAP.md` | Modification | Journalisation de l'itération 41. |
+
+#### ✅ Évolutions
+- **Version v0.4.1** : Durcissement des contrôles RBAC et sécurisation des entrées.
+- **Audit CI/CD** : Débogage et vérification de la cohérence de la pipeline d'intégration continue (en cours).
+
+---
+
+### Itération 40 — 2026-06-03 (Gemini CLI)
+
+**Objectif de l'itération** : Finalisation de la persistance Ransomware, renforcement du RBAC et mise à jour v0.4.0.
+
+#### Fichiers créés/modifiés
+
+| Fichier | Nature | Description |
+|---|---|---|
+| `backend/app/core/init_db.py` | Modification | Sécurisation de l'admin initial (Reset MFA/Sessions). |
+| `backend/app/dependencies/auth.py` | Modification | Durcissement du check `require_admin` (RBAC fix). |
+| `backend/app/engine/logic.py` | Modification | Implémentation de la persistance des findings RansomLook en base de données. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Publication de la version v0.4.0. |
+| `ROADMAP.md` | Modification | Journalisation de l'itération 40. |
+
+#### ✅ Maintenance & Évolutions
+- **Ransomware Persistence** : Les détections positives sont désormais sauvegardées dans la table `cyber_findings`, permettant un suivi historique et une visibilité dans le flux d'intelligence.
+- **RBAC Fix** : Correction des problèmes de permissions "insuffisantes" pour l'administrateur lors du déclenchement des scans.
+- **Admin Recovery** : L'administrateur initial est désormais créé avec des paramètres de sécurité sains (MFA désactivé par défaut) pour éviter tout blocage au premier lancement.
+- **Version v0.4.0** : Passage officiel en v0.4.0 incluant i18n et audits de sécurité.
+
+---
+
 ### Itération 39 — 2026-06-01 (Gemini CLI)
 
 **Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker, correction du "Black Screen" (CSP), fiabilisation du démarrage Backend (Race Condition), et correction du flux de déconnexion.

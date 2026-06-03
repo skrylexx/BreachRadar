@@ -48,7 +48,7 @@ export default function CVEClient() {
 
   const isMock = alerts.length > 0 && alerts[0].id.startsWith("mock-");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [alertsRes, statusRes, trendRes] = await Promise.all([
@@ -70,11 +70,11 @@ export default function CVEClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, period, severityFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [page, period, severityFilter]);
+  }, [fetchData]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

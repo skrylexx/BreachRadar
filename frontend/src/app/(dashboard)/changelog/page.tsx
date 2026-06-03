@@ -9,6 +9,30 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.4.1",
+    date: "2026-06-03",
+    type: "Security Hardening",
+    description: "Mise à jour mineure axée sur le durcissement de la sécurité de l'application et la consolidation des flux CI/CD.",
+    changes: [
+      { type: "feat", text: "Durcissement des stratégies de validation des entrées et du contrôle d'accès basé sur les rôles (RBAC)." },
+      { type: "fix", text: "Audit et débogage de la pipeline CI/CD pour garantir une livraison continue cohérente et sécurisée." },
+    ],
+  },
+  {
+    version: "v0.4.0",
+    date: "2026-06-03",
+    type: "Production Ready & Persistence",
+    description: "Version majeure apportant la persistance des menaces ransomware, l'internationalisation complète et un durcissement de la sécurité (CI/CD, SCA).",
+    changes: [
+      { type: "feat", text: "Persistance locale des détections Ransomware positives en base de données pour un historique fiable." },
+      { type: "feat", text: "Internationalisation intégrale (i18n FR/EN) sur l'ensemble du parcours utilisateur." },
+      { type: "feat", text: "Pipeline de sécurité CI/CD : intégration de Bandit (SCA), Mypy (Typing) et audit de secrets." },
+      { type: "fix", text: "Fiabilisation des permissions administrateur pour le déclenchement des scans (RBAC Hardening)." },
+      { type: "fix", text: "Sécurisation du compte admin initial : reset automatique du MFA et des sessions au démarrage." },
+      { type: "fix", text: "Correction des conflits de démarrage multi-workers via verrouillage distribué Redis robuste." },
+    ],
+  },
+  {
     version: "v0.3.0",
     date: "2026-05-23",
     type: "Major Fixes & UX Overhaul",

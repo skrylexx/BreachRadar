@@ -127,7 +127,7 @@ export function SchedulingClient() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     fetchStatus();

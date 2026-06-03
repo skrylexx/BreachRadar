@@ -36,6 +36,7 @@ MOCK_USER_ID = uuid.uuid4()
 
 async def override_get_db():
     mock_db = AsyncMock()
+    mock_db.add = MagicMock()
     mock_user = User(
         id=MOCK_USER_ID,
         email="limit@example.com",

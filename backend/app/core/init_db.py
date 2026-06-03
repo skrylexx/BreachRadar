@@ -27,18 +27,18 @@ async def initialize_database() -> None:
     lock_key = "breachradar:db_init_lock"
     max_retries = 10
     retry_count = 0
-    
+
     while retry_count < max_retries:
         # Tenter de prendre le verrou pendant 60 secondes
         is_locked = await redis_client.set(lock_key, "1", nx=True, ex=60)
 
         if is_locked:
             break
-        
+
         logger.debug("Database initialization already in progress by another worker. Waiting...")
         await asyncio.sleep(2)
         retry_count += 1
-    
+
     if retry_count >= max_retries:
         logger.warning("Could not acquire DB init lock after several attempts. Proceeding with caution.")
 
@@ -47,7 +47,7 @@ async def initialize_database() -> None:
         async with engine.begin() as conn:
             # On utilise run_sync pour appeler create_all qui est synchrone dans SQLAlchemy
             await conn.run_sync(Base.metadata.create_all)
-        
+
         # 2. Création admin initial
         async with AsyncSessionLocal() as session:
             # Vérifier si l'admin existe déjà (par email)
@@ -65,6 +65,9 @@ async def initialize_database() -> None:
                         role=UserRole.ADMIN,
                         is_active=True,
                         mfa_enabled=False,
+                        mfa_required=False,
+                        mfa_secret=None,
+                        mfa_backup_codes=None,
                     )
                     session.add(admin)
                     await session.commit()

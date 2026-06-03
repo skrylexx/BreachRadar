@@ -55,7 +55,7 @@ def reset_db_mock():
     global_mock_db.reset_mock()
     global_mock_db.execute = AsyncMock()
     global_mock_db.commit = AsyncMock()
-    global_mock_db.add = AsyncMock()
+    global_mock_db.add = MagicMock()
     app.dependency_overrides[get_db] = override_get_db
     yield
 

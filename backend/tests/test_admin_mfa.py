@@ -83,6 +83,7 @@ async def test_admin_reset_mfa_success(async_client):
     )
 
     mock_db = AsyncMock()
+    mock_db.add = MagicMock()
     mock_res_target = MagicMock()
     mock_res_target.scalar_one_or_none.return_value = target_user
     mock_db.execute.return_value = mock_res_target
@@ -113,6 +114,7 @@ async def test_admin_require_mfa_success(async_client):
     )
 
     mock_db = AsyncMock()
+    mock_db.add = MagicMock()
     mock_res_target = MagicMock()
     mock_res_target.scalar_one_or_none.return_value = target_user
     mock_db.execute.return_value = mock_res_target
@@ -142,6 +144,7 @@ async def test_login_with_mfa_required(async_client):
     )
 
     mock_db = AsyncMock()
+    mock_db.add = MagicMock()
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = user
     mock_db.execute.return_value = mock_result

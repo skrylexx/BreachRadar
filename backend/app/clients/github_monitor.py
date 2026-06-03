@@ -102,7 +102,7 @@ class GitHubClient(BaseLeakClient):
                 source=self.name,
                 email=context if "@" in context else "N/A (Domain Match)",
                 breach_name=f"GitHub Public Repo ({repo_name})",
-                breach_date=datetime.utcnow().date(),
+                breach_date=datetime.now(UTC).date(),
                 data_classes=["Source Code", "Potential Credentials"],
                 severity=Severity.MEDIUM,  # Sévérité moyenne car ce sont des faux positifs potentiels
                 verified=False,

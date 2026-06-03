@@ -2,7 +2,7 @@
 Tests unitaires pour l'agrégateur (ResultAggregator).
 """
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -114,7 +114,7 @@ def test_ransomware_overrides_severity(aggregator, dummy_metadata):
             group_display_name="LockBit 3.0",
             victim_name="Example",
             victim_website="example.com",
-            discovered_at=datetime.utcnow(),
+            discovered_at=datetime.now(UTC),
             published_at=None,
             description=None,
             country=None,
