@@ -7,7 +7,7 @@ Validation des données d'entrée/sortie pour l'authentification.
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, ValidationInfo, field_validator
 
 
 class LoginRequest(BaseModel):
@@ -51,7 +51,7 @@ class PasswordChangeRequest(BaseModel):
 
     @field_validator("new_password_confirm")
     @classmethod
-    def passwords_match(cls, v: str, values) -> str:
+    def passwords_match(cls, v: str, values: ValidationInfo) -> str:
         if "new_password" in values.data and v != values.data["new_password"]:
             raise ValueError("Passwords do not match")
         return v

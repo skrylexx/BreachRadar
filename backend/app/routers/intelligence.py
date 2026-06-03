@@ -4,6 +4,8 @@ BreachRadar WebUI — Routeur Intelligence
 Endpoints pour la veille numérique (RSS, GitHub, etc.).
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +28,7 @@ async def list_intelligence_findings(
     severity: Severity | None = None,
     source: str | None = None,
     is_read: bool | None = None,
-):
+) -> dict[str, Any]:
     """
     Liste les trouvailles de la veille numérique avec pagination et filtres.
     """
@@ -56,7 +58,7 @@ async def list_intelligence_findings(
 
 
 @router.post("/{finding_id}/read")
-async def mark_as_read(finding_id: str, current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
+async def mark_as_read(finding_id: str, current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     """Marque une trouvaille comme lue."""
     result = await db.execute(select(CyberFinding).where(CyberFinding.id == finding_id))
     item = result.scalar_one_or_none()
@@ -67,7 +69,7 @@ async def mark_as_read(finding_id: str, current_user: ViewerUser, db: AsyncSessi
 
 
 @router.post("/read-all")
-async def mark_all_as_read(current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
+async def mark_all_as_read(current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> dict[str, str]:
     """Marque toutes les trouvailles comme lues."""
     from sqlalchemy import update
 

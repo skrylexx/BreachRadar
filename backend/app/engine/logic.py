@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients.ransomlook import RansomLookClient
 from app.core.config import settings
@@ -38,7 +39,7 @@ class ScanManager:
         self.aggregator = ResultAggregator()
         self.report_engine = ReportEngine(output_dir=settings.report_output_dir)
 
-    async def _get_api_keys(self, db) -> dict[str, str]:
+    async def _get_api_keys(self, db: AsyncSession) -> dict[str, str]:
         """Charge toutes les clés API actives depuis la base de données."""
         from sqlalchemy import select
 

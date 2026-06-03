@@ -33,7 +33,7 @@ async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Vérifie si l'affichage des données de démonstration est activé."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
-    return setting.value if setting else False
+    return bool(setting.value) if setting else False
 
 
 async def _ransomlook_active(db: AsyncSession) -> bool:
@@ -196,7 +196,7 @@ async def connectors_status(current_user: ViewerUser, db: AsyncSession = Depends
     ransomlook_ok = await _ransomlook_active(db)
     mock_enabled = await _get_mock_data_enabled(db)
 
-    def _get_status(configured: bool):
+    def _get_status(configured: bool) -> str:
         if configured:
             return "ok"
         return "mock" if mock_enabled else "error"

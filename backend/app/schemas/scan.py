@@ -6,6 +6,7 @@ BreachRadar WebUI — Schémas Scan (Pydantic)
 import re
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, field_validator
 
@@ -35,8 +36,8 @@ class ScanStats(BaseModel):
 
     # Données pour le graphique à bâtonnets (7j, 1 mois, 6 mois, 12 mois)
     period: str  # "7d" | "1m" | "6m" | "12m"
-    data_points: list[dict]  # [{"date": "2026-01-15", "total": 12, "critical": 2, ...}]
-    summary: dict  # Totaux sur la période
+    data_points: list[dict[str, Any]]  # [{"date": "2026-01-15", "total": 12, "critical": 2, ...}]
+    summary: dict[str, Any]  # Totaux sur la période
 
     model_config = {"from_attributes": True}
 

@@ -4,6 +4,8 @@ BreachRadar WebUI — Routeur API Keys (Admin uniquement)
 Gestion des clés API des connecteurs OSINT.
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -90,13 +92,12 @@ async def upsert_api_key(
     body: APIKeyCreate,
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, str]:
     """Crée ou met à jour une clé API (admin uniquement)."""
     if service_name not in SUPPORTED_SERVICES:
         raise HTTPException(status_code=400, detail=f"Unknown service: {service_name}")
 
-    # Note: En production, chiffrer avec Fernet avant stockage
-    # Pour cette itération : stockage de la clé (TODO: chiffrement Fernet)
+    # Stockage de la clé chiffrée via Fernet
     result = await db.execute(select(APIKey).where(APIKey.service_name == service_name))
     existing = result.scalar_one_or_none()
 

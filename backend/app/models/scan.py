@@ -7,6 +7,7 @@ Stockage des résultats de scan (sans données sensibles — RGPD).
 import enum
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, Enum, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -63,7 +64,7 @@ class ScanResult(Base):
 
     # ─── Résumé par source (JSON agrégé) ──────────────────────────────────
     # Ex: {"hibp": 3, "leakcheck": 1, "ransomlook": 0, "github": 2}
-    findings_by_source: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    findings_by_source: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     # ─── Rapport (chemin du fichier, pas le contenu) ───────────────────────
     report_path: Mapped[str | None] = mapped_column(Text, nullable=True)

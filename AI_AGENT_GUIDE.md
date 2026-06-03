@@ -281,7 +281,24 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 ## 6. Handoff History
 
-### Handoff #15 — 2026-06-03
+### Handoff #17 — 2026-06-03
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **Zero Defects**: Achieved a clean `mypy --strict app` run for the entire backend (66 files checked).
+  - **Feature Finalization**: Completed the OSV.dev fetcher, confirmed Profile page connectivity (MFA/Password), and verified Global Reporting logic.
+  - **Code Quality**: Performed a massive cleanup of type annotations, generic type arguments (`dict[str, Any]`), and return types across all routers and engine modules.
+  - **Bug Fixes**: Resolved syntax errors and invalid SQLAlchemy queries introduced in previous iterations.
+- **Next task**: End-to-end verification and Open Source documentation.
+- **Points of vigilance**:
+  - `weasyprint` is needed for PDF export (install via `pip install .[pdf]`).
+- **Updated files**: backend/app/**/*.py · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
+### Handoff #16 — 2026-06-03
 
 - **Outgoing Agent**           : Gemini CLI
 - **Incoming Agent**           : undefined

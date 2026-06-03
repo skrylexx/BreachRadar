@@ -7,6 +7,7 @@ Toutes les fonctions de sécurité centralisées ici.
 import base64
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
+from typing import Any, Optional, cast
 
 import pyotp
 import qrcode
@@ -23,12 +24,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
     """Hache un mot de passe avec bcrypt."""
-    return pwd_context.hash(password)
+    return str(pwd_context.hash(password))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Vérifie un mot de passe contre son hash bcrypt."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return bool(pwd_context.verify(plain_password, hashed_password))
 
 
 def validate_password_strength(password: str, is_admin: bool = False) -> tuple[bool, str]:
@@ -69,30 +70,30 @@ def is_password_rotation_required(last_password_change: datetime, password_lengt
 # ─── JWT Tokens ──────────────────────────────────────────────────────────────
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """Crée un JWT access token (durée courte : 15 min)."""
     to_encode = data.copy()
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes))
     to_encode.update({"exp": expire, "type": "access"})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return str(jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm))
 
 
-def create_refresh_token(data: dict) -> str:
+def create_refresh_token(data: dict[str, Any]) -> str:
     """Crée un JWT refresh token (durée longue : 7 jours)."""
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(days=settings.jwt_refresh_token_expire_days)
     to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return str(jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm))
 
 
-def decode_token(token: str) -> dict | None:
+def decode_token(token: str) -> Optional[dict[str, Any]]:
     """Décode et valide un JWT. Retourne None si invalide."""
     try:
-        return jwt.decode(
+        return cast(dict[str, Any], jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
-        )
+        ))
     except JWTError:
         return None
 
@@ -177,7 +178,7 @@ def _get_fernet() -> Fernet:
 def encrypt_secret(value: str) -> str:
     """Chiffre une chaîne de caractères (clé API, password SMTP)."""
     f = _get_fernet()
-    return f.encrypt(value.encode()).decode()
+    return str(f.encrypt(value.encode()).decode())
 
 
 def decrypt_secret(token: str | None) -> str:
@@ -185,4 +186,4 @@ def decrypt_secret(token: str | None) -> str:
     if token is None:
         return ""
     f = _get_fernet()
-    return f.decrypt(token.encode()).decode()
+    return str(f.decrypt(token.encode()).decode())

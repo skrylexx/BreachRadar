@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if is_scheduler_leader:
             logger.info("Démarrage du ScanScheduler (Instance Leader)...")
 
-            async def _scan_callback():
+            async def _scan_callback() -> None:
                 """Callback déclenché par le scheduler pour un scan complet."""
                 from datetime import datetime
 
@@ -87,7 +87,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     scan_manager = ScanManager()
                     await scan_manager.run_full_scan(scan.id)
 
-            async def _watch_callback():
+            async def _watch_callback() -> None:
                 """Callback déclenché par le scheduler pour la veille numérique (CVE + RSS + GitHub)."""
                 from app.core.database import AsyncSessionLocal
                 from app.engine.cve_monitor import CVEMonitor
@@ -120,7 +120,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             scheduler.start()
 
             # Tâche de fond pour maintenir le lock du scheduler
-            async def _maintain_scheduler_lock():
+            async def _maintain_scheduler_lock() -> None:
                 while True:
                     await asyncio.sleep(30)
                     await redis_client.expire(scheduler_lock_key, 60)

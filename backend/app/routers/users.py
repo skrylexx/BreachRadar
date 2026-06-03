@@ -4,6 +4,8 @@ BreachRadar WebUI — Routeur Users (Admin uniquement)
 CRUD utilisateurs : création, liste, désactivation, changement de rôle.
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -100,7 +102,7 @@ async def update_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    changes = {}
+    changes: dict[str, Any] = {}
     if body.role is not None:
         changes["role"] = f"{user.role.value}→{body.role.value}"
         user.role = body.role
@@ -155,7 +157,7 @@ async def reset_mfa(
     user_id: str,
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, str]:
     """Désactive le MFA pour un utilisateur (Admin uniquement)."""
     import uuid
 
@@ -192,7 +194,7 @@ async def require_mfa(
     user_id: str,
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, str]:
     """Force l'activation du MFA pour un utilisateur (Admin uniquement)."""
     import uuid
 

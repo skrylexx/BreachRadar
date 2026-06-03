@@ -7,7 +7,7 @@ Fusionne la config de la WebUI et l'ancienne config du CLI.
 
 import os
 from functools import lru_cache
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from pydantic import EmailStr, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -225,25 +225,25 @@ class Settings(BaseSettings):
 
                 parsed = json.loads(v)
                 if isinstance(parsed, list):
-                    return parsed
+                    return cast(list[str], parsed)
             except Exception:
                 # Fallback to comma separated
                 return [item.strip() for item in v.split(",") if item.strip()]
-        return v
+        return cast(list[str], v) if v is not None else ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     @field_validator("ransomlook_search_terms", mode="before")
     @classmethod
-    def parse_search_terms(cls, v: str | list[str]) -> list[str]:
+    def parse_search_terms(cls, v: Any) -> list[str]:
         if isinstance(v, str):
             return [term.strip() for term in v.split(",") if term.strip()]
-        return v
+        return cast(list[str], v) if v is not None else []
 
     @field_validator("report_format", mode="before")
     @classmethod
-    def parse_report_format(cls, v: str | list[str]) -> list[str]:
+    def parse_report_format(cls, v: Any) -> list[str]:
         if isinstance(v, str):
             return [fmt.strip() for fmt in v.split(",") if fmt.strip()]
-        return v
+        return cast(list[str], v) if v is not None else ["markdown", "json"]
 
     @field_validator("log_level")
     @classmethod
@@ -345,7 +345,7 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Singleton des settings (caché après le premier appel)."""
-    return Settings()  # type: ignore[call-arg]
+    return Settings()
 
 
 settings: Settings = get_settings()

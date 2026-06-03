@@ -33,7 +33,7 @@ async def handle_github_webhook(
     request: Request,
     x_hub_signature_256: str = Header(None, alias="X-Hub-Signature-256"),
     x_github_event: str = Header("ping", alias="X-GitHub-Event"),
-):
+) -> Response:
     # Validation du secret (si configuré)
     secret_token = getattr(settings, "github_webhook_secret", None)
     if secret_token:

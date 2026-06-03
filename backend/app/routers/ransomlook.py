@@ -6,6 +6,7 @@ Proxies et endpoints pour les alertes Ransomware.
 
 import contextlib
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -50,7 +51,7 @@ class RansomwareAlertRead(BaseModel):
 
 
 @router.get("/status")
-async def get_ransomlook_status(current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
+async def get_ransomlook_status(current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """État de l'instance RansomLook."""
     client = await get_fresh_ransom_client(db)
     stats = await client.check_health()
@@ -67,7 +68,7 @@ async def list_ransomware_alerts(
     domain: str | None = Query(None),  # Ajout du filtre domaine
     status: str | None = None,
     period: str | None = None,
-):
+) -> PaginatedResponse[RansomwareAlertRead]:
     """Liste les alertes Ransomware via l'API RansomLook."""
     client = await get_fresh_ransom_client(db)
 
@@ -130,3 +131,6 @@ async def list_ransomware_alerts(
         return PaginatedResponse(items=items, total=total, page=(offset // limit) + 1, page_size=limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"RansomLook API error: {str(e)}")
+
+
+from typing import cast

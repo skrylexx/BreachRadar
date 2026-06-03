@@ -7,6 +7,7 @@ Client Dehashed API.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from app.clients.base import BaseLeakClient
 from app.engine.sanitizer import DataSanitizer
@@ -101,7 +102,7 @@ class DehashedClient(BaseLeakClient):
 
         return findings
 
-    def _parse_entry(self, email: str, entry: dict) -> LeakFinding | None:
+    def _parse_entry(self, email: str, entry: dict[str, Any]) -> LeakFinding | None:
         sanitized = self.sanitizer.sanitize(entry)
         safe_entry = sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else entry
 

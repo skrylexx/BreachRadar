@@ -42,7 +42,7 @@ class IntelligenceMonitor:
             },
         )
 
-    async def run_all(self):
+    async def run_all(self) -> None:
         """Lance toutes les collectes actives."""
         logger.info("Démarrage de la veille numérique globale.")
 
@@ -72,7 +72,7 @@ class IntelligenceMonitor:
 
     # ─── RSS / Atom ──────────────────────────────────────────────────────────
 
-    async def _poll_rss_feeds(self):
+    async def _poll_rss_feeds(self) -> None:
         """Récupère les items depuis les flux RSS configurés."""
         # A. Flux statiques depuis sources.yaml
         rss_status = self.registry.sources.get("rss")
@@ -107,7 +107,7 @@ class IntelligenceMonitor:
         for feed_cfg in all_feeds:
             await self._process_single_rss(feed_cfg)
 
-    async def _process_single_rss(self, cfg: dict[str, Any]):
+    async def _process_single_rss(self, cfg: dict[str, Any]) -> None:
         """Parse et stocke les items d'un flux unique."""
         url = cfg["url"]
         try:
@@ -178,7 +178,7 @@ class IntelligenceMonitor:
 
     # ─── GitHub Monitors ─────────────────────────────────────────────────────
 
-    async def _poll_github_monitors(self):
+    async def _poll_github_monitors(self) -> None:
         """Exécute les recherches GitHub configurées."""
         github_status = self.registry.sources.get("github")
         monitors = github_status.config.get("monitors", []) if github_status else []
@@ -188,7 +188,7 @@ class IntelligenceMonitor:
                 query = mon.get("query", "").replace("{target_domain}", settings.target_domain)
                 await self._github_search(mon.get("name"), query)
 
-    async def _github_search(self, monitor_name: str, query: str):
+    async def _github_search(self, monitor_name: str, query: str) -> None:
         """Effectue une recherche via l'API GitHub et normalise les résultats."""
         api_url = "https://api.github.com/search/code"
         headers = {}
@@ -227,7 +227,7 @@ class IntelligenceMonitor:
 
     # ─── Pastebin Scraping ───────────────────────────────────────────────────
 
-    async def _poll_pastebin(self):
+    async def _poll_pastebin(self) -> None:
         """
         Scraping Pastebin pour détecter des mentions du domaine.
         Note: Requiert généralement un compte Pro et une IP whitelisted.
@@ -248,7 +248,7 @@ class IntelligenceMonitor:
 
     # ─── Telegram Monitor ────────────────────────────────────────────────────
 
-    async def _poll_telegram(self):
+    async def _poll_telegram(self) -> None:
         """
         Surveillance des canaux Telegram publics.
         Note: Nécessite Telethon ou une gateway.
@@ -310,5 +310,6 @@ class IntelligenceMonitor:
 
         return True
 
-    async def close(self):
+    async def close(self) -> None:
         await self.client.aclose()
+

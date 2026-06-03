@@ -16,6 +16,7 @@ import contextlib
 import hashlib
 import logging
 from datetime import datetime
+from typing import Any
 
 import httpx
 
@@ -143,7 +144,7 @@ class HIBPClient(BaseLeakClient):
 
         return 0
 
-    def _parse_breach(self, email: str, breach: dict) -> LeakFinding | None:
+    def _parse_breach(self, email: str, breach: dict[str, Any]) -> LeakFinding | None:
         """Parse un dictionnaire breach de HIBP vers LeakFinding."""
         # Sanitize data before parsing (just in case)
         sanitized = self.sanitizer.sanitize(breach)
@@ -162,7 +163,7 @@ class HIBPClient(BaseLeakClient):
             # Déduire les types de données exposées
             has_password = "passwords" in data_classes_lower
             has_hash = (
-                False  # HIBP ne dit pas toujours si le mdp est hashé, mais en général "passwords" couvre les deux.
+                False  # HIBP ne dit pas toujours si le mdp est hashé, mais en général "passwords" covers both.
             )
 
             # Si un mot de passe est exposé, on le marque (l'aggregator gérera la sévérité).

@@ -5,6 +5,7 @@ Endpoints : liste, détail, stats, déclenchement manuel, export rapport.
 """
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from slowapi import Limiter
@@ -82,7 +83,7 @@ async def get_scan_stats(
     # Grouper par jour
     from collections import defaultdict
 
-    daily: dict = defaultdict(lambda: {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0})
+    daily: dict[str, dict[str, Any]] = defaultdict(lambda: {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0})
     for scan in scans:
         day = scan.started_at.date().isoformat()
         daily[day]["total"] += scan.total_findings

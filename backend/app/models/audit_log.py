@@ -6,6 +6,7 @@ Traçabilité de toutes les actions admin (audit trail RGPD).
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -42,7 +43,7 @@ class AuditLog(Base):
     #     "apikey.updated", "scan.triggered", "smtp.configured"
 
     # ─── Contexte ──────────────────────────────────────────────────────────
-    details: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    details: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     # Ex: {"target_user": "bob@corp.com", "role_changed": "viewer→admin"}
     # ⚠️ JAMAIS de credentials ou données sensibles dans les details
 

@@ -114,7 +114,7 @@ class NotificationEngine:
         msg["From"] = self.settings.smtp_from_email or self.settings.smtp_user
         msg["To"] = to_address
 
-        def _send():
+        def _send() -> None:
             try:
                 server = smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port, timeout=10)
                 if self.settings.smtp_tls:

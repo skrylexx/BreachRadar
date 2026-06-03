@@ -7,6 +7,7 @@ Client LeakCheck.io API v2.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from app.clients.base import BaseLeakClient
 from app.engine.sanitizer import DataSanitizer
@@ -102,7 +103,7 @@ class LeakCheckClient(BaseLeakClient):
 
         return findings
 
-    def _parse_result(self, email: str, item: dict) -> LeakFinding | None:
+    def _parse_result(self, email: str, item: dict[str, Any]) -> LeakFinding | None:
         sanitized = self.sanitizer.sanitize(item)
         safe_item = sanitized.sanitized_data if isinstance(sanitized.sanitized_data, dict) else item
 

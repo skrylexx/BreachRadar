@@ -135,7 +135,7 @@ class DataSanitizer:
             (flag, re.compile(pattern), replacement) for flag, pattern, replacement in self.SENSITIVE_PATTERNS
         ]
 
-    def sanitize(self, raw: dict | list | str) -> SanitizedResult:
+    def sanitize(self, raw: dict[str, Any] | list[Any] | str) -> SanitizedResult:
         """
         Point d'entrée principal du sanitizer.
 
@@ -168,9 +168,9 @@ class DataSanitizer:
 
         return result
 
-    def _sanitize_dict(self, data: dict, result: SanitizedResult) -> dict:
+    def _sanitize_dict(self, data: dict[str, Any], result: SanitizedResult) -> dict[str, Any]:
         """Sanitise récursivement un dictionnaire."""
-        sanitized: dict[Any, Any] = {}
+        sanitized: dict[str, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 sanitized[key] = self._sanitize_string(value, result)

@@ -9,10 +9,8 @@ Endpoints : /auth/login, /auth/logout, /auth/refresh,
 import logging
 import secrets
 import uuid
-
-logger = logging.getLogger(__name__)
 from datetime import UTC, datetime
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from slowapi import Limiter
@@ -57,6 +55,8 @@ from app.schemas.auth import (
     UserInfo,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 
@@ -97,7 +97,7 @@ async def _log_action(
     action: str,
     request: Request,
     user_email: str | None = None,
-    details: dict | None = None,
+    details: dict[str, Any] | None = None,
 ) -> None:
     """Écrit une entrée dans l'audit log."""
     log = AuditLog(
@@ -253,7 +253,7 @@ async def logout(
     response: Response,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, str]:
     """Révoque le token courant (blacklist Redis) et supprime les cookies."""
     access_token = request.cookies.get("access_token")
     if access_token:
@@ -308,7 +308,7 @@ async def mfa_setup(
 
 @router.post("/mfa/confirm", response_model=UserInfo)
 async def mfa_confirm(
-    body: dict,
+    body: dict[str, Any],
     response: Response,
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
@@ -339,7 +339,7 @@ async def mfa_confirm(
 async def mfa_disable(
     request: Request,
     response: Response,
-    body: dict,
+    body: dict[str, Any],
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> User:
@@ -411,7 +411,7 @@ async def change_password(
 
 # ─── GET /health (quick auth check) ──────────────────────────────────────────
 @router.get("/status")
-async def auth_status(current_user: ViewerUser) -> dict:
+async def auth_status(current_user: ViewerUser) -> dict[str, Any]:
     """Vérifie si le token est valide — utilisé par le frontend."""
     return {
         "authenticated": True,

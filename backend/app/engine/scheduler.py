@@ -13,6 +13,8 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from typing import Any, Callable, Coroutine, Optional
+
 from app.core.config import Settings
 
 logger = logging.getLogger(__name__)
@@ -23,7 +25,12 @@ class ScanScheduler:
     Planificateur de tâches utilisant APScheduler.
     """
 
-    def __init__(self, settings: Settings, scan_callback, cve_callback=None) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        scan_callback: Callable[[], Coroutine[Any, Any, None]],
+        cve_callback: Optional[Callable[[], Coroutine[Any, Any, None]]] = None,
+    ) -> None:
         self.settings = settings
         self.scheduler = AsyncIOScheduler()
         self.scan_callback = scan_callback
@@ -81,6 +88,7 @@ class ScanScheduler:
     async def _run_cve_job(self) -> None:
         logger.info(f"[{datetime.now().isoformat()}] Démarrage de la veille CVE via Scheduler...")
         try:
-            await self.cve_callback()
+            if self.cve_callback:
+                await self.cve_callback()
         except Exception as e:
             logger.error(f"Erreur lors de l'exécution de la veille CVE : {e}")

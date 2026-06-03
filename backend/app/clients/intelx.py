@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from app.clients.base import BaseLeakClient
 from app.engine.sanitizer import DataSanitizer
@@ -93,7 +94,7 @@ class IntelXClient(BaseLeakClient):
         finally:
             await client.aclose()
 
-    def _parse_record(self, term: str, record: dict) -> LeakFinding | None:
+    def _parse_record(self, term: str, record: dict[str, Any]) -> LeakFinding | None:
         try:
             name = record.get("name", "IntelX Dump")
             record.get("date", "")
@@ -106,7 +107,7 @@ class IntelXClient(BaseLeakClient):
                 breach_date=None,  # On pourrait parser date_str si besoin
                 data_classes=["IntelX Record"],
                 has_password=False,  # Impossible à affirmer sans lire le contenu brut via l'ID
-                has_hash=False,
+                has_hash=False,  # Impossible à affirmer sans lire le contenu brut via l'ID
                 has_api_key=False,
                 severity=Severity.MEDIUM,
                 verified=True,

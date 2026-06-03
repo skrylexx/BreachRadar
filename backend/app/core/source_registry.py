@@ -26,6 +26,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, cast
 
 import yaml
 
@@ -46,7 +47,7 @@ class SourceStatus:
     available: bool  # Sera effectivement utilisée ?
     skip_reason: str | None = None  # Raison d'exclusion (si available=False)
     description: str = ""
-    config: dict = field(default_factory=dict)  # Données de config supplémentaires (ex: feeds RSS)
+    config: dict[str, Any] = field(default_factory=dict)  # Données de config supplémentaires (ex: feeds RSS)
 
     @property
     def icon(self) -> str:
@@ -142,7 +143,7 @@ class SourceRegistry:
                 available=available,
                 skip_reason=skip_reason,
                 description=str(description).strip(),
-                config=config_data,
+                config=cast(dict[str, Any], config_data),
             )
 
         registry._log_summary()

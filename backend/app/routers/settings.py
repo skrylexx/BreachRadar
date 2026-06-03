@@ -4,6 +4,8 @@ BreachRadar WebUI — Routeur Settings (Admin uniquement)
 Gestion des paramètres système et des sources custom.
 """
 
+from typing import Any, Sequence
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -22,7 +24,7 @@ router = APIRouter()
 
 class SystemSettingUpdate(BaseModel):
     key: str
-    value: str | int | bool | dict | list
+    value: str | int | bool | dict[str, Any] | list[Any]
 
 
 class CustomSourceCreate(BaseModel):
@@ -47,11 +49,11 @@ class CustomSourceRead(BaseModel):
 
 
 @router.get("/general")
-async def get_general_settings(current_user: AdminUser, db: AsyncSession = Depends(get_db)) -> dict:
+async def get_general_settings(current_user: AdminUser, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """Récupère tous les paramètres système."""
     result = await db.execute(select(SystemSettings))
-    settings = result.scalars().all()
-    return {s.key: s.value for s in settings}
+    settings_list = result.scalars().all()
+    return {s.key: s.value for s in settings_list}
 
 
 @router.put("/general")
@@ -60,7 +62,7 @@ async def update_general_setting(
     body: SystemSettingUpdate,
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, str]:
     """Met à jour un paramètre système."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == body.key))
     setting = result.scalar_one_or_none()
@@ -86,7 +88,7 @@ async def update_general_setting(
 
 
 @router.get("/custom-sources", response_model=list[CustomSourceRead])
-async def list_custom_sources(current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
+async def list_custom_sources(current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> Sequence[CustomFeedSource]:
     """Liste toutes les sources RSS custom."""
     result = await db.execute(select(CustomFeedSource))
     return result.scalars().all()
@@ -98,7 +100,7 @@ async def create_custom_source(
     body: CustomSourceCreate,
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
-):
+) -> CustomFeedSource:
     """Ajoute une nouvelle source RSS."""
     source = CustomFeedSource(name=body.name, url=body.url, category=body.category, enabled=body.enabled)
     db.add(source)
@@ -117,9 +119,9 @@ async def create_custom_source(
 
 @router.post("/custom-sources/test")
 async def test_custom_source(
-    body: dict,
+    body: dict[str, Any],
     current_user: AdminUser,
-):
+) -> dict[str, Any]:
     """Teste un flux RSS et renvoie un aperçu des 3 derniers items."""
     import feedparser
     import httpx
@@ -161,7 +163,7 @@ async def test_custom_source(
 @router.delete("/custom-sources/{source_id}")
 async def delete_custom_source(
     request: Request, source_id: str, current_user: AdminUser, db: AsyncSession = Depends(get_db)
-):
+) -> dict[str, str]:
     """Supprime une source RSS."""
     result = await db.execute(select(CustomFeedSource).where(CustomFeedSource.id == source_id))
     source = result.scalar_one_or_none()

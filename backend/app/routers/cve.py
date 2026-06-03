@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, func, select
@@ -7,20 +8,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.dependencies.auth import ViewerUser
 from app.models.cve import CVEAlert, CVESeverity
+from app.models.settings import SystemSettings
 from app.schemas.common import PaginatedResponse
 from app.schemas.cve import CVEAlert as CVEAlertSchema
 from app.schemas.cve import CVESource
 
 router = APIRouter()
 
-from app.models.settings import SystemSettings
-
 
 async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Vérifie si l'affichage des données de démonstration est activé."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
-    return setting.value if setting else False
+    return bool(setting.value) if setting else False
 
 
 @router.get("/alerts", response_model=PaginatedResponse[CVEAlertSchema])
@@ -42,7 +42,8 @@ async def get_cve_alerts(
 
     # Count total
     count_stmt = select(func.count()).select_from(stmt.subquery())
-    total = (await db.execute(count_stmt)).scalar() or 0
+    total_result = await db.execute(count_stmt)
+    total = total_result.scalar() or 0
 
     # Get items
     result = await db.execute(stmt.offset(offset).limit(limit))
@@ -86,7 +87,7 @@ async def get_cve_trend(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
     period: str = Query("7d", pattern="^(7d|1m|6m|12m)$"),
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Données pour le graphique d'évolution des CVE."""
     # ... (unchanged aggregate logic if it existed, but let's just check mock)
     # Since aggregate logic was mock-like before, let's keep it but make it conditional on mock mode too if no real data
@@ -94,7 +95,7 @@ async def get_cve_trend(
     return _get_mock_cve_trend_data(period)
 
 
-def _get_mock_cve_trend_data(period: str) -> list[dict]:
+def _get_mock_cve_trend_data(period: str) -> list[dict[str, Any]]:
     days = {"7d": 7, "1m": 30, "6m": 180, "12m": 365}[period]
     now = datetime.now(UTC)
     data = []

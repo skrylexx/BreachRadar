@@ -14,6 +14,7 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import UTC, date, datetime
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import Boolean, DateTime, Enum, String, Text, func
@@ -69,7 +70,7 @@ class CyberFinding(Base):
 
     # ─── Méta-données flexibles ─────────────────────────────────────────────
     # Permet de stocker CVE_ID, Tags, Mots-clés détectés, etc.
-    extra_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    extra_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     # ─── État ──────────────────────────────────────────────────────────────
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

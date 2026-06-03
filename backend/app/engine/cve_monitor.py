@@ -8,6 +8,7 @@ Phase 9 du TODO.md.
 import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import feedparser
 import httpx
@@ -40,7 +41,7 @@ class CVEMonitor:
         self.db = db
         self.client = httpx.AsyncClient(timeout=30.0, headers={"User-Agent": "BreachRadar/1.0 (Cyber-Governance-Tool)"})
 
-    async def poll_all(self, active_categories: list[str]):
+    async def poll_all(self, active_categories: list[str]) -> None:
         """Lance la collecte pour toutes les catégories actives."""
         logger.info(f"Démarrage du polling CVE pour {len(active_categories)} catégories.")
 
@@ -61,7 +62,7 @@ class CVEMonitor:
 
     # ─── NVD (NIST) ──────────────────────────────────────────────────────────
 
-    async def _poll_nvd(self, categories: list[str]):
+    async def _poll_nvd(self, categories: list[str]) -> None:
         """Interroge l'API NVD 2.0."""
         # Filtre les catégories NVD (ex: nvd_windows, nvd_linux)
         nvd_cats = [c for c in categories if c.startswith("nvd_")]
@@ -110,7 +111,7 @@ class CVEMonitor:
         }
         return mapping.get(cat)
 
-    async def _process_nvd_data(self, data: dict, category: str):
+    async def _process_nvd_data(self, data: dict[str, Any], category: str) -> None:
         vulnerabilities = data.get("vulnerabilities", [])
         for vuln in vulnerabilities:
             cve = vuln.get("cve", {})
@@ -147,7 +148,7 @@ class CVEMonitor:
 
     # ─── GitHub Advisories ──────────────────────────────────────────────────
 
-    async def _poll_github_advisories(self):
+    async def _poll_github_advisories(self) -> None:
         """Parse le flux Atom des GitHub Advisories."""
         try:
             response = await self.client.get(GITHUB_ADVISORIES_URL)
@@ -168,9 +169,11 @@ class CVEMonitor:
 
                     # Extraction de la date avec fallback
                     if hasattr(entry, "published_parsed") and entry.published_parsed:
-                        published_at = datetime(*entry.published_parsed[:6], tzinfo=UTC)
+                        p = entry.published_parsed
+                        published_at = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
                     elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=UTC)
+                        p = entry.updated_parsed
+                        published_at = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
                     else:
                         published_at = datetime.now(UTC)
 
@@ -190,7 +193,7 @@ class CVEMonitor:
 
     # ─── OSV (Google) ────────────────────────────────────────────────────────
 
-    async def _poll_osv(self, categories: list[str]):
+    async def _poll_osv(self, categories: list[str]) -> None:
         """
         Interroge l'API OSV.dev par écosystème.
         Utilise modified_id.csv pour lister les IDs récents et GET /v1/vulns/<id> pour les détails.
@@ -235,7 +238,7 @@ class CVEMonitor:
             except Exception as e:
                 logger.error(f"Erreur OSV pour {cat}: {e}")
 
-    async def _fetch_osv_detail(self, vuln_id: str, category: str):
+    async def _fetch_osv_detail(self, vuln_id: str, category: str) -> None:
         """Récupère les détails complets d'une vulnérabilité OSV."""
         try:
             url = f"https://api.osv.dev/v1/vulns/{vuln_id}"
@@ -251,13 +254,18 @@ class CVEMonitor:
                 if "severity" in data:
                     for s in data["severity"]:
                         if s.get("type") in ["CVSS_V3", "CVSS_V4"]:
-                            # On tente de parser le score depuis le vector ou le field
-                            # Note: OSV score est souvent absent, on peut avoir juste le vector
-                            pass
+                            # On tente de parser le score depuis le score ou le vector
+                            # OSV API v1 spec says "score" might be present in severity objects
+                            if "score" in s:
+                                try:
+                                    cvss_score = float(s["score"])
+                                except (ValueError, TypeError):
+                                    pass
 
-                # Check for database_specific field which sometimes contains severity
+                # Fallback to database_specific field which sometimes contains severity
                 db_spec = data.get("database_specific", {})
-                severity_str = db_spec.get("severity", "UNKNOWN").upper()
+                if severity_str == "UNKNOWN":
+                    severity_str = db_spec.get("severity", "UNKNOWN").upper()
 
                 alert = CVEAlert(
                     cve_id=vuln_id,
@@ -284,7 +292,7 @@ class CVEMonitor:
         except ValueError:
             return CVESeverity.UNKNOWN
 
-    async def _upsert_cve(self, alert: CVEAlert):
+    async def _upsert_cve(self, alert: CVEAlert) -> None:
         """Inserve ou Met à jour une CVE en base."""
         # Vérifie si elle existe déjà
         stmt = select(CVEAlert).where(CVEAlert.cve_id == alert.cve_id)
@@ -300,7 +308,7 @@ class CVEMonitor:
         else:
             self.db.add(alert)
 
-    async def _poll_cvefeed(self):
+    async def _poll_cvefeed(self) -> None:
         """Parse les flux RSS de CVEFeed.io."""
         for url, sev in [
             (CVEFEED_CRITICAL_URL, CVESeverity.CRITICAL),
@@ -316,9 +324,11 @@ class CVEMonitor:
 
                     # Extraction de la date avec fallback
                     if hasattr(entry, "published_parsed") and entry.published_parsed:
-                        published_at = datetime(*entry.published_parsed[:6], tzinfo=UTC)
+                        p = entry.published_parsed
+                        published_at = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
                     elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                        published_at = datetime(*entry.updated_parsed[:6], tzinfo=UTC)
+                        p = entry.updated_parsed
+                        published_at = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
                     else:
                         published_at = datetime.now(UTC)
 
@@ -337,5 +347,5 @@ class CVEMonitor:
             except Exception as e:
                 logger.error(f"Erreur CVEFeed {url}: {e}")
 
-    async def close(self):
+    async def close(self) -> None:
         await self.client.aclose()

@@ -7,9 +7,11 @@ Gestion des rapports de sécurité (liste, génération globale, export PDF).
 import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,8 +27,6 @@ router = APIRouter()
 
 # ─── Schémas ──────────────────────────────────────────────────────────────────
 
-from pydantic import BaseModel
-
 
 class ReportRead(BaseModel):
     id: str
@@ -36,7 +36,7 @@ class ReportRead(BaseModel):
     emails_compromised: int
     has_ransomware_alert: bool
     type: str
-    finding_counts: dict
+    finding_counts: dict[str, int]
 
     model_config = {"from_attributes": True}
 
@@ -67,7 +67,8 @@ async def list_reports(
 
     # Count total
     count_stmt = select(func.count()).select_from(stmt.subquery())
-    total = (await db.execute(count_stmt)).scalar() or 0
+    total_result = await db.execute(count_stmt)
+    total = total_result.scalar() or 0
 
     # Get items
     result = await db.execute(stmt.offset(offset).limit(limit))
@@ -98,7 +99,7 @@ async def export_report(
     current_user: ViewerUser,
     format: str = Query("pdf", pattern="^(pdf|json|html)$"),
     db: AsyncSession = Depends(get_db),
-):
+) -> FileResponse:
     """Exporte un rapport existant dans le format demandé."""
     result = await db.execute(select(ScanResult).where(ScanResult.id == uuid.UUID(report_id)))
     scan = result.scalar_one_or_none()
@@ -155,7 +156,7 @@ async def export_report(
 @router.post("/generate")
 async def generate_global_report(
     body: ReportGenerateRequest, current_user: AdminUser, db: AsyncSession = Depends(get_db)
-):
+) -> dict[str, Any]:
     """
     Génère un rapport consolidé sur une période donnée.
     Récupère tous les findings des scans effectués entre start_date et end_date.

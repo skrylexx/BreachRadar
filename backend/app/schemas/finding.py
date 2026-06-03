@@ -5,6 +5,7 @@ BreachRadar WebUI — Schémas Finding (Pydantic)
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -22,7 +23,7 @@ class CyberFindingRead(BaseModel):
     description: str | None
     url: str | None
     severity: Severity
-    extra_metadata: dict | None
+    extra_metadata: dict[str, Any] | None
     is_read: bool
     discovered_at: datetime
     published_at: datetime | None

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any, cast
 
 import httpx
 import yaml
@@ -45,7 +46,7 @@ def _load_group_names() -> dict[str, str]:
     try:
         with _GROUP_NAMES_PATH.open(encoding="utf-8") as f:
             data = yaml.safe_load(f)
-            return data.get("group_names", {})
+            return cast(dict[str, str], data.get("group_names", {}))
     except FileNotFoundError:
         logger.warning("group_names.yaml introuvable — utilisation du .title() par défaut")
         return {}
@@ -110,7 +111,7 @@ class RansomLookClient(BaseLeakClient):
                     if key:
                         logger.info("Clé API RansomLook locale récupérée avec succès.")
                         self.headers = {"Authorization": key}
-                        return key
+                        return cast(str, key)
         except Exception as e:
             logger.debug("Impossible de récupérer la clé RansomLook locale : %s", e)
         return None
@@ -119,7 +120,7 @@ class RansomLookClient(BaseLeakClient):
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
     )
-    async def _get(self, path: str, params: dict | None = None) -> dict | list:
+    async def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any] | list[Any]:
         """Requête GET vers l'API RansomLook avec retry automatique."""
         # Si on est en local et qu'on n'a pas encore de clé, on tente de la récupérer
         if self.mode == "local" and not self.headers.get("Authorization"):
@@ -132,7 +133,7 @@ class RansomLookClient(BaseLeakClient):
                 headers=self.headers,
             )
             response.raise_for_status()
-            return response.json()
+            return cast(dict[str, Any] | list[Any], response.json())
 
     async def check_health(self) -> RansomStats:
         """Vérifie que l'instance RansomLook est opérationnelle."""
@@ -222,21 +223,19 @@ class RansomLookClient(BaseLeakClient):
         """Non applicable pour RansomLook (niveau domaine/organisation)."""
         return []
 
-    async def get_recent_victims(self, days: int = 7) -> list[dict]:
+    async def get_recent_victims(self, days: int = 7) -> list[dict[str, Any]]:
         """Retourne les victimes récentes pour enrichissement de contexte."""
         path = "/api/v1/recent" if self.mode == "saas" else "/api/recent"
         try:
             # Note: Local API doesn't support 'days' param yet, it returns last 100
-            params = {"days": days} if self.mode == "saas" else {}
+            params: dict[str, Any] = {"days": days} if self.mode == "saas" else {}
             res = await self._get(path, params=params)
-            from typing import cast
-
-            return cast(list[dict], res)
+            return cast(list[dict[str, Any]], res)
         except Exception as e:
             logger.error("Erreur récupération victimes récentes RansomLook : %s", e)
             return []
 
-    def _parse_victim_item(self, item: dict, search_term: str) -> RansomFinding | None:
+    def _parse_victim_item(self, item: dict[str, Any], search_term: str) -> RansomFinding | None:
         """Parse un item de l'API RansomLook vers un RansomFinding Pydantic."""
         try:
             group_name = item.get("group_name", "unknown")
