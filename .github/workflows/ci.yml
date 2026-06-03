@@ -17,27 +17,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 🔑 Detect Secrets
-        uses: reviewdog/action-detect-secrets@v0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-check
-
-      - name: 📦 Frontend Audit (NPM)
-        if: success() || failure()
-        run: cd frontend && npm audit --audit-level=high
-
       - name: ⚡ Install uv
-        if: success() || failure()
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           version: "latest"
 
+      - name: 🔑 Detect Secrets
+        run: uvx detect-secrets scan
+
+      - name: 📦 Frontend Audit (NPM)
+        if: success() || failure()
+        working-directory: ./frontend
+        run: npm audit --audit-level=high
+
       - name: 🐍 Backend Audit (pip-audit)
         if: success() || failure()
+        working-directory: ./backend
         run: |
-          cd backend
           uv export --format requirements-txt --no-hashes > req.txt
           uvx pip-audit -r req.txt
 
