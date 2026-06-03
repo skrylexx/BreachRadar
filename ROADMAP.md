@@ -22,6 +22,7 @@
 **Stopped at**: Backend fully finalized with Zero Defects (`mypy --strict`).
 **Commit**: `d7b3f8964cd81e2f59bf2b7e06338cef207e4448`  # SHA placeholder, will update
 **What's left**:
+- [ ] **Internationalization (Code)**: Translate all French comments and docstrings in the source code to English to facilitate Open Source contributions.
 - [ ] Perform a full end-to-end manual test of the v0.5.0 Open Source version.
 - [ ] Prepare deployment documentation for the Open Source community.
 - [ ] Polish frontend UI components if any visual inconsistencies are found.
