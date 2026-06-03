@@ -51,6 +51,24 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 42 — 2026-06-03 (Gemini CLI)
+
+**Iteration Objective**: Fix of Docker API startup error (missing database columns) and environment clarification.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `backend/app/core/init_db.py` | Modification | Implementation of automatic schema synchronization (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`). |
+| `ROADMAP.md` | Modification | Iteration 42 logging and next agent update. |
+| `AI_AGENT_GUIDE.md` | Modification | Added handoff #14. |
+
+#### ✅ Fixes & Maintenance
+- **Database Schema Sync**: Automated addition of missing columns (`token_version`, MFA fields, etc.) in the `users` table to support upgrades from older versions without requiring a full database reset.
+- **MOCK_MODE clarification**: Explicit identification of the correct environment variable for demonstration mode.
+
+---
+
 ### Iteration 41 — 2026-06-03 (Gemini CLI)
 
 **Iteration Objective**: v0.4.1 Update (RBAC Hardening) and CI/CD pipeline audit.
