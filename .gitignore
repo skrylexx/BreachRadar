@@ -72,3 +72,4 @@ security_audits/reports/
 docker_images/
 debug/
 ci_reports/
+ci_results.txt
