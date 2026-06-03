@@ -90,7 +90,11 @@ class Settings(BaseSettings):
             return 0
         return int(v) if v is not None else 0
 
-    # ─── RansomLook ──────────────────────────────────────────────────────────
+    # ─── Mode Démonstration (Mock) ───────────────────────────────────────────
+    mock_mode: bool = Field(
+        default=False,
+        description="Active les données fictives au démarrage (pour les démonstrations)",
+    )
     ransomlook_mode: Literal["local", "saas"] = Field(
         default="local",
         description="Mode d'utilisation de RansomLook : instance Docker locale ou API SaaS",

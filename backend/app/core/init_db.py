@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.database import AsyncSessionLocal, Base, engine
 from app.core.redis import redis_client
 from app.core.security import hash_password
+from app.models.settings import SystemSettings
 from app.models.user import User, UserRole
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,18 @@ async def initialize_database() -> None:
                     logger.info("Initial admin created successfully.")
             else:
                 logger.debug("Database already has the initial admin.")
+
+            # 3. Synchroniser la configuration de Mock
+            res_mock = await session.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
+            mock_setting = res_mock.scalar_one_or_none()
+            if mock_setting is None:
+                new_mock_setting = SystemSettings(key="mock_data_enabled", value=str(settings.mock_mode).lower())
+                session.add(new_mock_setting)
+                await session.commit()
+            elif mock_setting.value != str(settings.mock_mode).lower():
+                mock_setting.value = str(settings.mock_mode).lower()
+                await session.commit()
+
     except Exception as e:
         # Si l'erreur est liée à un objet déjà existant, on l'ignore (race condition résolue par PG)
         if "already exists" in str(e).lower():

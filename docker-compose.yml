@@ -187,10 +187,12 @@ services:
       - INITIAL_ADMIN_EMAIL=${UI_ADMIN_EMAIL:?UI_ADMIN_EMAIL required}
       - INITIAL_ADMIN_PASSWORD=${UI_ADMIN_PASSWORD:?UI_ADMIN_PASSWORD required}
       # CORS — le frontend Next.js
-      - CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000", "http://breachradar-ui:3000"]
+      - CORS_ORIGINS=["http://localhost:3001", "http://127.0.0.1:3001", "http://breachradar-ui:3000"]
       - ALLOWED_HOSTS=["localhost", "127.0.0.1", "breachradar-api", "breachradar-ui"]
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-production}
+      # Mode Démonstration (Mock Data)
+      - MOCK_MODE=${MOCK_MODE:-false}
       # Communication avec RansomLook
       - RANSOMLOOK_MODE=${RANSOMLOOK_MODE:-local}
       - RANSOMLOOK_LOCAL_URL=${RANSOMLOOK_LOCAL_URL:-http://ransomlook-app:8888}
