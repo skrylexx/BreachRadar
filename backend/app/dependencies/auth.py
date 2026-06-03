@@ -4,6 +4,7 @@ BreachRadar WebUI — Dépendances Auth & RBAC
 Injection de dépendances FastAPI pour la vérification JWT et les rôles.
 """
 
+import logging
 import uuid
 from typing import Annotated
 
@@ -15,6 +16,8 @@ from app.core.database import get_db
 from app.core.redis import is_token_blacklisted
 from app.core.security import decode_token
 from app.models.user import User, UserRole
+
+logger = logging.getLogger("app.auth")
 
 
 async def get_current_user(
@@ -72,10 +75,9 @@ async def require_admin(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     """Dependency : réservé aux administrateurs."""
-    if current_user.role != UserRole.ADMIN:
-        import logging
-        logger = logging.getLogger("app.auth")
-        logger.warning(f"Access denied: User {current_user.email} has role {current_user.role} (expected {UserRole.ADMIN})")
+    # Comparaison robuste avec StrEnum ou valeur brute
+    if current_user.role != UserRole.ADMIN and str(current_user.role) != "admin":
+        logger.warning(f"Access denied: User {current_user.email} has role '{current_user.role}' (type: {type(current_user.role)}) — expected '{UserRole.ADMIN}'")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Admin privileges required (Current role: {current_user.role})",

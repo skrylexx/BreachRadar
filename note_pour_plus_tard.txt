@@ -12,4 +12,3 @@ admin de base de l'app peut pas scanner (permissions insuffisantes)
 
 verifier flux rss & cve
 
-tester et intégrer urlscan & atx alienvault

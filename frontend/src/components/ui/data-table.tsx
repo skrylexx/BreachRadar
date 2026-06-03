@@ -72,17 +72,19 @@ interface DataTableProps<T> {
 
 // ─── Composant ───────────────────────────────────────────────────────────
 
-export function DataTable<T>({
-  columns,
-  data: rawData = [],
-  rowKey,
-  loading = false,
-  emptyMessage = "Aucune donnée disponible.",
-  pagination,
-  className,
-  onRowClick,
-}: DataTableProps<T>) {
-  const data = Array.isArray(rawData) ? rawData : [];
+export function DataTable<T>(props: DataTableProps<T>) {
+  const {
+    columns,
+    data: rawData = [],
+    rowKey,
+    loading = false,
+    emptyMessage = "Aucune donnée disponible.",
+    pagination,
+    className,
+    onRowClick,
+  } = props;
+  
+  const data = useMemo(() => Array.isArray(rawData) ? rawData : [], [rawData]);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 

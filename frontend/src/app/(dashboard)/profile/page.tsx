@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle, DownloadCloud, Copy } from "lucide-react";
 import { authApi, User as UserType } from "@/lib/api";
@@ -62,6 +62,19 @@ export default function ProfilePage() {
     }
   };
 
+  const startMfaSetup = useCallback(async () => {
+    setMfaLoading(true);
+    try {
+      const data = await authApi.mfaSetup();
+      setMfaSetupData(data);
+      setMfaStep("confirm");
+    } catch (err: any) {
+      alert(tc("error"));
+    } finally {
+      setMfaLoading(false);
+    }
+  }, [tc]);
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -73,7 +86,7 @@ export default function ProfilePage() {
       setMfaDialogOpen(true);
       startMfaSetup();
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, startMfaSetup]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,19 +123,6 @@ export default function ProfilePage() {
       alert(err.message || tc("error"));
     } finally {
       setPwdLoading(false);
-    }
-  };
-
-  const startMfaSetup = async () => {
-    setMfaLoading(true);
-    try {
-      const data = await authApi.mfaSetup();
-      setMfaSetupData(data);
-      setMfaStep("confirm");
-    } catch (err: any) {
-      alert(tc("error"));
-    } finally {
-      setMfaLoading(false);
     }
   };
 
@@ -421,6 +421,7 @@ export default function ProfilePage() {
           ) : mfaStep === "confirm" ? (
             <div className="space-y-6 py-4">
               <div className="flex justify-center bg-white p-4 rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={mfaSetupData?.qrcode_base64} alt="MFA QR Code" className="w-48 h-48" />
               </div>
               

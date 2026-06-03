@@ -10,7 +10,7 @@ import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from app.clients.ransomlook import RansomLookClient
 from app.core.config import settings
@@ -111,6 +111,33 @@ class ScanManager:
                     ransom_findings=ransom_findings,
                     metadata=metadata,
                 )
+
+                # 4bis. Persistance des detections Ransomware positives en DB (CyberFinding)
+                from app.models.finding import CyberFinding, Severity
+                for f in ransom_findings:
+                    external_id = f"ransom:{f.group_name}:{f.victim_name}"
+                    # Vérifier si déjà présent via external_id
+                    res_existing = await db.execute(select(CyberFinding).where(CyberFinding.external_id == external_id))
+                    if not res_existing.scalar_one_or_none():
+                        new_finding = CyberFinding(
+                            source=f.group_display_name,
+                            external_id=external_id,
+                            finding_type="ransomware",
+                            title=f"Victime détectée : {f.victim_name}",
+                            description=f.description or f"Publication détectée sur le portail de {f.group_display_name}",
+                            url=f.portal_url,
+                            severity=Severity.CRITICAL,
+                            extra_metadata={
+                                "group_name": f.group_name,
+                                "victim_website": f.victim_website,
+                                "claim_size": f.claim_size,
+                                "status": f.status.value,
+                                "search_term": f.search_term_matched
+                            },
+                            published_at=f.published_at,
+                            discovered_at=f.discovered_at
+                        )
+                        db.add(new_finding)
 
                 # 4. Génération du rapport physique (JSON, HTML, PDF)
                 report_files = self.report_engine.generate(report, formats=["json", "html", "pdf"])

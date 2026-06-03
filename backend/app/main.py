@@ -55,11 +55,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if getattr(settings, "schedule_enabled", False):
         import logging
         logger = logging.getLogger("breachradar.scheduler")
-        
+
         # Lock Redis pour s'assurer qu'un seul worker lance le scheduler
         scheduler_lock_key = "breachradar:scheduler_lock"
         is_scheduler_leader = await redis_client.set(scheduler_lock_key, "1", nx=True, ex=60)
-        
+
         if is_scheduler_leader:
             logger.info("Démarrage du ScanScheduler (Instance Leader)...")
 
@@ -118,13 +118,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
             scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
             scheduler.start()
-            
+
             # Tâche de fond pour maintenir le lock du scheduler
             async def _maintain_scheduler_lock():
                 while True:
                     await asyncio.sleep(30)
                     await redis_client.expire(scheduler_lock_key, 60)
-            
+
             asyncio.create_task(_maintain_scheduler_lock())
         else:
             logger.debug("ScanScheduler déjà actif sur une autre instance.")

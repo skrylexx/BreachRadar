@@ -251,16 +251,16 @@ class RansomLookClient(BaseLeakClient):
             elif item.get("discovered") or item.get("added"):
                 status = RansomStatus.LISTED
 
-            from datetime import datetime
+            from datetime import UTC, datetime
 
             discovered_at_str = item.get("added") or item.get("discovered")
             if discovered_at_str:
                 try:
                     discovered_at = datetime.fromisoformat(str(discovered_at_str).replace("Z", "+00:00"))
                 except ValueError:
-                    discovered_at = datetime.utcnow()
+                    discovered_at = datetime.now(UTC)
             else:
-                discovered_at = datetime.utcnow()
+                discovered_at = datetime.now(UTC)
 
             return RansomFinding(
                 group_name=group_name,

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import Boolean, DateTime, Enum, String, Text, func
@@ -159,7 +159,7 @@ class EmailFindingResult(BaseModel):
     breach_count: int = Field(default=0)
     findings: list[LeakFinding] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
-    checked_at: datetime = Field(default_factory=datetime.utcnow)
+    checked_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def is_compromised(self) -> bool:
