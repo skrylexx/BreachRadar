@@ -285,7 +285,7 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 - **Outgoing Agent**           : Gemini CLI
 - **Incoming Agent**           : undefined
-- **End-of-session commit**    : *(see commit associated with this push)*
+- **End-of-session commit**    : `6634dcf1f76bb3f45d691745849c0b09ca70d8aa`
 - **Tasks accomplished**:
   - **CORS & Proxy Fix**: Resolved the "Access-Control-Allow-Origin" error by forcing the frontend to use the Next.js rewrite proxy.
   - **next.config.ts**: Updated to use an absolute `backendUrl` for the server-side proxy and CSP, while exposing an empty `NEXT_PUBLIC_API_URL` to the client to ensure relative paths are used.
