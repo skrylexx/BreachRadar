@@ -1,48 +1,48 @@
-# Guide de Contribution — BreachRadar
+# Contribution Guide — BreachRadar
 
-Merci de l'intérêt que vous portez à **BreachRadar** ! En tant que projet Open Source, nous accueillons toutes les contributions : rapports de bugs, nouvelles fonctionnalités, corrections de documentation ou ajout de nouveaux connecteurs OSINT.
+Thank you for your interest in **BreachRadar**! As an Open Source project, we welcome all contributions: bug reports, new features, documentation corrections, or adding new OSINT connectors.
 
-Pour garantir la stabilité, la sécurité et la lisibilité du projet, nous vous demandons de respecter les conventions suivantes.
+To guarantee the stability, security, and readability of the project, we ask you to respect the following conventions.
 
 ---
 
-## 1. Conventions de Nommage des Branches
+## 1. Branch Naming Conventions
 
-Nous utilisons une convention stricte pour le nommage des branches afin de comprendre immédiatement le but d'une *Pull Request* (PR).
+We use a strict convention for branch naming to immediately understand the purpose of a *Pull Request* (PR).
 
-Format : `type/courte-description-en-anglais`
+Format: `type/short-description-in-english`
 
-| Type | Cas d'usage | Exemple |
+| Type | Use Case | Example |
 |---|---|---|
-| `feat/` | Nouvelle fonctionnalité (Frontend ou Backend) | `feat/add-alienvault-connector` |
-| `fix/` | Correction de bug | `fix/scheduler-race-condition` |
-| `docs/` | Mise à jour de la documentation (README, guides) | `docs/update-quickstart-docker` |
-| `chore/` | Tâches de maintenance (CI/CD, dépendances, config) | `chore/update-nextjs-15` |
-| `refactor/` | Refactorisation de code sans impact fonctionnel | `refactor/api-auth-dependencies` |
-| `sec/` | Correction de vulnérabilité / Audit | `sec/harden-jwt-cookies` |
+| `feat/` | New feature (Frontend or Backend) | `feat/add-alienvault-connector` |
+| `fix/` | Bug fix | `fix/scheduler-race-condition` |
+| `docs/` | Documentation update (README, guides) | `docs/update-quickstart-docker` |
+| `chore/` | Maintenance tasks (CI/CD, dependencies, config) | `chore/update-nextjs-15` |
+| `refactor/` | Code refactoring without functional impact | `refactor/api-auth-dependencies` |
+| `sec/` | Vulnerability fix / Audit | `sec/harden-jwt-cookies` |
 
-*Exemple de création de branche :*
+*Example of branch creation:*
 ```bash
 git checkout -b feat/add-slack-notifier
 ```
 
 ---
 
-## 2. Conventions des Messages de Commit
+## 2. Commit Message Conventions
 
-Nous suivons la convention [Conventional Commits](https://www.conventionalcommits.org/).
-Un bon commit raconte une histoire : il explique **pourquoi** ce changement est fait.
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) convention.
+A good commit tells a story: it explains **why** this change is made.
 
-**Format attendu :**
+**Expected format:**
 ```text
-type(scope): description courte en anglais
+type(scope): short description in English
 
-- Explication détaillée si nécessaire.
-- Mentionne les éventuels impacts.
-- Fixes #ID_DE_L_ISSUE
+- Detailed explanation if necessary.
+- Mention any potential impacts.
+- Fixes #ISSUE_ID
 ```
 
-**Exemples :**
+**Examples:**
 - ✅ `feat(backend): implement OTX AlienVault integration`
 - ✅ `fix(ui): resolve overflow issue on data-table`
 - ✅ `docs: add contributing guide`
@@ -51,34 +51,34 @@ type(scope): description courte en anglais
 
 ---
 
-## 3. Le Flux de Travail (Workflow)
+## 3. Workflow
 
-1. **Forkez** le dépôt et clonez-le localement.
-2. Créez une branche (`feat/votre-fonctionnalite`).
-3. Écrivez votre code en respectant l'architecture (voir `ARCHITECTURE.md` et `AI_AGENT_GUIDE.md`).
-4. **Testez votre code** en local. Ne cassez pas les tests existants.
-   - Backend : `uv run pytest tests/` et `uv run ruff check .`
-   - Frontend : `npm run lint` et `npm run build`
-5. **Poussez** (Push) votre branche sur votre fork.
-6. Ouvrez une **Pull Request (PR)** vers la branche `main` du dépôt officiel.
-
----
-
-## 4. Règles d'Or et Sécurité (Vital)
-
-BreachRadar est un outil Cyber. **La sécurité est non négociable.**
-
-- **Ne commitez JAMAIS de secrets** (Clés API, mots de passe, tokens). Utilisez toujours des variables d'environnement (`.env`).
-- **Sanitisation stricte** : Si vous ajoutez un connecteur OSINT, toutes les données brutes DOIVENT passer par le `DataSanitizer` du backend avant d'être envoyées au frontend ou stockées en base.
-- **Transparence IA** : Le projet contient un dossier `.gemini/`. Si vous utilisez une IA générative (Claude, Copilot, Gemini) pour vous aider à coder, assurez-vous qu'elle lise les directives présentes dans ce dossier pour respecter nos standards.
+1. **Fork** the repository and clone it locally.
+2. Create a branch (`feat/your-feature`).
+3. Write your code respecting the architecture (see `ARCHITECTURE.md` and `AI_AGENT_GUIDE.md`).
+4. **Test your code** locally. Do not break existing tests.
+   - Backend: `uv run pytest tests/` and `uv run ruff check .`
+   - Frontend: `npm run lint` and `npm run build`
+5. **Push** your branch to your fork.
+6. Open a **Pull Request (PR)** to the `main` branch of the official repository.
 
 ---
 
-## 5. Review et Validation
+## 4. Golden Rules and Security (Vital)
 
-Dès la création de votre PR :
-1. Une série de tests automatisés (GitHub Actions) va se lancer (Mypy, Ruff, Audit NPM/PIP, Bandit). **Votre PR doit être au vert.**
-2. Un `CODEOWNER` (@skrylexx ou un mainteneur désigné) fera une relecture humaine de votre code.
-3. Des ajustements pourront vous être demandés. Soyez réactifs !
+BreachRadar is a Cyber tool. **Security is non-negotiable.**
 
-Merci de nous aider à rendre le monde de la cybersécurité plus accessible et plus sûr ! 🚀
+- **NEVER commit secrets** (API keys, passwords, tokens). Always use environment variables (`.env`).
+- **Strict Sanitization**: If you add an OSINT connector, all raw data MUST pass through the backend `DataSanitizer` before being sent to the frontend or stored in the database.
+- **AI Transparency**: The project contains a `.gemini/` folder. If you use generative AI (Claude, Copilot, Gemini) to help you code, ensure it reads the directives present in this folder to respect our standards.
+
+---
+
+## 5. Review and Validation
+
+As soon as your PR is created:
+1. A series of automated tests (GitHub Actions) will run (Mypy, Ruff, NPM/PIP Audit, Bandit). **Your PR must be green.**
+2. A `CODEOWNER` (@skrylexx or a designated maintainer) will perform a human review of your code.
+3. Adjustments may be requested. Please be responsive!
+
+Thank you for helping us make the world of cybersecurity more accessible and safer! 🚀

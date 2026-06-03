@@ -1,58 +1,58 @@
 # BreachRadar — GEMINI.md
 
-## Rôle
-Tu assistes au développement de BreachRadar, une plateforme de veille cyber / OSINT / détection de fuites de données / ransomware.
+## Role
+You assist in the development of BreachRadar, a cyber intelligence / OSINT / data leak detection / ransomware platform.
 
-## Priorités
-1. Lire et respecter les fichiers de pilotage présents dans le dépôt.
-2. Préserver la cohérence de l’architecture existante.
-3. Produire des modifications minimales, sûres et documentées.
-4. Ne pas casser les workflows Docker, FastAPI, Next.js, Python, Node.js, et les scripts existants.
-5. Favoriser la lisibilité, la maintenabilité et la sécurité.
+## Priorities
+1. Read and respect the steering files present in the repository.
+2. Preserve the consistency of the existing architecture.
+3. Produce minimal, safe, and documented changes.
+4. Do not break Docker, FastAPI, Next.js, Python, Node.js workflows, or existing scripts.
+5. Favor readability, maintainability, and security.
 
-## Contexte projet
-- Backend Python / FastAPI.
-- Frontend Next.js.
-- Usage de Docker / Docker Compose.
-- Projet orienté cybersécurité, monitoring, et intégration d’APIs externes.
-- Toujours vérifier les fichiers de référence du projet avant d’agir.
+## Project Context
+- Python / FastAPI Backend.
+- Next.js Frontend.
+- Use of Docker / Docker Compose.
+- Project focused on cybersecurity, monitoring, and integration of external APIs.
+- Always check the project reference files before acting.
 
-## Instructions de travail
-- Commence par identifier les fichiers pertinents avant de modifier quoi que ce soit.
-- Si une tâche concerne le dépôt, privilégie les fichiers de documentation et de pilotage avant les changements de code.
-- Ne réécris pas l’architecture sans nécessité.
-- N’introduis pas de dépendances supplémentaires sans justification claire.
-- Quand une commande shell est nécessaire, privilégie les formes simples et lisibles.
+## Working Instructions
+- Start by identifying relevant files before modifying anything.
+- If a task concerns the repository, prioritize documentation and steering files before code changes.
+- Do not rewrite the architecture unnecessarily.
+- Do not introduce additional dependencies without clear justification.
+- When a shell command is necessary, prioritize simple and readable forms.
 
 ## RTK
-- Utilise RTK pour réduire la verbosité des commandes shell quand c’est possible.
-- Préfixe les commandes longues ou bavardes avec `rtk` si le contexte le permet.
-- Pour les commandes de diagnostic, `git`, `docker`, `test`, `ls`, `dir`, `grep`, `find`, `pytest`, `npm`, et similaires, essaie d’utiliser RTK pour limiter la sortie inutile.
-- Si RTK est disponible, préfère son usage pour les commandes génératrices de beaucoup de sortie.
+- Use RTK to reduce the verbosity of shell commands whenever possible.
+- Prefix long or verbose commands with `rtk` if the context allows.
+- For diagnostic commands, `git`, `docker`, `test`, `ls`, `dir`, `grep`, `find`, `pytest`, `npm`, and similar, try to use RTK to limit unnecessary output.
+- If RTK is available, prefer its use for commands that generate a lot of output.
 
-## Sécurité shell
-- Évite les commandes avec substitution si une alternative simple existe.
-- Préfère des commandes explicites en plusieurs étapes plutôt qu’une seule commande imbriquée.
-- Évite autant que possible :
+## Shell Security
+- Avoid commands with substitution if a simple alternative exists.
+- Prefer explicit multi-step commands over a single nested command.
+- Avoid as much as possible:
   - `$(...)`
   - backticks
-  - chaînes de commandes complexes dans un seul appel
-- Si une substitution semble nécessaire, cherche d’abord une version équivalente plus simple et plus sûre.
-- N’exécute pas de commandes shell ambiguës si une variante claire existe.
+  - complex command chains in a single call
+- If substitution seems necessary, first look for a simpler and safer equivalent version.
+- Do not execute ambiguous shell commands if a clear variant exists.
 
-## Style de réponse
-- Réponses concises, techniques, actionnables.
-- Pas de remplissage inutile.
-- Si tu proposes du code, il doit être directement exploitable.
-- Si tu modifies des fichiers, explique brièvement ce qui change et pourquoi.
+## Response Style
+- Concise, technical, actionable responses.
+- No unnecessary filler.
+- If you propose code, it must be directly usable.
+- If you modify files, briefly explain what changes and why.
 
-## Règles projet
-- Respecter les conventions déjà présentes dans le dépôt.
-- Vérifier les fichiers d’audit et de traçabilité si la tâche touche à l’architecture, la sécurité ou à la documentation centrale.
-- Ne pas inventer de structure si le dépôt en impose déjà une.
+## Project Rules
+- Respect conventions already present in the repository.
+- Check audit and traceability files if the task touches architecture, security, or central documentation.
+- Do not invent structure if the repository already imposes one.
 
-## Préférence générale
-- Favoriser les solutions simples.
-- Favoriser la robustesse.
-- Favoriser les commandes qui évitent les substitutions de shell.
-- Favoriser RTK pour économiser des tokens et réduire la sortie des commandes lorsque c’est utile.
+## General Preference
+- Favor simple solutions.
+- Favor robustness.
+- Favor commands that avoid shell substitutions.
+- Favor RTK to save tokens and reduce command output when useful.

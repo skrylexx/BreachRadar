@@ -1,11 +1,11 @@
 # ROADMAP — BreachRadar
 
-> Journal de bord structuré — mis à jour à chaque itération IA ou humaine.
-> **Protocole handoff** : Lire ce fichier + README.md + CYBER_SECURITY_CHECKLIST.md avant toute contribution.
+> Structured logbook — updated at every AI or human iteration.
+> **Handoff protocol**: Read this file + README.md + CYBER_SECURITY_CHECKLIST.md before any contribution.
 
 ---
 
-## Avancement global
+## Global Progress
 
 ```
 Phase 1 — MVP         [██████████] 100%
@@ -15,7 +15,7 @@ Phase 4 — WebUI       [██████████] 100%
 Phase 5 — Hardening   [██████████] 100%
 
 ── Frontend (TODO.md) ──────────────────
-Phase 0 — Fondations  [██████████] 100%
+Phase 0 — Foundations [██████████] 100%
 Phase 1 — Dashboard   [██████████] 100%
 Phase 2 — Tools       [██████████] 100%
 Phase 3 — Reports     [██████████] 100%
@@ -28,687 +28,686 @@ Phase 2 — Security    [██████████] 100%
 Phase 3 — Settings    [██████████] 100%
 Phase 4 — Reports     [██████████] 100%
 Phase 5 — Validation  [██████████] 100%
+```
 
 ---
 
-## Vision globale
+## Global Vision
 
 ### Phase 5 — Hardening (100%)
-- [x] Chiffrement Fernet des clés d'API en DB
-- [x] Gestion dynamique des données de démonstration (Mock Mode)
-- [x] Centralisation des System Settings en base de données
-- [x] Flux de sécurité complet (MFA + Password change)
-- [x] Consolidation globale des rapports de scan
-- [x] Correction et stabilisation du build Docker (Full Stack)
-- [x] Activation du polling automatique CVE via APScheduler
-- [x] Renforcement des clients OSINT (Rate-limiting dynamique, gestion d'erreurs HTTP)
-- [x] Couverture de tests asynchrones pour le moteur CVE (Mocking API)
-- [x] Audit de sécurité automatisé (Bandit, Semgrep) et correction des vulnérabilités Jinja2 (XSS)
-- [x] Documentation technique complète (Backend/Frontend READMEs + Local Setup)
+- [x] Fernet encryption of API keys in DB
+- [x] Dynamic management of demonstration data (Mock Mode)
+- [x] Centralization of System Settings in the database
+- [x] Full security flow (MFA + Password change)
+- [x] Global consolidation of scan reports
+- [x] Correction and stabilization of Docker build (Full Stack)
+- [x] Activation of automatic CVE polling via APScheduler
+- [x] Strengthening of OSINT clients (Dynamic rate-limiting, HTTP error handling)
+- [x] Async test coverage for CVE engine (API Mocking)
+- [x] Automated security audit (Bandit, Semgrep) and fix of Jinja2 vulnerabilities (XSS)
+- [x] Complete technical documentation (Backend/Frontend READMEs + Local Setup)
 
 ---
 
 ## CHANGELOG
 
-### Itération 41 — 2026-06-03 (Gemini CLI)
+### Iteration 41 — 2026-06-03 (Gemini CLI)
 
-**Objectif de l'itération** : Mise à jour v0.4.1 (Durcissement RBAC) et audit de la pipeline CI/CD.
+**Iteration Objective**: v0.4.1 Update (RBAC Hardening) and CI/CD pipeline audit.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Ajout de la version v0.4.1. |
-| `ROADMAP.md` | Modification | Journalisation de l'itération 41. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Added v0.4.1 version. |
+| `ROADMAP.md` | Modification | Iteration 41 logging. |
 
-#### ✅ Évolutions
-- **Version v0.4.1** : Durcissement des contrôles RBAC et sécurisation des entrées.
-- **Audit CI/CD** : Débogage et vérification de la cohérence de la pipeline d'intégration continue (en cours).
+#### ✅ Evolutions
+- **Version v0.4.1**: RBAC controls hardening and input securing.
+- **CI/CD Audit**: Debugging and consistency verification of the continuous integration pipeline (ongoing).
 
 ---
 
-### Itération 40 — 2026-06-03 (Gemini CLI)
+### Iteration 40 — 2026-06-03 (Gemini CLI)
 
-**Objectif de l'itération** : Finalisation de la persistance Ransomware, renforcement du RBAC et mise à jour v0.4.0.
+**Iteration Objective**: Finalization of Ransomware persistence, RBAC reinforcement, and v0.4.0 update.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/core/init_db.py` | Modification | Sécurisation de l'admin initial (Reset MFA/Sessions). |
-| `backend/app/dependencies/auth.py` | Modification | Durcissement du check `require_admin` (RBAC fix). |
-| `backend/app/engine/logic.py` | Modification | Implémentation de la persistance des findings RansomLook en base de données. |
-| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Publication de la version v0.4.0. |
-| `ROADMAP.md` | Modification | Journalisation de l'itération 40. |
+| `backend/app/core/init_db.py` | Modification | Initial admin securing (MFA/Sessions Reset). |
+| `backend/app/dependencies/auth.py` | Modification | `require_admin` check hardening (RBAC fix). |
+| `backend/app/engine/logic.py` | Modification | Implementation of RansomLook findings persistence in the database. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Publication of version v0.4.0. |
+| `ROADMAP.md` | Modification | Iteration 40 logging. |
 
-#### ✅ Maintenance & Évolutions
-- **Ransomware Persistence** : Les détections positives sont désormais sauvegardées dans la table `cyber_findings`, permettant un suivi historique et une visibilité dans le flux d'intelligence.
-- **RBAC Fix** : Correction des problèmes de permissions "insuffisantes" pour l'administrateur lors du déclenchement des scans.
-- **Admin Recovery** : L'administrateur initial est désormais créé avec des paramètres de sécurité sains (MFA désactivé par défaut) pour éviter tout blocage au premier lancement.
-- **Version v0.4.0** : Passage officiel en v0.4.0 incluant i18n et audits de sécurité.
+#### ✅ Maintenance & Evolutions
+- **Ransomware Persistence**: Positive detections are now saved in the `cyber_findings` table, allowing for historical tracking and visibility in the intelligence flow.
+- **RBAC Fix**: Correction of "insufficient" permission issues for the administrator when triggering scans.
+- **Admin Recovery**: The initial administrator is now created with healthy security settings (MFA disabled by default) to avoid any blocking during the first launch.
+- **Version v0.4.0**: Official move to v0.4.0 including i18n and security audits.
 
 ---
 
-### Itération 39 — 2026-06-01 (Gemini CLI)
+### Iteration 39 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Résolution de l'erreur de résolution d'image Docker, correction du "Black Screen" (CSP), fiabilisation du démarrage Backend (Race Condition), et correction du flux de déconnexion.
+**Iteration Objective**: Resolution of Docker image resolution error, fix of "Black Screen" (CSP), reliability improvement of Backend startup (Race Condition), and fix of the logout flow.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `docker-compose.yml` | Modification | Mise à jour des digests SHA256 pour les images tierces. |
-| `frontend/next.config.ts` | Modification | Relaxation du CSP (`unsafe-inline`, `unsafe-eval`) pour permettre l'hydratation Next.js. |
-| `backend/app/main.py` | Modification | Ajout d'un verrou Redis pour le Scheduler (singleton multi-worker). |
-| `backend/app/core/init_db.py` | Modification | Implémentation d'un verrou Redis robuste avec retries pour l'initialisation de la DB. |
-| `backend/app/dependencies/auth.py` | Modification | Amélioration des messages d'erreur RBAC pour faciliter le debug. |
-| `frontend/src/components/layout/Header.tsx` | Modification | Fix de l'URL de logout et passage de l'email admin en dynamique (fetch). |
-| `ROADMAP.md` | Modification | Journalisation de l'itération 39. |
+| `docker-compose.yml` | Modification | Update of SHA256 digests for third-party images. |
+| `frontend/next.config.ts` | Modification | CSP relaxation (`unsafe-inline`, `unsafe-eval`) to allow Next.js hydration. |
+| `backend/app/main.py` | Modification | Added a Redis lock for the Scheduler (multi-worker singleton). |
+| `backend/app/core/init_db.py` | Modification | Implementation of a robust Redis lock with retries for DB initialization. |
+| `backend/app/dependencies/auth.py` | Modification | Improved RBAC error messages to facilitate debugging. |
+| `frontend/src/components/layout/Header.tsx` | Modification | Fix of logout URL and dynamic admin email fetch. |
+| `ROADMAP.md` | Modification | Iteration 39 logging. |
 
-#### ✅ Maintenance & Stabilité
-- **Docker Image Fix** : Correction des digests SHA256 bloquants.
-- **CSP Fix** : Résolution de l'écran noir.
-- **Backend Startup** : Suppression des erreurs `IntegrityError` sur les Enums via verrouillage distribué robuste.
-- **RBAC & Auth** : Fix de la déconnexion (404) et amélioration du feedback de permissions.
-- **UX** : L'email dans le header est désormais récupéré depuis la session réelle.
+#### ✅ Maintenance & Stability
+- **Docker Image Fix**: Fix of blocking SHA256 digests.
+- **CSP Fix**: Resolution of the black screen.
+- **Backend Startup**: Removal of `IntegrityError` on Enums via robust distributed locking.
+- **RBAC & Auth**: Fix of logout (404) and improvement of permission feedback.
+- **UX**: Email in the header is now retrieved from the actual session.
 
 ---
 
-### Itération 38 — 2026-06-01 (Gemini CLI)
+### Iteration 38 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Création d'un skill Gemini CI/CD, renforcement de la pipeline de qualité et atteinte du "Zéro Défaut" (Tests & Typing).
+**Iteration Objective**: Creation of a Gemini CI/CD skill, reinforcement of the quality pipeline, and achieving "Zero Defects" (Tests & Typing).
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `.gemini/skills/cicd-expert/` | Nouveau | Dossier du skill CI/CD (SKILL.md, références). |
-| `.github/workflows/ci.yml` | Modification | Activation et configuration de `mypy`, `bandit`, et passage à Node 22. |
-| `backend/pyproject.toml` | Modification | Ajout de `bandit`, configuration `ruff` et `mypy` optimisée, fixation de la version `bcrypt`. |
-| `backend/app/core/config.py` | Modification | Durcissement des `Settings` (defaults robustes, validation d'env) et correction Fernet. |
-| `backend/tests/conftest.py` | Modification | Refonte du système de fixtures (Mocks globaux, nettoyage auto des overrides). |
-| `backend/tests/*.py` | Modification | Mise à jour de la suite de tests pour compatibilité avec le typage strict (datetime). |
-| `frontend/.eslintrc.json` | Nouveau | Configuration ESLint standard pour bloquer les erreurs fatales en build CI. |
-| `ROADMAP.md` | Modification | Journalisation complète de l'itération 38. |
+| `.gemini/skills/cicd-expert/` | New | CI/CD skill folder (SKILL.md, references). |
+| `.github/workflows/ci.yml` | Modification | Activation and configuration of `mypy`, `bandit`, and move to Node 22. |
+| `backend/pyproject.toml` | Modification | Added `bandit`, optimized `ruff` and `mypy` configuration, fixed `bcrypt` version. |
+| `backend/app/core/config.py` | Modification | Hardening of `Settings` (robust defaults, env validation) and Fernet fix. |
+| `backend/tests/conftest.py` | Modification | Redesign of the fixtures system (global Mocks, auto cleanup of overrides). |
+| `backend/tests/*.py` | Modification | Update of the test suite for compatibility with strict typing (datetime). |
+| `frontend/.eslintrc.json` | New | Standard ESLint configuration to block fatal errors in CI build. |
+| `ROADMAP.md` | Modification | Full iteration 38 logging. |
 
-#### ✅ Qualité & Robustesse (100%)
-- **Zéro Erreur Mypy** : Correction des 135 erreurs initiales, y compris les violations complexes du principe de substitution de Liskov.
-- **79/79 Tests PASSED** : Stabilisation de la suite de tests backend avec isolation totale de la base de données.
-- **Pipeline CI Green** : Automatisation complète (SCA, Secrets, Ruff, Bandit, Mypy, Tests, Docker Build).
-- **Expertise IA** : Installation du skill `cicd-expert` pour les futures maintenances DevOps.
+#### ✅ Quality & Robustness (100%)
+- **Zero Mypy Errors**: Correction of 135 initial errors, including complex Liskov substitution principle violations.
+- **79/79 Tests PASSED**: Stabilization of the backend test suite with total database isolation.
+- **Green CI Pipeline**: Full automation (SCA, Secrets, Ruff, Bandit, Mypy, Tests, Docker Build).
+- **AI Expertise**: Installation of the `cicd-expert` skill for future DevOps maintenance.
 
 ---
 
-### Itération 37 — 2026-06-01 (Gemini CLI)
+### Iteration 37 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Mise en place d'une pipeline CI/CD GitHub Actions pour l'automatisation des tests de sécurité et de qualité.
+**Iteration Objective**: Implementation of a GitHub Actions CI/CD pipeline for security and quality test automation.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `.github/workflows/ci.yml` | Nouveau | Pipeline GitHub Actions exécutant audits de sécurité, tests backend, build frontend et vérification Docker. |
-| `ROADMAP.md` | Modification | Ajout de l'itération 37. |
-| `AI_AGENT_GUIDE.md` | Modification | Ajout de la passation #11. |
+| `.github/workflows/ci.yml` | New | GitHub Actions pipeline running security audits, backend tests, frontend build, and Docker verification. |
+| `ROADMAP.md` | Modification | Added iteration 37. |
+| `AI_AGENT_GUIDE.md` | Modification | Added handoff #11. |
 
-#### ✅ Automatisations CI/CD
-- **Audit Sécurité** : Détection de secrets, scan de vulnérabilités NPM et pip-audit.
-- **Qualité Backend** : Linting Ruff, tests unitaires et tests de sécurité asynchrones.
-- **Qualité Frontend** : Linting ESLint et vérification du build Next.js (production ready).
-- **Infrastructure** : Vérification systématique du build des images Docker API et UI.
+#### ✅ CI/CD Automations
+- **Security Audit**: Secret detection, NPM vulnerability scan, and pip-audit.
+- **Backend Quality**: Ruff linting, unit tests, and asynchronous security tests.
+- **Frontend Quality**: ESLint linting and Next.js build verification (production ready).
+- **Infrastructure**: Systematic verification of Docker API and UI image builds.
 
 ---
 
-### Itération 36 — 2026-06-01 (Gemini CLI)
+### Iteration 36 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Mise en place complète de l'internationalisation (FR/EN) sur le frontend.
+**Iteration Objective**: Full implementation of internationalization (FR/EN) on the frontend.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `frontend/messages/en.json` | Modification | Ajout de toutes les clés de traduction pour le Dashboard, Auth, MFA, Profil, Veille et Scans. |
-| `frontend/messages/fr.json` | Modification | Traduction vivante et contextuelle en français de l'ensemble de l'interface. |
-| `frontend/src/app/(dashboard)/page.tsx` | Modification | Internationalisation du Dashboard (Server Component). |
-| `frontend/src/components/layout/Header.tsx` | Modification | Traduction des titres de pages, menus utilisateur et sélecteur de langue. |
-| `frontend/src/app/(auth)/login/page.tsx` | Modification | Traduction complète du flux de connexion et des messages d'erreur. |
-| `frontend/src/app/(auth)/mfa/page.tsx` | Modification | Traduction du flux MFA (TOTP et codes de secours). |
-| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Traduction de la gestion du profil, du changement de mot de passe et de l'activation MFA. |
-| `frontend/src/app/(dashboard)/intelligence/page.tsx` | Modification | Traduction de la veille numérique et gestion dynamique des locales de date. |
-| `frontend/src/app/(dashboard)/scans/page.tsx` | Modification | Traduction de l'historique des scans. |
-| `frontend/src/app/(dashboard)/reports/page.tsx` | Modification | Traduction de la gestion des rapports et exports. |
+| `frontend/messages/en.json` | Modification | Added all translation keys for Dashboard, Auth, MFA, Profile, Intelligence/Monitoring, and Scans. |
+| `frontend/messages/fr.json` | Modification | Contextual French translation of the entire interface. |
+| `frontend/src/app/(dashboard)/page.tsx` | Modification | Internationalization of the Dashboard (Server Component). |
+| `frontend/src/components/layout/Header.tsx` | Modification | Translation of page titles, user menus, and language selector. |
+| `frontend/src/app/(auth)/login/page.tsx` | Modification | Full translation of the login flow and error messages. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Modification | Translation of the MFA flow (TOTP and backup codes). |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Translation of profile management, password change, and MFA activation. |
+| `frontend/src/app/(dashboard)/intelligence/page.tsx` | Modification | Translation of digital intelligence/monitoring and dynamic date locale management. |
+| `frontend/src/app/(dashboard)/scans/page.tsx` | Modification | Translation of scan history. |
+| `frontend/src/app/(dashboard)/reports/page.tsx` | Modification | Translation of report management and exports. |
 
-#### ✅ Résultats i18n
-- **Couverture** : L'ensemble du parcours utilisateur critique (Login -> Dashboard -> Profil) est désormais traduit.
-- **Qualité** : Utilisation de termes métiers adaptés (ex: "Trouvailles" pour "Findings", "Veille" pour "Intelligence").
-- **Localisation** : Les dates, durées et formats de nombres respectent les standards FR et EN.
+#### ✅ i18n Results
+- **Coverage**: The entire critical user flow (Login -> Dashboard -> Profile) is now translated.
+- **Quality**: Use of adapted business terms (e.g., "Findings", "Intelligence/Monitoring").
+- **Localization**: Dates, durations, and number formats respect FR and EN standards.
 
 ---
 
-### Itération 35 — 2026-06-01 (Gemini CLI)
+### Iteration 35 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Exécution complète de l'audit de sécurité et durcissement de l'application (Phases 1 à 4).
+**Iteration Objective**: Full execution of the security audit and application hardening (Phases 1 to 4).
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/Dockerfile` | Modification | Pinning base image SHA256 + Installation UV sécurisée (COPY from image). |
-| `frontend/Dockerfile` | Modification | Pinning base image SHA256. |
-| `docker-compose.yml` | Modification | Pinning de toutes les images tierces (Redis, Postgres, Tor, RansomLook) + Hardening (cap_drop, no-new-privileges). |
-| `backend/app/schemas/scan.py` | Modification | Ajout de validation stricte du `target_domain` pour prévenir les SSRF. |
-| `backend/app/routers/settings.py` | Modification | Restriction de `/settings/general` aux administrateurs uniquement. |
-| `backend/app/routers/auth.py` | Modification | Correction des chemins de cookies `refresh_token` pour une isolation correcte. |
-| `frontend/next.config.ts` | Modification | Durcissement CSP (suppression unsafe-*) + Ajout HSTS et Permissions-Policy. |
-| `TODO.md` | Modification | Mise à jour de l'état d'avancement (toutes phases terminées). |
+| `backend/Dockerfile` | Modification | Base image SHA256 pinning + Secure UV installation (COPY from image). |
+| `frontend/Dockerfile` | Modification | Base image SHA256 pinning. |
+| `docker-compose.yml` | Modification | Pinning of all third-party images (Redis, Postgres, Tor, RansomLook) + Hardening (cap_drop, no-new-privileges). |
+| `backend/app/schemas/scan.py` | Modification | Added strict `target_domain` validation to prevent SSRF. |
+| `backend/app/routers/settings.py` | Modification | Restriction of `/settings/general` to administrators only. |
+| `backend/app/routers/auth.py` | Modification | Correction of `refresh_token` cookie paths for proper isolation. |
+| `frontend/next.config.ts` | Modification | CSP hardening (removal of unsafe-*) + Added HSTS and Permissions-Policy. |
+| `TODO.md` | Modification | Progress status update (all phases completed). |
 
-#### ✅ Résultats de l'audit
-- **Supply Chain** : Images Docker verrouillées par digest, plus de `curl | sh`.
-- **RBAC** : Endpoints sensibles strictement protégés par `AdminUser`.
-- **Pentest** : Validation des entrées renforcée, protection MFA complète avec brute-force protection.
-- **Comm Front-Back** : Cookies sécurisés et headers HTTP durcis.
+#### ✅ Audit Results
+- **Supply Chain**: Docker images locked by digest, no more `curl | sh`.
+- **RBAC**: Sensitive endpoints strictly protected by `AdminUser`.
+- **Pentest**: Reinforced input validation, full MFA protection with brute-force protection.
+- **Front-Back Comm**: Secure cookies and hardened HTTP headers.
 
 ---
 
-### Itération 34 — 2026-06-01 (Gemini CLI)
+### Iteration 34 — 2026-06-01 (Gemini CLI)
 
-**Objectif de l'itération** : Initialisation de la roadmap de sécurité complète et préparation de la stratégie de tests.
+**Iteration Objective**: Initialization of the full security roadmap and test strategy preparation.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `TODO.md` | Modification | Remplacement complet par une roadmap de sécurité en 4 phases (Audit, Code/Pentest, RBAC, Comm Front-Back). |
-| `ROADMAP.md` | Modification | Mise à jour de l'état d'avancement et ajout de l'itération 34. |
-| `AI_AGENT_GUIDE.md` | Modification | Ajout de la passation #9. |
+| `TODO.md` | Modification | Full replacement by a 4-phase security roadmap (Audit, Code/Pentest, RBAC, Front-Back Comm). |
+| `ROADMAP.md` | Modification | Progress status update and addition of iteration 34. |
+| `AI_AGENT_GUIDE.md` | Modification | Added handoff #9. |
 
-#### ✅ Stratégie de Sécurité
-- [x] **Immersion Projet** : Lecture et analyse de l'architecture, du guide agent et des best practices de sécurité.
-- [x] **Activation Skill** : Utilisation du skill `senior-webapp-cyber-auditor` pour guider les futurs audits.
-- [x] **Roadmap de Sécurité** : Création d'un plan d'action détaillé dans `TODO.md` pour sécuriser l'application avant mise en ligne.
-- [x] **Piliers d'audit** : Intégration des vérifications de permissions (RBAC), pentest applicatif et durcissement des communications.
+#### ✅ Security Strategy
+- [x] **Project Immersion**: Reading and analysis of the architecture, agent guide, and security best practices.
+- [x] **Skill Activation**: Use of the `senior-webapp-cyber-auditor` skill to guide future audits.
+- [x] **Security Roadmap**: Creation of a detailed action plan in `TODO.md` to secure the application before going live.
+- [x] **Audit Pillars**: Integration of permission checks (RBAC), application pentest, and communication hardening.
 
 ---
 
-### Itération 33 — 2026-05-23 (Gemini CLI)
+### Iteration 33 — 2026-05-23 (Gemini CLI)
 
-**Objectif de l'itération** : Audit complet des versions et de la sécurité des dépendances (SCA).
+**Iteration Objective**: Full audit of versions and dependency security (SCA).
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `PROCEDURE_CHECKS.md` | Nouveau | Guide réutilisable pour les futurs audits de versions. |
-| `TODO.md` | Modification | Définition des tâches de l'audit de sécurité. |
-| `security_audits/TECH_STACK.md` | Modification | Synchronisation des versions réelles (Runtimes + Packages). |
+| `PROCEDURE_CHECKS.md` | New | Reusable guide for future version audits. |
+| `TODO.md` | Modification | Definition of security audit tasks. |
+| `security_audits/TECH_STACK.md` | Modification | Synchronization of real versions (Runtimes + Packages). |
 
-#### ✅ Audit de Sécurité (SCA)
-- [x] **Backend Audit** : Détection de 6 vulnérabilités (`idna`, `urllib3`, `pip`). Version Python réelle : 3.14.3.
-- [x] **Frontend Audit** : Détection de 6 vulnérabilités, dont une **CRITIQUE** sur `Next.js 15.1.3` (RCE, SSRF, Cache Poisoning).
-- [x] **Analyse de Drift** : Frameworks frontend (`Next.js`, `React`, `Tailwind`) identifiés comme ayant un retard important par rapport aux dernières versions stables.
-- [x] **Documentation** : Création de la procédure standard de vérification.
+#### ✅ Security Audit (SCA)
+- [x] **Backend Audit**: Detection of 6 vulnerabilities (`idna`, `urllib3`, `pip`). Real Python version: 3.14.3.
+- [x] **Frontend Audit**: Detection of 6 vulnerabilities, including one **CRITICAL** on `Next.js 15.1.3` (RCE, SSRF, Cache Poisoning).
+- [x] **Drift Analysis**: Frontend frameworks (`Next.js`, `React`, `Tailwind`) identified as having a significant lag behind the latest stable versions.
+- [x] **Documentation**: Creation of the standard verification procedure.
 
 ---
 
-### Itération 32 — 2026-05-23 (Gemini CLI)
+### Iteration 32 — 2026-05-23 (Gemini CLI)
 
-**Objectif de l'itération** : Mise en place du moteur de Veille Numérique & Intelligence Cyber.
+**Iteration Objective**: Implementation of the Digital Intelligence & Cyber Monitoring engine.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/engine/intelligence_monitor.py` | Nouveau | Moteur de veille global (RSS, GitHub, Pastebin, Telegram). |
-| `backend/app/routers/intelligence.py` | Nouveau | API REST pour la gestion du flux de veille. |
-| `frontend/src/app/(dashboard)/intelligence/page.tsx` | Nouveau | Vue "Feed" temps réel avec filtres avancés. |
-| `backend/app/models/finding.py` | Modification | Modèle `CyberFinding` générique et flexible (JSONB). |
-| `backend/app/notifications/engine.py` | Modification | Alerting temps réel pour les menaces critiques. |
+| `backend/app/engine/intelligence_monitor.py` | New | Global monitoring engine (RSS, GitHub, Pastebin, Telegram). |
+| `backend/app/routers/intelligence.py` | New | REST API for monitoring flow management. |
+| `frontend/src/app/(dashboard)/intelligence/page.tsx` | New | Real-time "Feed" view with advanced filters. |
+| `backend/app/models/finding.py` | Modification | Generic and flexible `CyberFinding` model (JSONB). |
+| `backend/app/notifications/engine.py` | Modification | Real-time alerting for critical threats. |
 
-#### ✅ Intelligence & Veille
-- [x] **Moteur RSS/Atom** : Support des redirections et contournement 403 (User-Agent).
-- [x] **Connecteur GitHub** : Surveillance automatisée des mentions du domaine.
-- [x] **Système d'Alerte** : Notifications immédiates (Webhook/Email) pour les `CRITICAL`.
-- [x] **Expérience UI** : Flux temps réel, dédoublonnage strict, et triage par statut (lu/non-lu).
-- [x] **Sources** : Intégration de BleepingComputer, The Hacker News, CERT-FR, CISA et IT-Connect.
+#### ✅ Intelligence & Monitoring
+- [x] **RSS/Atom Engine**: Redirection support and 403 bypass (User-Agent).
+- [x] **GitHub Connector**: Automated monitoring of domain mentions.
+- [x] **Alert System**: Immediate notifications (Webhook/Email) for `CRITICAL` findings.
+- [x] **UI Experience**: Real-time flow, strict deduplication, and triage by status (read/unread).
+- [x] **Sources**: Integration of BleepingComputer, The Hacker News, CERT-FR, CISA, and IT-Connect.
 
 ---
 
-### Itération 31 — 2026-05-23 (Gemini CLI)
+### Iteration 31 — 2026-05-23 (Gemini CLI)
 
-**Objectif de l'itération** : Maintenance de la stack et refonte du flux MFA (UX + Résilience).
+**Iteration Objective**: Stack maintenance and MFA flow redesign (UX + Resilience).
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `SQL Migration` | Fix | Alignement de la table `users` (colonnes MFA + Session revocation). |
-| `backend/app/routers/auth.py` | Fix/Feature | Gestion des backup codes, reset forcé du MFA après secours, et retour de l'objet User complet. |
-| `frontend/src/lib/api.ts` | Fix | Ajout de `suppressRedirect` pour éviter les logouts prématurés lors du refresh token. |
-| `frontend/src/app/(auth)/mfa/page.tsx` | Feature | Mode secours (Backup codes), auto-focus et lien "Appareil non disponible". |
-| `frontend/src/app/(dashboard)/profile/page.tsx` | Fix/UX | Mise à jour locale du state utilisateur et auto-focus dans les dialogs. |
+| `SQL Migration` | Fix | Alignment of the `users` table (MFA columns + Session revocation). |
+| `backend/app/routers/auth.py` | Fix/Feature | Backup codes management, forced MFA reset after recovery, and full User object return. |
+| `frontend/src/lib/api.ts` | Fix | Added `suppressRedirect` to avoid premature logouts during token refresh. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Feature | Recovery mode (Backup codes), auto-focus, and "Device not available" link. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Fix/UX | Local user state update and auto-focus in dialogs. |
 
-#### ✅ Maintenance & Stabilité
-- [x] **Database Sync** : Synchronisation du schéma PostgreSQL.
-- [x] **MFA Flow Fix** : Correction de la déconnexion immédiate via mise à jour locale du state et suppression des redirections 401 intempestives.
-- [x] **Recovery Mode** : Implémentation complète du flux de secours (Backup Codes).
-- [x] **UX Improvements** : Auto-focus sur tous les champs de sécurité et navigation fluide.
-- [x] **Validation** : Tous les services Docker sont `healthy`.
+#### ✅ Maintenance & Stability
+- [x] **Database Sync**: PostgreSQL schema synchronization.
+- [x] **MFA Flow Fix**: Fix of immediate logout via local state update and removal of untimely 401 redirections.
+- [x] **Recovery Mode**: Full implementation of the recovery flow (Backup Codes).
+- [x] **UX Improvements**: Auto-focus on all security fields and fluid navigation.
+- [x] **Validation**: All Docker services are `healthy`.
 
 ---
 
-### Itération 30 — 2026-05-22 (Gemini CLI)
+### Iteration 30 — 2026-05-22 (Gemini CLI)
 
-**Objectif de l'itération** : Durcissement de la sécurité (Security Hardening) de l'implémentation MFA.
+**Iteration Objective**: Security Hardening of the MFA implementation.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/models/user.py` | Modification | Ajout de `token_version` pour la révocation de session et `mfa_backup_codes` (JSON). |
-| `backend/app/core/security.py` | Modification | Implémentation du chiffrement `Fernet` déterministe et de la génération des backup codes. |
-| `backend/app/core/redis.py` | Modification | Ajout des helpers pour le tracking des échecs MFA (Brute-force protection). |
-| `backend/app/routers/auth.py` | Modification | Chiffrement at-rest, enforcement lockout (5 essais), invalidation de session, vérification backup codes. |
-| `backend/app/routers/users.py` | Modification | Invalidation de session lors d'une action admin sur le MFA. |
-| `backend/app/dependencies/auth.py` | Modification | Vérification de la `token_version` pour interdire les sessions révoquées. |
-| `backend/app/schemas/auth.py` | Modification | Support des backup codes dans le schéma de vérification. |
-| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout de l'étape de téléchargement des codes de secours lors du setup MFA. |
-| `backend/tests/test_mfa_ratelimit.py` | Création | Test isolé pour valider le verrouillage du compte. |
+| `backend/app/models/user.py` | Modification | Added `token_version` for session revocation and `mfa_backup_codes` (JSON). |
+| `backend/app/core/security.py` | Modification | Implementation of deterministic `Fernet` encryption and backup codes generation. |
+| `backend/app/core/redis.py` | Modification | Added helpers for MFA failure tracking (Brute-force protection). |
+| `backend/app/routers/auth.py` | Modification | Encryption at-rest, lockout enforcement (5 attempts), session invalidation, backup codes verification. |
+| `backend/app/routers/users.py` | Modification | Session invalidation during admin action on MFA. |
+| `backend/app/dependencies/auth.py` | Modification | `token_version` verification to prohibit revoked sessions. |
+| `backend/app/schemas/auth.py` | Modification | Support for backup codes in the verification schema. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Added backup codes download step during MFA setup. |
+| `backend/tests/test_mfa_ratelimit.py` | Creation | Isolated test to validate account lockout. |
 
 #### ✅ Security Hardening (Phase 4)
-- [x] **Encryption at Rest** : Secrets MFA chiffrés en base de données.
-- [x] **Session Revocation** : Invalidation immédiate des tokens lors d'un changement de sécurité (MFA/Mot de passe).
-- [x] **Account Lockout** : Protection anti brute-force (15min de blocage après 5 échecs TOTP).
-- [x] **Backup & Recovery** : Génération, stockage haché et utilisation de 10 codes de secours à usage unique.
-- [x] Tests fonctionnels validés (10/10 passés).
+- [x] **Encryption at Rest**: MFA secrets encrypted in the database.
+- [x] **Session Revocation**: Immediate invalidation of tokens during a security change (MFA/Password).
+- [x] **Account Lockout**: Anti brute-force protection (15min blocking after 5 TOTP failures).
+- [x] **Backup & Recovery**: Generation, hashed storage, and use of 10 single-use backup codes.
+- [x] Functional tests validated (10/10 passed).
 
 ---
 
-### Itération 29 — 2026-05-22 (Gemini CLI)
+### Iteration 29 — 2026-05-22 (Gemini CLI)
 
-**Objectif de l'itération** : Implémentation du Self-Service MFA pour les utilisateurs.
+**Iteration Objective**: Implementation of User Self-Service MFA.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/routers/auth.py` | Modification | Ajout de l'endpoint `mfa/disable` avec vérification TOTP. |
-| `frontend/src/lib/api.ts` | Modification | Ajout de la méthode `mfaDisable`. |
-| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout du bouton et du dialogue de désactivation MFA avec gestion du cas `mfa_required`. |
-| `backend/tests/test_mfa_functional.py` | Modification | Ajout des tests de désactivation MFA (Succès/Échec). |
+| `backend/app/routers/auth.py` | Modification | Added `mfa/disable` endpoint with TOTP verification. |
+| `frontend/src/lib/api.ts` | Modification | Added `mfaDisable` method. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Added MFA deactivation button and dialog with `mfa_required` case management. |
+| `backend/tests/test_mfa_functional.py` | Modification | Added MFA deactivation tests (Success/Failure). |
 
 #### ✅ User Self-Service (Phase 3)
-- [x] Backend : Désactivation sécurisée par l'utilisateur.
-- [x] Frontend : Interface de gestion dans le profil.
-- [x] Sécurité : Blocage de la désactivation si MFA obligatoire (admin).
-- [x] Tests fonctionnels validés (6/6 passés).
+- [x] Backend: Secure deactivation by the user.
+- [x] Frontend: Management interface in the profile.
+- [x] Security: Deactivation blocking if MFA mandatory (admin).
+- [x] Functional tests validated (6/6 passed).
 
 ---
 
-### Itération 28 — 2026-05-22 (Gemini CLI)
+### Iteration 28 — 2026-05-22 (Gemini CLI)
 
-**Objectif de l'itération** : Implémentation du pilotage Admin du MFA.
+**Iteration Objective**: Implementation of Admin steering of MFA.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/models/user.py` | Modification | Ajout de la colonne `mfa_required`. |
-| `backend/app/routers/users.py` | Modification | Ajout des endpoints `reset-mfa` et `require-mfa` avec logs d'audit. |
-| `backend/app/routers/auth.py` | Modification | Enforcement de l'obligation MFA lors du login. |
-| `backend/app/schemas/user.py` | Modification | Exposition de `mfa_required` via l'API `UserRead`. |
-| `frontend/src/lib/api.ts` | Modification | Intégration des nouvelles méthodes `resetMfa` et `requireMfa`. |
-| `frontend/src/app/(dashboard)/admin/users/client.tsx` | Modification | Mise à jour du tableau SOC : colonnes et actions MFA. |
-| `backend/tests/test_admin_mfa.py` | Création | Tests fonctionnels validant le reset et l'obligation MFA. |
+| `backend/app/models/user.py` | Modification | Added `mfa_required` column. |
+| `backend/app/routers/users.py` | Modification | Added `reset-mfa` and `require-mfa` endpoints with audit logs. |
+| `backend/app/routers/auth.py` | Modification | MFA mandatory enforcement during login. |
+| `backend/app/schemas/user.py` | Modification | `mfa_required` exposure via `UserRead` API. |
+| `frontend/src/lib/api.ts` | Modification | Integration of new `resetMfa` and `requireMfa` methods. |
+| `frontend/src/app/(dashboard)/admin/users/client.tsx` | Modification | SOC table update: MFA columns and actions. |
+| `backend/tests/test_admin_mfa.py` | Creation | Functional tests validating MFA reset and mandate. |
 
 #### ✅ Admin MFA Management (Phase 2)
-- [x] Backend : Endpoints de gestion opérationnels.
-- [x] Frontend : Dashboard Admin synchronisé.
-- [x] Sécurité : Interdiction de reset son propre MFA.
-- [x] Tests fonctionnels validés (3/3 passés).
+- [x] Backend: Operational management endpoints.
+- [x] Frontend: Synchronized Admin Dashboard.
+- [x] Security: Prohibited from resetting own MFA.
+- [x] Functional tests validated (3/3 passed).
 
 ---
 
-### Itération 27 — 2026-05-22 (Gemini CLI)
+### Iteration 27 — 2026-05-22 (Gemini CLI)
 
-**Objectif de l'itération** : Implémentation complète du flux de vérification MFA (Login -> Challenge -> Verify).
+**Iteration Objective**: Full implementation of the MFA verification flow (Login -> Challenge -> Verify).
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/core/redis.py` | Modification | Optimisation du stockage des challenges MFA (O(1) lookup via token). |
-| `backend/app/routers/auth.py` | Modification | Refactoring de `mfa_verify` pour utiliser le nouveau lookup Redis et ajout de logs d'audit. |
-| `frontend/src/lib/api.ts` | Modification | Alignement du paramètre `totp_code` avec le schéma backend. |
-| `frontend/src/middleware.ts` | Modification | Autorisation de l'accès à `/mfa` sans session active. |
-| `frontend/src/app/(auth)/mfa/page.tsx` | Création | Page de vérification MFA avec design SOC-radar et gestion des erreurs. |
-| `backend/tests/test_mfa_functional.py` | Création | Tests fonctionnels automatisés du flux MFA complet. |
+| `backend/app/core/redis.py` | Modification | Optimization of MFA challenges storage (O(1) lookup via token). |
+| `backend/app/routers/auth.py` | Modification | Refactoring of `mfa_verify` to use the new Redis lookup and added audit logs. |
+| `frontend/src/lib/api.ts` | Modification | Alignment of `totp_code` parameter with backend schema. |
+| `frontend/src/middleware.ts` | Modification | Authorization of access to `/mfa` without active session. |
+| `frontend/src/app/(auth)/mfa/page.tsx` | Creation | MFA verification page with SOC-radar design and error management. |
+| `backend/tests/test_mfa_functional.py` | Creation | Automated functional tests of the full MFA flow. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Efficacité Redis** : Inversion de la paire Clé/Valeur dans Redis (`mfa_challenge:{token} -> user_id`) pour supprimer les scans linéaires coûteux lors de la vérification.
-2. **Continuité Design** : Réutilisation des composants et du fond radar SVG de la page login pour une expérience utilisateur fluide.
-3. **Sécurité par l'Audit** : Traçabilité systématique des tentatives MFA (réussies/échouées) dans les logs d'audit SQLAlchemy.
+1. **Redis Efficiency**: Key/Value pair inversion in Redis (`mfa_challenge:{token} -> user_id`) to remove costly linear scans during verification.
+2. **Design Continuity**: Reuse of components and SVG radar background from the login page for a fluid user experience.
+3. **Security by Audit**: Systematic traceability of MFA attempts (success/failure) in SQLAlchemy audit logs.
 
-#### ✅ Flux MFA (Phase 1)
-- [x] Optimisation Backend (Redis + Router).
-- [x] Middleware Frontend mis à jour.
-- [x] Page `/mfa` opérationnelle.
-- [x] Tests fonctionnels validés (3/3 passés).
+#### ✅ MFA Flow (Phase 1)
+- [x] Backend optimization (Redis + Router).
+- [x] Frontend middleware updated.
+- [x] `/mfa` page operational.
+- [x] Functional tests validated (3/3 passed).
 
 ---
 
-### Itération 26 — 2026-05-21 (Gemini CLI)
+### Iteration 26 — 2026-05-21 (Gemini CLI)
 
-**Objectif de l'itération** : Planification détaillée et préparation des améliorations MFA.
+**Iteration Objective**: Detailed planning and preparation for MFA improvements.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `TODO.md` | Création | Roadmap détaillée pour les améliorations MFA (Login flow, Admin management, Security hardening). |
+| `TODO.md` | Creation | Detailed roadmap for MFA improvements (Login flow, Admin management, Security hardening). |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Approche par Roadmap** : Avant d'implémenter les changements complexes (migration DB, nouvelles routes), une planification exhaustive a été réalisée dans `TODO.md` pour couvrir les aspects Backend, Frontend et Sécurité.
-2. **Priorisation de la Vérification** : Identification d'une faille dans le flux actuel (page `/mfa` manquante et middleware bloquant) qui sera la première tâche technique.
+1. **Roadmap Approach**: Before implementing complex changes (DB migration, new routes), exhaustive planning was carried out in `TODO.md` to cover Backend, Frontend, and Security aspects.
+2. **Verification Prioritization**: Identification of a flaw in the current flow (missing `/mfa` page and blocking middleware) which will be the first technical task.
 
-#### ✅ Planification MFA
-- [x] Création du `TODO.md` MFA complet.
-- [x] Définition des missions de durcissement (Security Hardening).
-- [x] Push sur la branche `feat/mfa`.
+#### ✅ MFA Planning
+- [x] Creation of the full MFA `TODO.md`.
+- [x] Definition of security hardening missions.
+- [x] Push to `feat/mfa` branch.
 
 ---
 
-### Itération 25 — 2026-05-21 (Gemini CLI)
+### Iteration 25 — 2026-05-21 (Gemini CLI)
 
-**Objectif de l'itération** : Restauration et population de données pour le connecteur RansomLook local.
+**Iteration Objective**: Restoration and population of data for the local RansomLook connector.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `docker-compose.yml` | Modification | Mise à jour du healthcheck `ransomlook-app` pour utiliser `wget` (curl absent de l'image). |
+| `docker-compose.yml` | Modification | Update of `ransomlook-app` healthcheck to use `wget` (curl absent from image). |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Maintenance Proactive** : Nettoyage manuel de la base Redis de RansomLook (DB 0, 2) pour éliminer les corruptions de données provoquant des crashes du scrapper.
-2. **Hydratation de Données** : Importation de plus de 16 000 entrées depuis le projet RansomWatch pour garantir que l'instance locale est immédiatement utile sans attendre un cycle de scraping complet.
-3. **Validation de Cible** : Vérification manuelle que la recherche sur le domaine cible (`olipes.com`) retourne désormais des résultats cohérents via l'API interne.
+1. **Proactive Maintenance**: Manual cleaning of the RansomLook Redis database (DB 0, 2) to eliminate data corruption causing scraper crashes.
+2. **Data Hydration**: Importing over 16,000 entries from the RansomWatch project to ensure the local instance is immediately useful without waiting for a full scraping cycle.
+3. **Target Validation**: Manual verification that the search on the target domain (`olipes.com`) now returns consistent results via the internal API.
 
 #### ✅ RansomLook
-- [x] Correction du crash du scrapper (flush Redis).
-- [x] Importation massive de données (16k+ victimes).
-- [x] Correction du healthcheck Docker.
-- [x] Vérification fonctionnelle de la recherche de victimes.
+- [x] Fix of scraper crash (Redis flush).
+- [x] Massive data import (16k+ victims).
+- [x] Docker healthcheck fix.
+- [x] Functional verification of victim search.
 
 ---
 
-### Itération 24 — 2026-05-19 (Gemini CLI)
+### Iteration 24 — 2026-05-19 (Gemini CLI)
 
-**Objectif de l'itération** : Vérification et fiabilisation de la connexion RansomLook.
+**Iteration Objective**: Verification and reliability improvement of the RansomLook connection.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/models/ransom.py` | Modification | Ajout du champ `mode` au modèle `RansomStats`. |
-| `backend/app/clients/ransomlook.py` | Modification | Remplissage du champ `mode` lors du healthcheck. |
-| `frontend/src/app/(dashboard)/alerts/ransomware/client.tsx` | Modification | Correction du nom de champ `last_updated` -> `last_update` pour correspondre au backend. |
+| `backend/app/models/ransom.py` | Modification | Added `mode` field to the `RansomStats` model. |
+| `backend/app/clients/ransomlook.py` | Modification | Population of the `mode` field during healthcheck. |
+| `frontend/src/app/(dashboard)/alerts/ransomware/client.tsx` | Modification | Correction of `last_updated` -> `last_update` field name to match backend. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Validation bout-en-bout** : Test de connectivité réussi entre le client backend et l'instance RansomLook Docker locale.
-2. **Harmonisation API/UI** : Correction d'une divergence de nommage sur les métadonnées de statut pour garantir l'affichage des statistiques dans la WebUI.
+1. **End-to-End Validation**: Successful connectivity test between the backend client and the local RansomLook Docker instance.
+2. **API/UI Harmonization**: Correction of a naming divergence on status metadata to ensure statistics display in the WebUI.
 
-#### ✅ Vérification RansomLook
-- [x] Stack RansomLook opérationnelle (Tor + Redis + App).
-- [x] Client backend validé via script de test (Healthy: True).
-- [x] Affichage UI corrigé pour les statistiques.
-- [x] **Support complet SaaS** : La clé API SaaS est désormais récupérée depuis la base de données (Admin UI) si absente du `.env`.
-- [x] **Correctif moteur** : Correction du crash du `ScanManager` lors de l'initialisation de RansomLook.
-- [x] **Status Dashboard** : Le statut RansomLook dans le dashboard prend désormais en compte les clés configurées via l'interface Web.
+#### ✅ RansomLook Verification
+- [x] RansomLook stack operational (Tor + Redis + App).
+- [x] Backend client validated via test script (Healthy: True).
+- [x] UI display fixed for statistics.
+- [x] **Full SaaS Support**: SaaS API key is now retrieved from the database (Admin UI) if absent from `.env`.
+- [x] **Engine Fix**: Fix of `ScanManager` crash during RansomLook initialization.
+- [x] **Dashboard Status**: RansomLook status in the dashboard now takes into account keys configured via the Web interface.
 
 ---
 
-### Itération 23 — 2026-05-18 (Gemini CLI)
+### Iteration 23 — 2026-05-18 (Gemini CLI)
 
-**Objectif de l'itération** : Documentation de l'architecture globale du projet.
+**Iteration Objective**: Documentation of the project's global architecture.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `ARCHITECTURE.md` | Création | Document détaillé expliquant l'arborescence, les configurations et le rôle des fichiers IA/Changelog. |
-| `ROADMAP.md` | Modification | Ajout de l'itération 23. |
+| `ARCHITECTURE.md` | Creation | Detailed document explaining the directory structure, configurations, and the role of AI/Changelog files. |
+| `ROADMAP.md` | Modification | Added iteration 23. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Centralisation de la connaissance** : `ARCHITECTURE.md` devient la source de vérité pour comprendre l'organisation physique et logique du dépôt, complétant `AI_AGENT_GUIDE.md` qui se concentre sur le workflow.
+1. **Knowledge Centralization**: `ARCHITECTURE.md` becomes the source of truth for understanding the physical and logical organization of the repository, complementing `AI_AGENT_GUIDE.md` which focuses on the workflow.
 
 #### ✅ Documentation
-- [x] Architecture globale documentée dans `ARCHITECTURE.md`.
+- [x] Global architecture documented in `ARCHITECTURE.md`.
 
 ---
 
-### Itération 22 — 2026-05-18 (Gemini CLI)
+### Iteration 22 — 2026-05-18 (Gemini CLI)
 
-**Objectif de l'itération** : Génération de la documentation technique et guide de lancement local.
+**Iteration Objective**: Technical documentation generation and local launch guide.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `README.md` | Modification | Réduction de la taille du logo via tag HTML `img`. |
-| `backend/README.md` | Modification | Ajout des technos, utilités, endpoints et guide d'installation locale (venv). |
-| `frontend/README.md` | Création | Ajout des technos, utilités et guide d'installation locale (npm). |
-| `QUICKSTART.md` | Modification | Fusion des guides Docker et Local Setup pour une mise en route rapide. |
-| `ROADMAP.md` | Modification | Phase 5 marquée comme 100% terminée. |
+| `README.md` | Modification | Logo size reduction via `img` HTML tag. |
+| `backend/README.md` | Modification | Added tech stack, utilities, endpoints, and local installation guide (venv). |
+| `frontend/README.md` | Creation | Added tech stack, utilities, and local installation guide (npm). |
+| `QUICKSTART.md` | Modification | Merging of Docker and Local Setup guides for quick startup. |
+| `ROADMAP.md` | Modification | Phase 5 marked as 100% completed. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Dual-Path Setup** : Le projet supporte désormais officiellement deux modes de lancement : Docker (production/iso) et Local (développement rapide).
-2. **Docs Isolation** : Chaque composant (backend/frontend) possède désormais son propre README détaillant sa stack spécifique, facilitant l'onboarding de nouveaux développeurs ou agents IA.
+1. **Dual-Path Setup**: The project now officially supports two launch modes: Docker (production/iso) and Local (rapid development).
+2. **Docs Isolation**: Each component (backend/frontend) now has its own README detailing its specific stack, facilitating the onboarding of new developers or AI agents.
 
-#### ✅ Phase 5.5 — Tâches complétées
-- [x] Documentation technique Backend & Frontend générée.
-- [x] Guide Quickstart unifié et clarifié.
+#### ✅ Phase 5.5 — Completed Tasks
+- [x] Backend & Frontend technical documentation generated.
+- [x] Unified and clarified Quickstart guide.
 
 ---
 
-### Itération 21 — 2026-05-17 (Gemini CLI)
+### Iteration 21 — 2026-05-17 (Gemini CLI)
 
-**Objectif de l'itération** : Audit de sécurité automatisé et correction des vulnérabilités de rendu.
+**Iteration Objective**: Automated security audit and rendering vulnerability fixes.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/notifications/engine.py` | Modification | Activation de l'autoescape Jinja2 pour prévenir les injections XSS dans les alertes. |
-| `backend/app/report/engine.py` | Modification | Activation de l'autoescape Jinja2 pour les rapports HTML/PDF. |
-| `backend/app/clients/hibp.py` | Modification | Exclusion explicite (`nosec`/`nosemgrep`) du hash SHA1 pour HIBP (faux positif de sécurité). |
-| `TODO.md` | Modification | Phase 5.3 marquée comme terminée. |
+| `backend/app/notifications/engine.py` | Modification | Activation of Jinja2 autoescape to prevent XSS injections in alerts. |
+| `backend/app/report/engine.py` | Modification | Activation of Jinja2 autoescape for HTML/PDF reports. |
+| `backend/app/clients/hibp.py` | Modification | Explicit exclusion (`nosec`/`nosemgrep`) of SHA1 hash for HIBP (security false positive). |
+| `TODO.md` | Modification | Phase 5.3 marked as completed. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **XSS Mitigation** : L'activation de `autoescape` dans Jinja2 garantit que tout contenu dynamique (descriptions CVE, noms de victimes ransomware) est neutralisé avant d'être rendu en HTML.
-2. **False Positive Management** : Les algorithmes "faibles" comme SHA1 sont maintenus uniquement là où ils sont requis par les API tierces (HIBP) et documentés comme tels pour les futurs audits.
+1. **XSS Mitigation**: Activating `autoescape` in Jinja2 ensures that any dynamic content (CVE descriptions, ransomware victim names) is neutralized before being rendered in HTML.
+2. **False Positive Management**: "Weak" algorithms like SHA1 are maintained only where required by third-party APIs (HIBP) and documented as such for future audits.
 
-#### ✅ Phase 5.3 — Tâches complétées
-- [x] Audit Bandit & Semgrep effectué.
-- [x] Corrections de sécurité appliquées sur les moteurs de rendu.
+#### ✅ Phase 5.3 — Completed Tasks
+- [x] Bandit & Semgrep audit performed.
+- [x] Security fixes applied to rendering engines.
 
 ---
 
-### Itération 20 — 2026-05-17 (Gemini CLI)
+### Iteration 20 — 2026-05-17 (Gemini CLI)
 
-### Itération 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
-**Objectif de l'itération** : Stabilisation du build Docker et correction des régressions UI (composants manquants, erreurs de typage).
+**Iteration Objective**: Stabilization of Docker build and fix of UI regressions (missing components, typing errors).
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/Dockerfile` | Modification | Fix du nom de paquet `libgdk-pixbuf-2.0-0` pour Debian Trixie. |
-| `frontend/src/components/ui/card.tsx` | Création | Ajout du composant Card manquant. |
-| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Restauration du code tronqué et stabilisation des interfaces. |
-| `frontend/src/app/(dashboard)/tools/hibp/client.tsx` | Modification | Restauration et correction des types (DataTable). |
-| `frontend/src/app/(dashboard)/alerts/cve/client.tsx` | Modification | Correction massive des erreurs de typage (TimePeriod, PageHeader, DataTable). |
-| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Ajout de l'import `Separator` manquant. |
-| `frontend/src/app/(dashboard)/page.tsx` | Modification | Restauration du composant DashboardPage complet (Stats rapides). |
-| `frontend/src/components/dashboard/APIStatusCards.tsx` | Modification | Recréation de `EmptyConnectors` et fix du type `SourceStatus`. |
+| `backend/Dockerfile` | Modification | Fix of `libgdk-pixbuf-2.0-0` package name for Debian Trixie. |
+| `frontend/src/components/ui/card.tsx` | Creation | Added missing Card component. |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Restored truncated code and stabilized interfaces. |
+| `frontend/src/app/(dashboard)/tools/hibp/client.tsx` | Modification | Restored and corrected types (DataTable). |
+| `frontend/src/app/(dashboard)/alerts/cve/client.tsx` | Modification | Massive correction of typing errors (TimePeriod, PageHeader, DataTable). |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Added missing `Separator` import. |
+| `frontend/src/app/(dashboard)/page.tsx` | Modification | Restored full DashboardPage component (Quick stats). |
+| `frontend/src/components/dashboard/APIStatusCards.tsx` | Modification | Recreation of `EmptyConnectors` and fix of `SourceStatus` type. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Build Integrity** : Passage au build Next.js en production pour valider l'absence d'erreurs TypeScript/Lint avant livraison.
-2. **UI Resilience** : Reconstruction des fichiers tronqués lors des itérations précédentes pour garantir une interface fonctionnelle sans placeholders.
-3. **Hyphen Consistency** : Harmonisation des noms de paquets système dans le Dockerfile backend.
+1. **Build Integrity**: Move to Next.js production build to validate absence of TypeScript/Lint errors before delivery.
+2. **UI Resilience**: Reconstruction of files truncated during previous iterations to guarantee a functional interface without placeholders.
+3. **Hyphen Consistency**: Harmonization of system package names in the backend Dockerfile.
 
-#### ✅ Phase 5 (Hardening) — Tâches complétées
-- [x] Stabilisation totale du build Docker Full Stack.
-- [x] Résolution des erreurs de compilation Next.js.
+#### ✅ Phase 5 (Hardening) — Completed Tasks
+- [x] Full stabilization of Full Stack Docker build.
+- [x] Resolution of Next.js compilation errors.
 
 ---
 
-### Itération 16 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 16 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
-**Objectif de l'itération** : Finalisation totale du Backend : Rapports globaux, Sécurité Profil et Sources Custom.
+**Iteration Objective**: Final completion of Backend: Global reports, Profile Security, and Custom Sources.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/routers/reports.py` | Modification | Implémentation de la fusion réelle de scans pour les rapports globaux. |
-| `backend/app/routers/settings.py` | Modification | Endpoint de test pour les sources RSS/Atom avec aperçu d'items. |
-| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Intégration complète du CRUD et des tests pour les sources custom. |
-| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Branchement des actions de changement de mot de passe et enrôlement MFA. |
-| `frontend/src/lib/api.ts` | Modification | Ajout des fonctions `passwordChange`, `mfaSetup` et `mfaConfirm`. |
+| `backend/app/routers/reports.py` | Modification | Implementation of actual scan merging for global reports. |
+| `backend/app/routers/settings.py` | Modification | Test endpoint for RSS/Atom sources with item preview. |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Full integration of CRUD and tests for custom sources. |
+| `frontend/src/app/(dashboard)/profile/page.tsx` | Modification | Connection of password change and MFA enrollment actions. |
+| `frontend/src/lib/api.ts` | Modification | Added `passwordChange`, `mfaSetup`, and `mfaConfirm` functions. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Fusion de Scans** : La génération globale relit les fichiers JSON physiques des scans précédents pour garantir l'intégrité des findings agrégés sans surcharger la base de données.
-2. **Validation Flux** : Utilisation de `feedparser` côté backend pour valider l'URL d'un flux RSS avant de permettre son enregistrement par l'admin.
-3. **Sécurité UI** : Les dialogues de changement de mot de passe et MFA intègrent des validations de correspondance et des retours d'état clairs.
+1. **Scan Merging**: Global generation reads the physical JSON files of previous scans to ensure integrity of aggregated findings without overloading the database.
+2. **Flow Validation**: Use of `feedparser` on the backend to validate an RSS feed URL before allowing it to be saved by the admin.
+3. **UI Security**: Password change and MFA dialogs integrate match validations and clear state feedback.
 
-#### ✅ Phase 1.3, 2.2 & 4.2 — Tâches complétées
-- [x] Phase 1.3 — Gestion complète des sources custom RSS.
-- [x] Phase 2.2 — Sécurité Profil 100% fonctionnelle.
-- [x] Phase 4.2 — Génération de rapports globaux consolidés.
+#### ✅ Phase 1.3, 2.2 & 4.2 — Completed Tasks
+- [x] Phase 1.3 — Full management of custom RSS sources.
+- [x] Phase 2.2 — Profile Security 100% functional.
+- [x] Phase 4.2 — Consolidated global report generation.
 
 ---
 
-### Itération 15
- — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 15 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
-**Objectif de l'itération** : Finalisation de la génération de rapports PDF et des flux d'authentification MFA.
+**Iteration Objective**: Finalization of PDF report generation and MFA authentication flows.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/routers/reports.py` | Création | Routeur pour la liste et l'export (PDF, HTML, JSON) des rapports. |
-| `backend/app/report/engine.py` | Modification | Robustesse de WeasyPrint et gestion des fallbacks HTML. |
-| `backend/app/engine/logic.py` | Modification | Activation de la génération PDF lors des scans. |
-| `backend/Dockerfile` | Modification | Installation des dépendances système WeasyPrint (pango, cairo, etc.). |
-| `backend/app/routers/auth.py` | Modification | Finalisation des endpoints `mfa/verify` et `mfa/confirm`. |
-| `backend/app/engine/cve_monitor.py` | Modification | Implémentation du fetcher OSV.dev réel via `modified_id.csv`. |
+| `backend/app/routers/reports.py` | Creation | Router for listing and exporting (PDF, HTML, JSON) reports. |
+| `backend/app/report/engine.py` | Modification | WeasyPrint robustness and HTML fallback management. |
+| `backend/app/engine/logic.py` | Modification | Activation of PDF generation during scans. |
+| `backend/Dockerfile` | Modification | Installation of WeasyPrint system dependencies (pango, cairo, etc.). |
+| `backend/app/routers/auth.py` | Modification | Finalization of `mfa/verify` and `mfa/confirm` endpoints. |
+| `backend/app/engine/cve_monitor.py` | Modification | Implementation of actual OSV.dev fetcher via `modified_id.csv`. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Isolation PDF** : WeasyPrint est installé comme dépendance optionnelle `[pdf]` mais activé par défaut dans le Dockerfile de production pour garantir l'export.
-2. **Reconstruction Rapport** : L'endpoint d'export relit le JSON du scan pour reconstruire l'objet `FinalReport` et garantir une génération PDF identique à l'original.
-3. **MFA State** : Utilisation du scan Redis pour retrouver le `user_id` associé à un `challenge_token` de manière sécurisée et sans état permanent.
+1. **PDF Isolation**: WeasyPrint is installed as an optional `[pdf]` dependency but enabled by default in the production Dockerfile to guarantee export.
+2. **Report Reconstruction**: The export endpoint reads the scan JSON to reconstruct the `FinalReport` object and guarantee a PDF generation identical to the original.
+3. **MFA State**: Use of Redis scan to find the `user_id` associated with a `challenge_token` in a secure and stateless manner.
 
-#### ✅ Phase 2.2 & 4.1 — Tâches complétées
-- [x] Phase 2.2 — Verification et confirmation MFA complètes.
-- [x] Phase 4.1 — Export PDF fonctionnel et intégré.
+#### ✅ Phase 2.2 & 4.1 — Completed Tasks
+- [x] Phase 2.2 — Full MFA verification and confirmation.
+- [x] Phase 4.1 — Functional and integrated PDF export.
 
 ---
 
-### Itération 14
- — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 14 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
-**Objectif de l'itération** : Implémentation d'un système global de Mock Data et finalisation des fondations backend.
+**Iteration Objective**: Implementation of a global Mock Data system and finalization of backend foundations.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/routers/dashboard.py` | Modification | Ajout de la logique de génération de données mockées dynamiques. |
-| `backend/app/routers/cve.py` | Modification | Support des données de démo si aucune CVE réelle n'est présente. |
-| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Ajout du switch "Données de démonstration" dans les paramètres avancés. |
-| `frontend/src/app/(dashboard)/page.tsx` | Modification | Affichage de la bannière d'avertissement Mock globale. |
-| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Support du bandeau "Mode Démonstration" pour toutes les pages outils. |
-| `frontend/src/components/dashboard/APIStatusCards.tsx` | Modification | Badge MOCK et statut Demo Mode pour les connecteurs. |
-| `frontend/src/app/(dashboard)/tools/*/page.tsx` | Modification | Détection et transmission du statut isMock aux clients. |
-| `frontend/src/lib/api.ts` | Modification | Ajout du flag `is_mock` aux interfaces `ConnectorStatus` et `DashboardStats`. |
+| `backend/app/routers/dashboard.py` | Modification | Added dynamic mocked data generation logic. |
+| `backend/app/routers/cve.py` | Modification | Demo data support if no real CVE is present. |
+| `frontend/src/app/(dashboard)/admin/settings/client.tsx` | Modification | Added "Demonstration data" switch in advanced settings. |
+| `frontend/src/app/(dashboard)/page.tsx" | Modification | Display of the global Mock warning banner. |
+| `frontend/src/components/layout/ToolPageLayout.tsx` | Modification | Support for the "Demonstration Mode" banner on all tool pages. |
+| `frontend/src/components/dashboard/APIStatusCards.tsx` | Modification | MOCK badge and Demo Mode status for connectors. |
+| `frontend/src/app/(dashboard)/tools/*/page.tsx` | Modification | Detection and transmission of isMock status to clients. |
+| `frontend/src/lib/api.ts` | Modification | Added `is_mock` flag to `ConnectorStatus` and `DashboardStats` interfaces. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Mock On-the-fly** : Les données mockées ne sont pas stockées en base mais générées à la volée par l'API pour économiser les ressources et faciliter le switch oui/non.
-2. **Visibilité MOCK** : Utilisation d'un code couleur orange et de badges explicites partout dans l'UI pour garantir que l'utilisateur sait quand il regarde de la donnée fictive.
-3. **Persistance Settings** : Le mode Mock est persisté dans `SystemSettings` pour rester actif entre les sessions.
+1. **On-the-fly Mock**: Mocked data is not stored in the database but generated on the fly by the API to save resources and facilitate the yes/no switch.
+2. **MOCK Visibility**: Use of orange color code and explicit badges throughout the UI to ensure the user knows when they are looking at fictive data.
+3. **Settings Persistence**: Mock mode is persisted in `SystemSettings` to remain active between sessions.
 
-#### ✅ Phase 3.1 & Phase 5 (Hardening) — Tâches complétées
-- [x] Phase 3.1 — Stockage Key-Value complet (Domaine, Maintenance, Mock Mode).
-- [x] Système de Mock Data global (Backend + Frontend).
+#### ✅ Phase 3.1 & Phase 5 (Hardening) — Completed Tasks
+- [x] Phase 3.1 — Full Key-Value storage (Domain, Maintenance, Mock Mode).
+- [x] Global Mock Data system (Backend + Frontend).
 
 ---
 
-### Itération 13 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 13 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
-**Objectif de l'itération** : Mise en place des fondations Backend : Modèles SQLAlchemy, chiffrement Fernet et routeurs de paramètres.
+**Iteration Objective**: Implementation of Backend foundations: SQLAlchemy models, Fernet encryption, and settings routers.
 
-#### Fichiers créés/modifiés
+#### Created/Modified Files
 
-| Fichier | Nature | Description |
+| File | Nature | Description |
 |---|---|---|
-| `backend/app/models/cve.py` | Création | Modèles SQLAlchemy pour `CVEAlert` et `CustomFeedSource`. |
-| `backend/app/models/settings.py` | Création | Modèle SQLAlchemy pour `SystemSettings` (Key-Value JSON). |
-| `backend/app/core/config.py` | Modification | Ajout de `encryption_key` aux paramètres globaux. |
-| `backend/app/core/security.py` | Modification | Implémentation du chiffrement/déchiffrement Fernet. |
-| `backend/app/routers/api_keys.py` | Modification | Sécurisation des clés d'API via `encrypt_secret`. |
-| `backend/app/routers/settings.py` | Création | Routeur pour la gestion des paramètres système et sources custom. |
-| `backend/app/routers/cve.py` | Modification | Passage des mocks à la base de données réelle pour les alertes. |
-| `backend/app/engine/cve_monitor.py` | Création | Début d'implémentation du moteur de collecte CVE (NVD, CVEFeed, GitHub). |
-| `backend/app/main.py` | Modification | Enregistrement des nouveaux routeurs et correction des imports. |
+| `backend/app/models/cve.py` | Creation | SQLAlchemy models for `CVEAlert` and `CustomFeedSource`. |
+| `backend/app/models/settings.py` | Creation | SQLAlchemy model for `SystemSettings` (Key-Value JSON). |
+| `backend/app/core/config.py` | Modification | Added `encryption_key` to global parameters. |
+| `backend/app/core/security.py` | Modification | Implementation of Fernet encryption/decryption. |
+| `backend/app/routers/api_keys.py` | Modification | Securing API keys via `encrypt_secret`. |
+| `backend/app/routers/settings.py` | Creation | Router for system settings and custom sources management. |
+| `backend/app/routers/cve.py` | Modification | Move from mocks to actual database for alerts. |
+| `backend/app/engine/cve_monitor.py` | Creation | Start of CVE collection engine implementation (NVD, CVEFeed, GitHub). |
+| `backend/app/main.py` | Modification | Registration of new routers and import fixes. |
 
-#### Décisions techniques
+#### Technical Decisions
 
-1. **Security-First** : Implémentation immédiate du chiffrement Fernet pour éviter de stocker des clés API en clair dès les premières itérations backend.
-2. **Key-Value Settings** : Utilisation d'une table flexible pour les paramètres système afin d'éviter des migrations DB à chaque ajout de configuration UI.
-3. **Moteur CVE** : Structure asynchrone avec `CVEMonitor` gérant nativement le rate-limit strict du NVD.
+1. **Security-First**: Immediate implementation of Fernet encryption to avoid storing API keys in clear text from the first backend iterations.
+2. **Key-Value Settings**: Use of a flexible table for system settings to avoid DB migrations at each UI configuration addition.
+3. **CVE Engine**: Asynchronous structure with `CVEMonitor` natively managing NVD's strict rate-limit.
 
-#### ✅ Phase 1.2, 2.1 & 3.1 — Tâches complétées
-- [x] Phase 1.2 — Modèles DB CVE & Custom Sources.
-- [x] Phase 2.1 — Chiffrement Fernet des clés API.
-- [x] Phase 3.1 — Modèle SystemSettings.
-
----
-
-### Itération 12 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
-
-**Objectif de l'itération** : Implémentation des pages manquantes (CVE, Profil, Changelog) et finalisation des paramètres d'instance. Création du plan de route pour le Backend.
-
-#### ✅ Phase 6, 7 & 9 — Tâches complétées
-- [x] Phase 9.1 à 9.5 — Page `/alerts/cve` complète.
-- [x] Phase 7.2 — Page profil utilisateur (`/profile`).
-- [x] Phase 6.1 — Page changelog (`/changelog`).
-- [x] Phase 10.6 — Onglet "Sources custom" ajouté aux settings.
+#### ✅ Phase 1.2, 2.1 & 3.1 — Completed Tasks
+- [x] Phase 1.2 — DB Models for CVE & Custom Sources.
+- [x] Phase 2.1 — Fernet encryption of API keys.
+- [x] Phase 3.1 — SystemSettings Model.
 
 ---
 
-## 🤖 Prochain Agent — Reprendre ici
+### Iteration 12 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
 
-**Arrêté à** : Fondations backend en place (Modèles, Sécurité, Routeurs). Moteur CVE initialisé.
-**Commit** : `HEAD`
-**Ce qui reste (Priorité Backend)** :
-- [ ] Finaliser `CVEMonitor` (implémenter OSV.dev et polling réel).
-- [ ] Connecter la page Profil aux actions réelles (Change Password, Toggle MFA).
-- [ ] Implémenter le stockage et le test des "Sources Custom" (RSS/Atom).
-- [ ] Finaliser l'export PDF réel et la génération de rapports globaux.
+**Iteration Objective**: Implementation of missing pages (CVE, Profile, Changelog) and finalization of instance parameters. Creation of the Backend roadmap.
 
-**Points de vigilance** :
-- Respecter les rate-limits NVD (5 req/30s).
-- Utiliser `feedparser` pour les sources custom (attention aux injections XSS).
-- Bien migrer les secrets du `.env` vers la DB de manière sécurisée.
+#### ✅ Phase 6, 7 & 9 — Completed Tasks
+- [x] Phase 9.1 to 9.5 — Full `/alerts/cve` page.
+- [x] Phase 7.2 — User profile page (`/profile`).
+- [x] Phase 6.1 — Changelog page (`/changelog`).
+- [x] Phase 10.6 — "Custom sources" tab added to settings.
+
+---
+
+## 🤖 Next Agent — Resume Here
+
+**Stopped at**: Backend foundations in place (Models, Security, Routers). CVE engine initialized.
+**Commit**: `HEAD`
+**What's left (Backend Priority)**:
+- [ ] Finalize `CVEMonitor` (implement OSV.dev and actual polling).
+- [ ] Connect the Profile page to actual actions (Change Password, Toggle MFA).
+- [ ] Implement storage and testing of "Custom Sources" (RSS/Atom).
+- [ ] Finalize actual PDF export and global report generation.
+
+**Watch points**:
+- Respect NVD rate-limits (5 req/30s).
+- Use `feedparser` for custom sources (watch out for XSS injections).
+- Properly migrate secrets from `.env` to DB in a secure manner.

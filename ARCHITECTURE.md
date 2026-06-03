@@ -1,93 +1,93 @@
-# Architecture de BreachRadar
+# BreachRadar Architecture
 
-Ce document détaille l'organisation du dépôt BreachRadar, les responsabilités de chaque module, la localisation des fichiers de configuration et les protocoles dédiés aux agents IA.
+This document details the organization of the BreachRadar repository, the responsibilities of each module, the location of configuration files, and protocols dedicated to AI agents.
 
-## 🏗️ Vue d'ensemble du Projet
+## 🏗️ Project Overview
 
-BreachRadar est une plateforme de veille cyber structurée en trois piliers principaux :
-1.  **Backend (FastAPI)** : Moteur de collecte (OSINT), agrégation de données et API REST.
-2.  **Frontend (Next.js)** : Interface utilisateur moderne pour la visualisation des alertes et la gestion de la configuration.
-3.  **Services Tiers (Docker)** : Stack incluant Redis, PostgreSQL, Tor et RansomLook.
+BreachRadar is a cyber intelligence platform structured into three main pillars:
+1.  **Backend (FastAPI)**: Collection engine (OSINT), data aggregation, and REST API.
+2.  **Frontend (Next.js)**: Modern user interface for alert visualization and configuration management.
+3.  **Third-Party Services (Docker)**: Stack including Redis, PostgreSQL, Tor, and RansomLook.
 
 ---
 
-## 📁 Arborescence Détaillée
+## 📁 Detailed Directory Structure
 
-### 🔹 `/backend` — Le Cœur du Système
-Contient toute la logique métier, les collecteurs OSINT et l'API.
+### 🔹 `/backend` — The Heart of the System
+Contains all business logic, OSINT collectors, and the API.
 
-*   `backend/app/main.py` : Point d'entrée de l'application FastAPI.
-*   `backend/app/core/` : Configuration globale (`config.py`), connexion base de données (`database.py`), sécurité (`security.py`) et registres de sources.
-*   `backend/app/engine/` : Moteur d'exécution.
-    *   `orchestrator.py` : Coordonne les scans et les collecteurs.
-    *   `aggregator.py` : Fusionne et dédoublonne les résultats.
-    *   `scheduler.py` : Gère les tâches planifiées (protégé par **Verrou Distribué Redis** pour éviter les conflits multi-workers).
-*   `backend/app/clients/` : Clients API pour les sources externes (HIBP, IntelX, Dehashed, RansomLook, etc.).
-*   `backend/app/models/` : Définitions des tables SQL (SQLAlchemy), incluant la persistance historique `CyberFinding` pour les alertes Ransomware.
-*   `backend/app/routers/` : Endpoints de l'API REST organisés par domaine (auth, scans, cve, dashboard).
-*   `backend/app/schemas/` : Modèles de validation de données (Pydantic) pour les requêtes/réponses API.
-*   `backend/tests/` : Suite de tests unitaires et d'intégration utilisant `pytest`.
+*   `backend/app/main.py`: Entry point for the FastAPI application.
+*   `backend/app/core/`: Global configuration (`config.py`), database connection (`database.py`), security (`security.py`), and source registries.
+*   `backend/app/engine/`: Execution engine.
+    *   `orchestrator.py`: Coordinates scans and collectors.
+    *   `aggregator.py`: Merges and deduplicates results.
+    *   `scheduler.py`: Manages scheduled tasks (protected by **Redis Distributed Lock** to avoid multi-worker conflicts).
+*   `backend/app/clients/`: API clients for external sources (HIBP, IntelX, Dehashed, RansomLook, etc.).
+*   `backend/app/models/`: SQL table definitions (SQLAlchemy), including the `CyberFinding` historical persistence for Ransomware alerts.
+*   `backend/app/routers/`: REST API endpoints organized by domain (auth, scans, cve, dashboard).
+*   `backend/app/schemas/`: Data validation models (Pydantic) for API requests/responses.
+*   `backend/tests/`: Unit and integration test suite using `pytest`.
 
-### 🔹 `/frontend` — L'Interface Utilisateur
-Application Next.js (App Router) développée en TypeScript.
+### 🔹 `/frontend` — The User Interface
+Next.js application (App Router) developed in TypeScript.
 
-*   `frontend/src/app/` : Structure des pages et layouts (Dashboard, Login, Admin).
-*   `frontend/src/components/` : Composants UI réutilisables (shadcn/ui, tableaux, graphiques).
-*   `frontend/src/lib/` : Utilitaires, gestion du store (Zustand/Context) et client API.
-*   `frontend/messages/` : Fichiers de traduction (**i18n**) en français et anglais.
+*   `frontend/src/app/`: Structure of pages and layouts (Dashboard, Login, Admin).
+*   `frontend/src/components/`: Reusable UI components (shadcn/ui, tables, charts).
+*   `frontend/src/lib/`: Utilities, store management (Zustand/Context), and API client.
+*   `frontend/messages/`: Translation files (**i18n**) in French and English.
 
 ### 🔹 `/ransomlook_config`
-Contient les scripts et fichiers de configuration spécifiques à l'intégration de RansomLook (monitoring des groupes ransomware).
-*   `start_local.sh` : Script de démarrage du service dans Docker.
-*   `patch_api.py` / `patch_redis.py` : Scripts utilitaires pour ajuster le comportement de RansomLook.
+Contains specific scripts and configuration files for RansomLook integration (monitoring ransomware groups).
+*   `start_local.sh`: Service startup script in Docker.
+*   `patch_api.py` / `patch_redis.py`: Utility scripts to adjust RansomLook behavior.
 
-### 🔹 `.github/workflows/` — Intégration Continue (CI/CD)
-*   `ci.yml` : Pipeline de sécurité et de qualité automatisée (Ruff, Mypy, Bandit, NPM Audit, detect-secrets) exécutée à chaque Pull Request pour bloquer les régressions et les failles.
+### 🔹 `.github/workflows/` — Continuous Integration (CI/CD)
+*   `ci.yml`: Automated security and quality pipeline (Ruff, Mypy, Bandit, NPM Audit, detect-secrets) executed on every Pull Request to block regressions and vulnerabilities.
 
 ### 🔹 `/security_audits`
-Dossier dédié à la documentation de sécurité et aux procédures d'audit.
-*   `AUDIT_INSTRUCTIONS.md` : Guide pour mener des audits de sécurité sur le repo.
-*   `TECH_STACK.md` : Inventaire technique détaillé et état de sécurité des composants.
+Folder dedicated to security documentation and audit procedures.
+*   `AUDIT_INSTRUCTIONS.md`: Guide for conducting security audits on the repo.
+*   `TECH_STACK.md`: Detailed technical inventory and security status of components.
 
 ---
 
 ## ⚙️ Configuration
 
-Le projet utilise des variables d'environnement pour sa configuration.
+The project uses environment variables for its configuration.
 
-| Type | Fichier | Description |
+| Type | File | Description |
 | :--- | :--- | :--- |
-| **Global** | `.env` | Variables d'environnement (secrets, API keys, URLs services). Voir `.env.example`. |
-| **Backend** | `backend/app/core/config.py` | Chargement et validation des variables via Pydantic Settings. |
-| **Docker** | `docker-compose.yml` | Orchestration des conteneurs (ports, réseaux, volumes). |
-| **Frontend** | `frontend/next.config.ts` | Configuration Next.js (CSP, rewrites, headers de sécurité). |
-| **Linting/Style** | `.pre-commit-config.yaml` | Hooks de validation avant commit (Ruff, MyPy). |
+| **Global** | `.env` | Environment variables (secrets, API keys, service URLs). See `.env.example`. |
+| **Backend** | `backend/app/core/config.py` | Loading and validation of variables via Pydantic Settings. |
+| **Docker** | `docker-compose.yml` | Container orchestration (ports, networks, volumes). |
+| **Frontend** | `frontend/next.config.ts` | Next.js configuration (CSP, rewrites, security headers). |
+| **Linting/Style** | `.pre-commit-config.yaml` | Pre-commit validation hooks (Ruff, MyPy). |
 
 ---
 
-## 🤖 Intelligence Artificielle (Agents IA)
+## 🤖 Artificial Intelligence (AI Agents)
 
-Le dépôt est optimisé pour la collaboration avec des agents IA (Gemini, Claude, GPT). Plusieurs fichiers et dossiers leur sont dédiés :
+The repository is optimized for collaboration with AI agents (Gemini, Claude, GPT). Several files and folders are dedicated to them:
 
-*   **`AI_AGENT_GUIDE.md`** (Racine) : **Point d'entrée obligatoire.** Contient la mission, les protocoles de traçabilité et les règles de passation entre sessions.
-*   **`.gemini/`** : Dossier spécifique à Gemini CLI.
-    *   `.gemini/skills/` : Contient des instructions spécialisées ("skills") permettant à l'IA d'agir avec une expertise spécifique sur certains domaines (ex: `python-api-backend`, `nextjs-app-router`).
-*   **`AI_AGENT_GUIDE.md`** remplace les anciens fichiers `AGENT.md` et `IA_CHANGE.md` pour centraliser le pilotage.
-
----
-
-## 📈 Gestion de Projet et Suivi
-
-*   **`ROADMAP.md`** : Contient l'état d'avancement du projet, les tâches à venir et le **CHANGELOG** détaillé de chaque session.
-*   **`Cahier-Des-Charges_BreachRadar.md`** : Document de référence sur les besoins fonctionnels et techniques initiaux.
-*   **`README.md`** : Présentation générale et instructions de déploiement rapide.
-*   **`QUICKSTART.md`** : Guide pas-à-pas pour lancer le projet en mode Docker ou Développement local.
-*   **`SECURITY_BEST-PRACTICE.md`** : Guide des standards de sécurité à respecter lors du développement.
+*   **`AI_AGENT_GUIDE.md`** (Root): **Mandatory entry point.** Contains the mission, traceability protocols, and rules for handovers between sessions.
+*   **`.gemini/`**: Specific folder for Gemini CLI.
+    *   `.gemini/skills/`: Contains specialized instructions ("skills") allowing the AI to act with specific expertise in certain areas (e.g., `python-api-backend`, `nextjs-app-router`).
+*   **`AI_AGENT_GUIDE.md`** replaces the old `AGENT.md` and `IA_CHANGE.md` files to centralize steering.
 
 ---
 
-## 🛠️ Outils de Maintenance
+## 📈 Project Management and Tracking
 
-*   **`Makefile`** : Raccourcis pour les commandes courantes (build, tests, lint, clean).
-*   **`scripts/`** : Scripts utilitaires divers (ex: `verify_sanitizer.py`).
-*   **`reports/`** : Dossier de sortie pour les rapports générés par le système (PDF/MD/HTML).
+*   **`ROADMAP.md`**: Contains the project's progress status, upcoming tasks, and the detailed **CHANGELOG** for each session.
+*   **`PROJECT_SPECIFICATIONS.md`**: Reference document on initial functional and technical needs.
+*   **`README.md`** (Root): General presentation and quick deployment instructions.
+*   **`QUICKSTART.md`**: Step-by-step guide to launch the project in Docker or local development mode.
+*   **`SECURITY_BEST-PRACTICE.md`**: Guide to security standards to follow during development.
+
+---
+
+## 🛠️ Maintenance Tools
+
+*   **`Makefile`**: Shortcuts for common commands (build, tests, lint, clean).
+*   **`scripts/`**: Miscellaneous utility scripts (e.g., `verify_sanitizer.py`).
+*   **`reports/`**: Output folder for reports generated by the system (PDF/MD/HTML).

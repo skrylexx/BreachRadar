@@ -1,47 +1,47 @@
-# AI_AGENT_GUIDE.md — Guide Complet pour Agents IA
+# AI_AGENT_GUIDE.md — Complete Guide for AI Agents
 
 
-> **Dépôt** : BreachRadar — [https://github.com/skrylexx/BreachRadar](https://github.com/skrylexx/BreachRadar)
+> **Repository**: BreachRadar — [https://github.com/skrylexx/BreachRadar](https://github.com/skrylexx/BreachRadar)
 >
-> Ce fichier est le **point d'entrée unique** pour tout agent IA intervenant sur ce projet.
-> Il remplace et fusionne : `AGENT.md`, `IA_CHANGE.md` et `READ_BEFORE_RUN_AUDIT.md`.
+> This file is the **single entry point** for any AI agent working on this project.
+> It replaces and merges: `AGENT.md`, `IA_CHANGE.md`, and `READ_BEFORE_RUN_AUDIT.md`.
 >
-> **Lis ce fichier en entier avant de faire quoi que ce soit.**
+> **Read this entire file before doing anything.**
 
 
 ***
 
 
-## 0. Prompt de Reprise Rapide
+## 0. Quick Resume Prompt
 
 
-Copier-coller ce bloc pour démarrer une nouvelle session sur n'importe quel agent IA :
+Copy-paste this block to start a new session on any AI agent:
 
 
 ```
-Tu reprends le développement du projet BreachRadar.
-Lien repo : [https://github.com/skrylexx/BreachRadar](https://github.com/skrylexx/BreachRadar)
+You are resuming the development of the BreachRadar project.
+Repo link: [https://github.com/skrylexx/BreachRadar](https://github.com/skrylexx/BreachRadar)
 
 
-Lis le fichier AI_AGENT_GUIDE.md EN ENTIER AVANT de faire quoi que ce soit.
-Il contient : ta mission, les protocoles de traçabilité, les règles de passation,
-et les instructions de maintenance des fichiers d'audit.
+Read the AI_AGENT_GUIDE.md file IN FULL BEFORE doing anything.
+It contains: your mission, traceability protocols, handoff rules,
+and maintenance instructions for audit files.
 
 
-Ensuite, lis dans cet ordre :
-1. TECH_STACK.md   — spécifications techniques complètes
-2. ROADMAP.md      — état d'avancement exact et prochaine tâche
+Then, read in this order:
+1. TECH_STACK.md   — complete technical specifications
+2. ROADMAP.md      — exact progress status and next task
 
 
-Respecte scrupuleusement le protocole de traçabilité (section 3 de ce guide) :
-documente chaque changement dans ROADMAP.md, mets à jour TECH_STACK.md et
-AUDIT_INSTRUCTIONS.md si nécessaire, remplis la section "Prochain Agent" avant
-d'atteindre la limite de ta fenêtre de contexte.
+Scrupulously respect the traceability protocol (section 3 of this guide):
+document each change in ROADMAP.md, update TECH_STACK.md and
+AUDIT_INSTRUCTIONS.md if necessary, fill in the "Next Agent" section before
+reaching the limit of your context window.
 
-Quand une commande shell est nécessaire, privilégie l'utilisation de `rtk` pour
-réduire la verbosité et la consommation de tokens sur les commandes longues.
-Évite autant que possible les substitutions de commande shell (`$(...)`, backticks)
-et préfère des commandes explicites, simples, et découpées en plusieurs étapes.
+When a shell command is necessary, prefer using `rtk` to
+reduce verbosity and token consumption on long commands.
+Avoid shell command substitutions (`$(...)`, backticks) as much as possible
+and prefer explicit, simple commands broken down into several steps.
 ```
 
 
@@ -51,612 +51,612 @@ et préfère des commandes explicites, simples, et découpées en plusieurs éta
 ## 1. Mission
 
 
-Contribuer au développement, à la maintenance et à la sécurisation du projet **BreachRadar** — plateforme de veille cyber (Dark Web, ransomware, fuites de données) composée d'un moteur OSINT (CLI) et d'une WebUI (FastAPI + Next.js).
+Contribute to the development, maintenance, and securing of the **BreachRadar** project — a cyber intelligence/monitoring platform (Dark Web, ransomware, data breaches) composed of an OSINT engine (CLI) and a WebUI (FastAPI + Next.js).
 
 
-L'objectif est de poser et maintenir des bases **solides, modulaires, sécurisées et parfaitement documentées** pour permettre une collaboration fluide entre agents IA (Claude, Gemini, GPT, etc.) et humain, sans perte d'information entre les sessions.
+The objective is to set and maintain **solid, modular, secure, and perfectly documented** foundations to allow fluid collaboration between AI agents (Claude, Gemini, GPT, etc.) and humans, without information loss between sessions.
 
 
 ***
 
 
-## 2. Fichiers de Référence
+## 2. Reference Files
 
 
-### 2.1 — Arborescence des fichiers de pilotage
+### 2.1 — Steering Files Directory Structure
 
 
 ```
 BreachRadar/
-├── AI_AGENT_GUIDE.md          ← CE fichier (mission, protocoles, passation, audit)
-├── TECH_STACK.md              ← spécifications techniques complètes
-├── AUDIT_INSTRUCTIONS.md      ← périmètre et livrables de l'audit sécurité
-├── ROADMAP.md                 ← état d'avancement et changelog
-├── SECURITY_BEST-PRACTICE.md  ← bonnes pratiques sécurité du projet
-└── audit_reports/             ← rapports d'audit archivés (YYYY-MM-DD_<sha>_audit-report.md)
+├── AI_AGENT_GUIDE.md          ← THIS file (mission, protocols, handoff, audit)
+├── TECH_STACK.md              ← complete technical specifications
+├── AUDIT_INSTRUCTIONS.md      ← scope and deliverables of the security audit
+├── ROADMAP.md                 ← progress status and changelog
+├── SECURITY_BEST-PRACTICE.md  ← project security best practices
+└── audit_reports/             ← archived audit reports (YYYY-MM-DD_<sha>_audit-report.md)
 ```
 
 
-### 2.2 — Tableau de référence rapide
+### 2.2 — Quick Reference Table
 
 
-| Fichier | Rôle | Mettre à jour quand ? |
+| File | Role | Update when? |
 |---------|------|-----------------------|
-| `AI_AGENT_GUIDE.md` | Mission, protocoles, règles globales, passation | Changement de workflow ou de convention |
-| `AUDIT_INSTRUCTIONS.md` | Périmètre et livrables de l'audit | Nouveau composant, faille résolue, nouveau pilier |
-| `TECH_STACK.md` | Spécifications techniques complètes | Toute évolution de la stack ou des dépendances |
-| `ROADMAP.md` | Avancement, CHANGELOG, prochaine tâche | **À chaque fin de session, sans exception** |
-| `audit_reports/` | Rapports d'audit archivés | Après chaque audit sécurité |
+| `AI_AGENT_GUIDE.md` | Mission, protocols, global rules, handoff | Workflow or convention change |
+| `AUDIT_INSTRUCTIONS.md` | Scope and deliverables of the audit | New component, resolved vulnerability, new pillar |
+| `TECH_STACK.md` | Complete technical specifications | Any stack or dependency evolution |
+| `ROADMAP.md` | Progress, CHANGELOG, next task | **At the end of every session, without exception** |
+| `audit_reports/` | Archived audit reports | After each security audit |
 
 
-### 2.3 — Ordre de lecture selon le type de session
+### 2.3 — Reading Order by Session Type
 
 
-**Session de développement / refactoring :**
+**Development / Refactoring Session:**
 ```
-1. AI_AGENT_GUIDE.md  ← ce fichier (obligatoire, en entier)
-2. TECH_STACK.md      ← spécifications techniques
-3. ROADMAP.md         ← état d'avancement et prochaine tâche
-```
-
-
-**Session d'audit sécurité :**
-```
-1. AI_AGENT_GUIDE.md      ← ce fichier (section 8 en particulier)
-2. AUDIT_INSTRUCTIONS.md  ← périmètre et livrables de l'audit
-3. TECH_STACK.md          ← spécifications techniques complètes
+1. AI_AGENT_GUIDE.md  ← this file (mandatory, in full)
+2. TECH_STACK.md      ← technical specifications
+3. ROADMAP.md         ← progress status and next task
 ```
 
 
-> Ne jamais commencer une tâche sans avoir lu au minimum ce fichier + ROADMAP.md.
+**Security Audit Session:**
+```
+1. AI_AGENT_GUIDE.md      ← this file (section 8 in particular)
+2. AUDIT_INSTRUCTIONS.md  ← scope and deliverables of the audit
+3. TECH_STACK.md          ← complete technical specifications
+```
+
+
+> Never start a task without having read at least this file + ROADMAP.md.
 
 
 ***
 
 
-## 3. Livrables Attendus par Type d'Intervention
+## 3. Expected Deliverables by Intervention Type
 
 
-### 3.1 — Développement (Feature / Fix)
+### 3.1 — Development (Feature / Fix)
 
 
-1. **Code** : fichiers sources fonctionnels, propres et commentés selon les priorités du ROADMAP.md
-2. **TODO.md** mis à jour :
-   - Cocher impérativement (`- [x]`) les cases de TOUTES les étapes terminées jusqu'ici.
-3. **ROADMAP.md** mis à jour :
-   - Section CHANGELOG : chaque modification listée précisément (fichier, ligne, nature du changement)
-   - Indicateur d'avancement mis à jour (ex : `[████░░] 60%`)
-   - Section "Prochain agent" complétée si la session s'arrête avant la fin de la tâche
-4. **README.md** mis à jour si l'architecture ou les instructions d'installation évoluent
+1. **Code**: functional, clean, and commented source files according to ROADMAP.md priorities
+2. **TODO.md** updated:
+   - Imperatively check (`- [x]`) the boxes for ALL steps completed so far.
+3. **ROADMAP.md** updated:
+   - CHANGELOG section: each modification listed precisely (file, line, nature of change)
+   - Progress indicator updated (e.g., `[████░░] 60%`)
+   - "Next Agent" section completed if the session stops before the task is finished
+4. **README.md** updated if the architecture or installation instructions evolve
 
 
-### 3.2 — Audit de Sécurité
+### 3.2 — Security Audit
 
 
-1. **Rapport d'audit** archivé dans `audit_reports/YYYY-MM-DD_<sha-court>_audit-report.md`
-2. **AUDIT_INSTRUCTIONS.md** mis à jour si nécessaire (voir section 8 ci-dessous)
-3. **TECH_STACK.md** mis à jour si nécessaire (voir section 8 ci-dessous)
-4. **ROADMAP.md** : ajouter les findings critiques/hauts dans la section "Points de vigilance"
+1. **Audit report** archived in `audit_reports/YYYY-MM-DD_<short-sha>_audit-report.md`
+2. **AUDIT_INSTRUCTIONS.md** updated if necessary (see section 8 below)
+3. **TECH_STACK.md** updated if necessary (see section 8 below)
+4. **ROADMAP.md**: add critical/high findings in the "Points of vigilance" section
 
 
 ### 3.3 — Refactoring / Infrastructure
 
 
-1. **Code** refactorisé avec commentaires expliquant les choix
-2. **ROADMAP.md** mis à jour avec le CHANGELOG détaillé
-3. **TECH_STACK.md** mis à jour si la stack ou l'architecture change
-4. **README.md** mis à jour si l'arborescence ou les commandes changent
+1. **Refactored code** with comments explaining choices
+2. **ROADMAP.md** updated with detailed CHANGELOG
+3. **TECH_STACK.md** updated if the stack or architecture changes
+4. **README.md** updated if the directory structure or commands change
 
 
 ***
 
 
-## 4. Protocole de Traçabilité (OBLIGATOIRE)
+## 4. Traceability Protocol (MANDATORY)
 
 
-Chaque intervention doit laisser une trace complète et exploitable par l'agent suivant.
+Each intervention must leave a complete and usable trace for the next agent.
 
 
-### 4.1 — Avant de commencer
+### 4.1 — Before Starting
 
 
-- Lire ROADMAP.md pour connaître l'état exact du projet
-- Identifier le dernier commit audité dans TECH_STACK.md
-- Comparer avec le HEAD actuel : `git log --oneline -10`
-- Si des fichiers critiques ont changé depuis la dernière session, mettre à jour TECH_STACK.md avant de commencer
-- Vérifier si `rtk` est disponible dans l'environnement avant d'exécuter des commandes shell verbeuses
+- Read ROADMAP.md to know the exact state of the project
+- Identify the last audited commit in TECH_STACK.md
+- Compare with the current HEAD: `git log --oneline -10`
+- If critical files have changed since the last session, update TECH_STACK.md before starting
+- Verify if `rtk` is available in the environment before executing verbose shell commands
 
 
-### 4.2 — Pendant l'intervention
+### 4.2 — During the Intervention
 
 
-Tout changement effectué doit être documenté **immédiatement** dans ROADMAP.md selon le format suivant :
+Any change made must be documented **immediately** in ROADMAP.md according to the following format:
 
 
 ```markdown
-### [YYYY-MM-DD] — <Titre court de l'action>
-- **Fichier(s) modifié(s)** : `chemin/vers/fichier.py` (lignes X-Y)
-- **Nature** : [Ajout | Modification | Suppression | Refactoring | Fix | Sécurité]
-- **Raison** : Explication concise du pourquoi
-- **Impact** : Modules ou comportements affectés
-- **Commit** : `<SHA>` (si applicable)
+### [YYYY-MM-DD] — <Short action title>
+- **Modified file(s)**: `path/to/file.py` (lines X-Y)
+- **Nature**: [Addition | Modification | Deletion | Refactoring | Fix | Security]
+- **Reason**: Concise explanation of why
+- **Impact**: Affected modules or behaviors
+- **Commit**: `<SHA>` (if applicable)
 ```
 
 
-### 4.3 — Gestion des Tokens & Arrêt Préventif
+### 4.3 — Token Management & Preventive Stop
 
 
-- **Seuil d'alerte** : à ~80% de la fenêtre de contexte, arrêter d'écrire du code
-- **Action obligatoire avant arrêt** : consacrer les derniers tokens à mettre à jour ROADMAP.md avec :
-  - Ce qui a été fait dans la session
-  - Ce qui reste à faire (avec fichiers et fonctions précis)
-  - Les points de vigilance pour l'agent suivant
-  - Le SHA du dernier commit de la session
-- **Format de la section "Prochain agent"** dans ROADMAP.md :
+- **Alert threshold**: at ~80% of the context window, stop writing code
+- **Mandatory action before stop**: devote the last tokens to updating ROADMAP.md with:
+  - What was done in the session
+  - What remains to be done (with precise files and functions)
+  - Points of vigilance for the next agent
+  - The SHA of the last commit of the session
+- **Format of the "Next Agent" section** in ROADMAP.md:
 
 
 ```markdown
-## 🤖 Prochain Agent — Reprendre ici
+## 🤖 Next Agent — Resume Here
 
 
-**Arrêté à** : `chemin/vers/fichier.py` — fonction `nom_fonction()`, ligne X
-**Commit** : `<SHA>`
-**Ce qui reste** :
-- [ ] Tâche 1 (fichier cible : `...`)
-- [ ] Tâche 2 (fichier cible : `...`)
-**Points de vigilance** :
+**Stopped at**: `path/to/file.py` — function `function_name()`, line X
+**Commit**: `<SHA>`
+**What's left**:
+- [ ] Task 1 (target file: `...`)
+- [ ] Task 2 (target file: `...`)
+**Points of vigilance**:
 - Point 1
 - Point 2
 ```
 
 
-### 4.4 — Interopérabilité entre agents
+### 4.4 — Interoperability Between Agents
 
 
-- Utiliser des **commentaires explicites** dans le code : `# TODO(agent): ...`, `# NOTE: ...`, `# SECURITY: ...`
-- Ne jamais laisser de code incomplet sans commentaire signalant l'état : `# WIP: implémentation partielle — voir ROADMAP.md`
-- Toujours préciser dans ROADMAP.md quel agent a travaillé sur quelle section
+- Use **explicit comments** in the code: `# TODO(agent): ...`, `# NOTE: ...`, `# SECURITY: ...`
+- Never leave incomplete code without a comment signaling the state: `# WIP: partial implementation — see ROADMAP.md`
+- Always specify in ROADMAP.md which agent worked on which section
 
 
-### 4.5 — Politique Shell / RTK
+### 4.5 — Shell / RTK Policy
 
 
-- Quand une commande shell est nécessaire, **préférer `rtk`** pour les commandes potentiellement longues ou verbeuses (`git status`, `git diff`, `docker ps`, `pytest`, `npm`, `pnpm`, `ls`, `find`, etc.).
-- Si `rtk` est disponible, privilégier par défaut des formes comme `rtk git status`, `rtk git diff`, `rtk pytest`, `rtk docker ps`.
-- Éviter autant que possible les substitutions de commande shell :
+- When a shell command is necessary, **prefer `rtk`** for potentially long or verbose commands (`git status`, `git diff`, `docker ps`, `pytest`, `npm`, `pnpm`, `ls`, `find`, etc.).
+- If `rtk` is available, privilege by default forms like `rtk git status`, `rtk git diff`, `rtk pytest`, `rtk docker ps`.
+- Avoid shell command substitutions as much as possible:
   - `$(...)`
   - backticks
-  - commandes imbriquées complexes dans un seul appel
-- Préférer des commandes simples, explicites, et découpées en plusieurs étapes plutôt qu'une seule ligne difficile à auditer.
-- Si une substitution semble nécessaire, chercher d'abord une alternative sans substitution.
-- Ne pas supposer que `rtk` est disponible sur tous les environnements : vérifier sa présence, puis fallback sur une commande standard si absent.
+  - complex nested commands in a single call
+- Prefer simple, explicit, and multi-step commands rather than a single line difficult to audit.
+- If a substitution seems necessary, first look for an alternative without substitution.
+- Do not assume `rtk` is available in all environments: verify its presence, then fallback on a standard command if absent.
 
 
 ***
 
 
-## 5. Protocole de Passation Inter-Agents
+## 5. Inter-Agent Handoff Protocol
 
 
-### 5.1 — Ce que l'agent sortant DOIT faire avant de clore sa session
+### 5.1 — What the Outgoing Agent MUST Do Before Closing the Session
 
 
-- [ ] Mettre à jour **ROADMAP.md** : CHANGELOG de la session + section `Prochain Agent — Reprendre ici`
-- [ ] Mettre à jour **TECH_STACK.md** si la stack a évolué (nouvelles dépendances, services, secrets)
-- [ ] Mettre à jour **AUDIT_INSTRUCTIONS.md** si de nouveaux composants ont été ajoutés
-- [ ] Ajouter une entrée dans la section **6. Historique des Passations** ci-dessous
-- [ ] Pousser un commit avec le message : `docs: mise à jour ROADMAP + AI_AGENT_GUIDE [fin session <agent>]`
+- [ ] Update **ROADMAP.md**: Session CHANGELOG + `Next Agent — Resume Here` section
+- [ ] Update **TECH_STACK.md** if the stack has evolved (new dependencies, services, secrets)
+- [ ] Update **AUDIT_INSTRUCTIONS.md** if new components have been added
+- [ ] Add an entry in the **6. Handoff History** section below
+- [ ] Push a commit with the message: `docs: update ROADMAP + AI_AGENT_GUIDE [end session <agent>]`
 
 
-### 5.2 — Ce que l'agent entrant DOIT faire avant de commencer
+### 5.2 — What the Incoming Agent MUST Do Before Starting
 
 
-- [ ] Lire ce fichier en entier
-- [ ] Lire les fichiers de référence dans l'ordre indiqué en section 2.3
-- [ ] Vérifier le dernier commit audité dans TECH_STACK.md vs HEAD actuel
-- [ ] Consulter la section `Prochain Agent — Reprendre ici` dans ROADMAP.md
-- [ ] Ne pas modifier de code avant d'avoir lu ces fichiers
+- [ ] Read this entire file
+- [ ] Read reference files in the order indicated in section 2.3
+- [ ] Verify the last audited commit in TECH_STACK.md vs current HEAD
+- [ ] Consult the `Next Agent — Resume Here` section in ROADMAP.md
+- [ ] Do not modify code before having read these files
 
 
-### 5.3 — Format d'une entrée de passation
+### 5.3 — Handoff Entry Format
 
 
 ```
-### Passation #N — YYYY-MM-DD
-- **Agent sortant**           : [Claude / Gemini / GPT-4 / autre]
-- **Agent entrant**           : [Claude / Gemini / GPT-4 / autre — ou "indéfini"]
-- **Commit de fin de session**: <SHA>
-- **Tâches accomplies**       :
-  - Résumé bref des actions effectuées
-- **Tâche suivante**          : Description précise + fichier cible
-- **Points de vigilance**     :
+### Handoff #N — YYYY-MM-DD
+- **Outgoing Agent**           : [Claude / Gemini / GPT-4 / other]
+- **Incoming Agent**           : [Claude / Gemini / GPT-4 / other — or "undefined"]
+- **End-of-session commit**    : <SHA>
+- **Tasks accomplished**       :
+  - Brief summary of actions performed
+- **Next task**                : Precise description + target file
+- **Points of vigilance**     :
   - Point 1
   - Point 2
-- **Fichiers mis à jour**     : ROADMAP.md | TECH_STACK.md | AUDIT_INSTRUCTIONS.md
+- **Updated files**            : ROADMAP.md | TECH_STACK.md | AUDIT_INSTRUCTIONS.md
 ```
 
 
 ***
 
 
-## 6. Historique des Passations
+## 6. Handoff History
 
 
-### Passation #1 — 2026-05-04
+### Handoff #1 — 2026-05-04
 
 
-- **Agent sortant**            : Claude (Perplexity — session initiale de structuration)
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : `08508ac`
-- **Tâches accomplies** :
-  - Architecture complète en place (backend FastAPI + frontend Next.js + Docker Compose)
-  - Création et structuration de tous les fichiers de pilotage :
+- **Outgoing Agent**           : Claude (Perplexity — initial structuring session)
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : `08508ac`
+- **Tasks accomplished**:
+  - Full architecture in place (FastAPI backend + Next.js frontend + Docker Compose)
+  - Creation and structuring of all steering files:
     `AGENT.md`, `READ_BEFORE_RUN_AUDIT.md`, `AUDIT_INSTRUCTIONS.md`, `TECH_STACK.md`, `IA_CHANGE.md`
-- **Tâche suivante** : Voir section `Prochain Agent — Reprendre ici` dans ROADMAP.md
-- **Points de vigilance** :
-  - `/auth/mfa/verify` retourne `501 NOT_IMPLEMENTED` — MFA non fonctionnel en l'état
-  - `curl | sh` dans `backend/Dockerfile` — risque supply chain (aucune vérification d'intégrité)
-  - Images Docker `dperson/torproxy:latest` et `travishunting/ransomlook:latest` non épinglées
-  - CSP avec `unsafe-eval` + `unsafe-inline` dans `frontend/next.config.ts`
-  - `UI_REDIS_PASSWORD` visible dans la commande `redis-server` (docker inspect / ps aux)
-- **Fichiers mis à jour** : AGENT.md · TECH_STACK.md · AUDIT_INSTRUCTIONS.md · READ_BEFORE_RUN_AUDIT.md · IA_CHANGE.md
+- **Next task**: See `Next Agent — Resume Here` section in ROADMAP.md
+- **Points of vigilance**:
+  - `/auth/mfa/verify` returns `501 NOT_IMPLEMENTED` — MFA not functional as is
+  - `curl | sh` in `backend/Dockerfile` — supply chain risk (no integrity check)
+  - Docker images `dperson/torproxy:latest` and `travishunting/ransomlook:latest` not pinned
+  - CSP with `unsafe-eval` + `unsafe-inline` in `frontend/next.config.ts`
+  - `UI_REDIS_PASSWORD` visible in `redis-server` command (docker inspect / ps aux)
+- **Updated files**: AGENT.md · TECH_STACK.md · AUDIT_INSTRUCTIONS.md · READ_BEFORE_RUN_AUDIT.md · IA_CHANGE.md
 
 
-### Passation #2 — 2026-05-05
+### Handoff #2 — 2026-05-05
 
 
-- **Agent sortant**            : Claude (Perplexity — session refactoring documentation + UI)
-- **Agent entrant**            : Gemini (session de construction Backend)
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - Fusion de `AGENT.md`, `IA_CHANGE.md`, `READ_BEFORE_RUN_AUDIT.md` → `AI_AGENT_GUIDE.md`
-  - Correction du logo dans `Sidebar.tsx` (remplacement de l'icône Shield par `images/logo_nobg.png`)
-  - Ajout du composant `DomainBanner.tsx` affichant le domaine cible (`NEXT_PUBLIC_TARGET_DOMAIN`)
-  - Intégration de la bannière dans `frontend/src/app/(dashboard)/layout.tsx`
-- **Tâche suivante** : Voir section `Prochain Agent — Reprendre ici` dans ROADMAP.md
-- **Points de vigilance** : Mêmes points de vigilance sécurité que la passation #1 (non résolus)
-- **Fichiers mis à jour** : AI_AGENT_GUIDE.md (nouveau) · Sidebar.tsx · layout.tsx (dashboard) · DomainBanner.tsx (nouveau)
-
-
-***
-
-
-### Passation #3 — 2026-05-15
-
-
-- **Agent sortant**            : Gemini (session de construction Backend)
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - Architecture Backend posée : Modèles SQLAlchemy (CVE, Settings, API Keys).
-  - Sécurité : Implémentation du chiffrement Fernet pour les secrets en base.
-  - Moteur CVE : Fetchers NVD API 2.0, GitHub, CVEFeed et gestion du rate-limit.
-  - Système Mock Data : Génération dynamique de données de démo si clés absentes.
-  - UI : Switch MOCK global, bannières d'avertissement et badges sur tout le dashboard.
-- **Tâche suivante** : Implémentation du polling réel et finalisation du fetcher OSV.dev.
-- **Points de vigilance** :
-  - Clé NVD recommandée pour éviter le rate-limit strict (5 req/30s).
-  - Les boutons MFA et Password dans Profile sont visuels mais pas encore reliés au backend.
-- **Fichiers mis à jour** : TODO.md · ROADMAP.md · README.md · QUICKSTART.md · Tout le backend/app/...
-
-
-### Passation #4 — 2026-05-18
-
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - Génération de la documentation technique complète pour les sous-dossiers.
-  - Création de `backend/README.md` (FastAPI, Endpoints, Local Setup).
-  - Création de `frontend/README.md` (Next.js, Tech stack, Local Setup).
-  - Mise à jour majeure de `QUICKSTART.md` pour inclure le guide de développement local (sans Docker).
-  - Mise à jour du `ROADMAP.md` (Phase 5 Hardening marquée à 100%).
-- **Tâche suivante** : Voir section `Prochain Agent — Reprendre ici` dans ROADMAP.md (Focus sur le polling CVE réel et les actions profil).
-- **Points de vigilance** :
-  - Le guide local suppose que PostgreSQL et Redis sont accessibles nativement ou via des conteneurs isolés.
-  - Vérifier la cohérence du `.env` lors du switch Docker <-> Local.
-- **Fichiers mis à jour** : backend/README.md · frontend/README.md · QUICKSTART.md · ROADMAP.md · AI_AGENT_GUIDE.md
-
-
-### Passation #5 — 2026-05-18
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - Création du fichier `ARCHITECTURE.md` détaillant la structure du repo, les configs et les fichiers IA.
-  - Mise à jour du `ROADMAP.md` (Itération 23).
-- **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) comme indiqué dans la ROADMAP.
-- **Points de vigilance** : Aucun nouveau point de vigilance technique introduit par cette itération de documentation.
-- **Fichiers mis à jour** : ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
-
-
-### Passation #13 — 2026-06-01
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - **Docker Stack Fix** : Correction des digests SHA256 erronés dans `docker-compose.yml` pour Postgres, Redis, TorProxy et RansomLook.
-  - **CSP & Black Screen Fix** : Résolution de l'écran noir sur le frontend en relaxant la politique CSP (`unsafe-inline`, `unsafe-eval`) dans `next.config.ts` et suppression de `interest-cohort`.
-  - **Database Race Condition Fix** : Implémentation d'un verrou Redis distribué dans `initialize_database` pour éviter les erreurs `IntegrityError` (UniqueViolation) sur les Enums lors du démarrage simultané de plusieurs workers backend.
-  - **Orchestration** : Relance réussie de la stack complète (7 services).
-  - **Health Validation** : Vérification de la santé de tous les conteneurs (tous sont `healthy`).
-- **Tâche suivante** : Reprendre le développement backend (polling CVE, actions profil) ou résoudre les erreurs `mypy` restantes de l'itération #12.
-- **Points de vigilance** :
-  - Les digests SHA256 ont été synchronisés avec les versions locales fonctionnelles.
-  - Le CSP a été assoupli pour permettre le fonctionnement normal de Next.js en production sans nonces complexes.
-- **Fichiers mis à jour** : docker-compose.yml · frontend/next.config.ts · backend/app/main.py · backend/app/core/init_db.py · ROADMAP.md · AI_AGENT_GUIDE.md
-
-***
-
-### Passation #12 — 2026-06-01
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - **Skill Gemini CI/CD** : Création du skill `cicd-expert` pour automatiser et guider la maintenance de la pipeline.
-  - **Pipeline Quality++** : Ajout de `mypy` (static typing) et `bandit` (security linting) dans GitHub Actions.
-  - **Bug Fixes (CI-driven)** : Correction de plusieurs erreurs de typage et de logique identifiées par les nouveaux outils (Scheduler, ScanSchema, etc.).
-- **Tâche suivante** : Résoudre les 28 erreurs `mypy` restantes (voir sortie locale) ou continuer le développement des features backend (polling CVE, actions profil).
-- **Points de vigilance** :
-  - La configuration `mypy` dans `pyproject.toml` a été assouplie (`strict = false`) pour permettre une introduction graduelle sans bloquer tout le développement.
-  - `bandit` ignore désormais spécifiquement un faux positif dans `app/schemas/scan.py` via `# nosec`.
-- **Fichiers mis à jour** : .github/workflows/ci.yml · backend/pyproject.toml · ROADMAP.md · AI_AGENT_GUIDE.md · Plusieurs fichiers backend pour corrections.
-
-***
-
-### Passation #11 — 2026-06-01
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - **CI/CD GitHub Actions** : Création du workflow `.github/workflows/ci.yml`.
-  - **Pipeline Qualité** : Automatisation du linting (Ruff, ESLint), du build Next.js et des tests pytest.
-  - **Audit Sécurité Automatisé** : Intégration de `detect-secrets`, `npm audit` et `pip-audit` dans la pipeline.
-  - **Vérification Infrastructure** : Ajout de la validation du build des images Docker dans la CI.
-- **Tâche suivante** : Configurer les "Branch Protection Rules" sur GitHub pour rendre ces checks obligatoires avant tout merge sur `main`.
-- **Points de vigilance** :
-  - Le `pip-audit` peut échouer si des vulnérabilités critiques sont trouvées dans les dépendances Python (comportement attendu pour bloquer les PR non sécurisées).
-  - Le build Next.js en CI nécessite des variables d'environnement (Mocks utilisés dans le workflow).
-- **Fichiers mis à jour** : .github/workflows/ci.yml · ROADMAP.md · AI_AGENT_GUIDE.md
-
-***
-
-### Passation #10 — 2026-06-01
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - **Internationalisation (i18n)** : Mise en place complète du support FR/EN sur le frontend via `next-intl`.
-  - **Traduction** : Couverture des pages critiques (Dashboard, Login, MFA, Profil, Intelligence, Scans, Rapports).
-  - **Localisation** : Gestion dynamique des formats de date et durées selon la langue de l'utilisateur.
-  - **Documentation** : Mise à jour du `ROADMAP.md` (Itération 36).
-- **Tâche suivante** : Continuer la traduction des pages d'outils spécifiques (HIBP, GitHub, etc.) et des composants UI restants (modals de confirmation, tooltips complexes).
-- **Points de vigilance** :
-  - Bien utiliser le hook `useTranslations` dans les composants clients et `getTranslations` dans les composants serveurs.
-  - S'assurer que les nouvelles clés de traduction sont ajoutées aux deux fichiers `en.json` et `fr.json` simultanément.
-- **Fichiers mis à jour** : frontend/messages/*.json · frontend/src/app/(dashboard)/**/*.tsx · ROADMAP.md · AI_AGENT_GUIDE.md
-
-***
-
-### Passation #9 — 2026-06-01
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : *(voir commit associé à ce push)*
-- **Tâches accomplies** :
-  - **Immersion Projet** : Analyse approfondie de la documentation, de l'architecture et des standards de sécurité.
-  - **Roadmap de Sécurité** : Création d'une stratégie de tests complète dans `TODO.md` (Audit, Code Audit/Pentest, RBAC, Communications Front-Back).
-  - **Activation Skill** : Initialisation du skill `senior-webapp-cyber-auditor` pour guider les prochaines étapes de sécurisation.
-- **Tâche suivante** : Commencer l'audit de la Phase 1 (Supply Chain, Docker tags, Secrets leaks) comme défini dans `TODO.md` et suivre la `CYBER_SECURITY_CHECKLIST.md`.
-- **Points de vigilance** :
-  - Les vulnérabilités critiques de Next.js 15.1.3 doivent être traitées en priorité lors des premiers tests de la Phase 1.
-  - S'assurer que les images Docker sont épinglées via SHA256 pour éviter les attaques par empoisonnement de tag.
-- **Fichiers mis à jour** : TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md · CYBER_SECURITY_CHECKLIST.md
-
-
-### Passation #8 — 2026-05-23
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : `cb12e58` (base) + Audit Reports
-- **Tâches accomplies** :
-  - **Audit de Sécurité des Versions** :
-    - Scan SCA Backend (`pip-audit`) : 6 vulnérabilités trouvées (`idna` < 3.15, `urllib3` < 2.7.0).
-    - Scan SCA Frontend (`npm audit`) : 6 vulnérabilités trouvées, dont **Next.js 15.1.3 (CRITIQUE)**.
-    - Création de `PROCEDURE_CHECKS.md` pour systématiser les futurs checks.
-    - Mise à jour de `TECH_STACK.md` avec les versions système réelles (Python 3.14.3, Node 22.12.0).
-- **Tâche suivante** : Remédiation des vulnérabilités critiques (Update Next.js, urllib3, idna).
-- **Points de vigilance** :
-  - **URGENT** : La version de Next.js utilisée présente des risques de RCE et SSRF documentés.
-  - La version Python locale (3.14) est très en avance sur l'image Docker (3.12).
-- **Fichiers mis à jour** : ROADMAP.md · AI_AGENT_GUIDE.md · TODO.md · PROCEDURE_CHECKS.md · TECH_STACK.md
-
-***
-
-### Passation #7 — 2026-05-23
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : `77a21a7` (base) + v0.2.3
-- **Tâches accomplies** :
-  - **Refonte MFA & Session** : Fix logout prématuré, ajout backup codes, mode secours, auto-focus UX.
-  - **Veille Numérique (v0.2.3)** :
-    - Implémentation du moteur `IntelligenceMonitor` (RSS, GitHub, Pastebin stub).
-    - Système d'alerting `CRITICAL` via Webhook/Email intégré au collecteur.
-    - Interface `/intelligence` avec filtres dynamiques (Sévérité, Lu/Non-lu).
-    - Ajout de 5 sources cyber majeures dont IT-Connect.
-  - Diagnostic et correction du crash backend lié au schéma DB (migration SQL effectuée).
-  - Validation de l'ensemble de la stack Docker (tous les services sont healthy).
-- **Tâche suivante** : Liaison NotificationEngine avancée (Templating) et actions de masse sur le Feed.
-- **Points de vigilance** :
-  - Le `cyber_findings.extra_metadata` est un JSONB flexible, idéal pour stocker les spécificités de chaque source.
-  - Le dédoublonnage est basé sur un hash SHA256 de l'URL/external_id.
-- **Fichiers mis à jour** : ROADMAP.md · AI_AGENT_GUIDE.md · README.md · TODO.md · changelog/page.tsx
-
-***
-
-### Passation #6 — 2026-05-21
-
-- **Agent sortant**            : Gemini CLI
-- **Agent entrant**            : indéfini
-- **Commit de fin de session** : `92c060f`
-- **Tâches accomplies** :
-  - Analyse complète de l'implémentation MFA actuelle (Backend auth.py & Frontend login page).
-  - Création d'une roadmap d'implémentation détaillée dans `TODO.md` (MFA flow, Admin controls, Hardening).
-- **Tâche suivante** : Implémenter la page `/mfa` dans le frontend et mettre à jour le middleware pour autoriser son accès (voir `TODO.md`).
-- **Points de vigilance** :
-  - Le middleware Next.js redirige vers `/login` si `access_token` est absent, ce qui bloque `/mfa`.
-  - Le schéma `MFAVerifyRequest` côté backend ne contient pas d'identifiant utilisateur (nécessite email ou scan Redis du challenge token).
-- **Fichiers mis à jour** : TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md
+- **Outgoing Agent**           : Claude (Perplexity — documentation refactoring session + UI)
+- **Incoming Agent**           : Gemini (Backend construction session)
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - Merge of `AGENT.md`, `IA_CHANGE.md`, `READ_BEFORE_RUN_AUDIT.md` → `AI_AGENT_GUIDE.md`
+  - Logo fix in `Sidebar.tsx` (replaced Shield icon with `images/logo_nobg.png`)
+  - Added `DomainBanner.tsx` component displaying the target domain (`NEXT_PUBLIC_TARGET_DOMAIN`)
+  - Integrated banner in `frontend/src/app/(dashboard)/layout.tsx`
+- **Next task**: See `Next Agent — Resume Here` section in ROADMAP.md
+- **Points of vigilance**: Same security points of vigilance as handoff #1 (not resolved)
+- **Updated files**: AI_AGENT_GUIDE.md (new) · Sidebar.tsx · layout.tsx (dashboard) · DomainBanner.tsx (new)
 
 
 ***
 
 
-## 7. Instructions de Style & Qualité
+### Handoff #3 — 2026-05-15
 
 
-- **Précision technique maximale** — zéro généralité, zéro approximation
-- **Code propre, commenté et modulaire** — chaque fonction a une docstring, chaque module a un commentaire d'en-tête
-- **Pas de blabla inutile** — se concentrer sur l'exécution et le suivi de l'avancement
-- **Tests obligatoires** pour tout nouveau code métier : pytest + pytest-asyncio
-- **Linting avant commit** : `ruff check .` et `mypy` ne doivent retourner aucune erreur bloquante
-- **Secrets** : ne jamais hardcoder de valeur sensible — toujours passer par `settings` (pydantic-settings)
-- **Pas de `print()`** en production — utiliser le logger configuré dans `main.py`
-- **Favoriser `rtk`** pour réduire la sortie inutile des commandes shell quand l'outil est disponible
-- **Éviter les substitutions shell** quand une alternative explicite existe
+- **Outgoing Agent**           : Gemini (Backend construction session)
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - Backend architecture laid: SQLAlchemy models (CVE, Settings, API Keys).
+  - Security: Fernet encryption implementation for secrets in DB.
+  - CVE Engine: NVD API 2.0 fetchers, GitHub, CVEFeed, and rate-limit management.
+  - Mock Data System: Dynamic demo data generation if keys are missing.
+  - UI: Global MOCK switch, warning banners, and badges throughout the dashboard.
+- **Next task**: Real polling implementation and OSV.dev fetcher finalization.
+- **Points of vigilance**:
+  - NVD key recommended to avoid strict rate-limit (5 req/30s).
+  - MFA and Password buttons in Profile are visual but not yet linked to the backend.
+- **Updated files**: TODO.md · ROADMAP.md · README.md · QUICKSTART.md · All backend/app/...
+
+
+### Handoff #4 — 2026-05-18
+
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - Full technical documentation generation for sub-directories.
+  - Created `backend/README.md` (FastAPI, Endpoints, Local Setup).
+  - Created `frontend/README.md` (Next.js, Tech stack, Local Setup).
+  - Major update of `QUICKSTART.md` to include local development guide (without Docker).
+  - Updated `ROADMAP.md` (Phase 5 Hardening marked 100% complete).
+- **Next task**: See `Next Agent — Resume Here` section in ROADMAP.md (Focus on real CVE polling and profile actions).
+- **Points of vigilance**:
+  - Local guide assumes PostgreSQL and Redis are accessible natively or via isolated containers.
+  - Verify `.env` consistency during Docker <-> Local switch.
+- **Updated files**: backend/README.md · frontend/README.md · QUICKSTART.md · ROADMAP.md · AI_AGENT_GUIDE.md
+
+
+### Handoff #5 — 2026-05-18
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - Created `ARCHITECTURE.md` file detailing the repo structure, configs, and AI files.
+  - Updated `ROADMAP.md` (Iteration 23).
+- **Next task**: Resume backend development (CVE polling, profile actions) as indicated in ROADMAP.
+- **Points of vigilance**: No new technical points of vigilance introduced by this documentation iteration.
+- **Updated files**: ARCHITECTURE.md · ROADMAP.md · AI_AGENT_GUIDE.md
+
+
+### Handoff #13 — 2026-06-01
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **Docker Stack Fix**: Fixed erroneous SHA256 digests in `docker-compose.yml` for Postgres, Redis, TorProxy, and RansomLook.
+  - **CSP & Black Screen Fix**: Resolved the black screen on the frontend by relaxing the CSP policy (`unsafe-inline`, `unsafe-eval`) in `next.config.ts` and removed `interest-cohort`.
+  - **Database Race Condition Fix**: Implemented a distributed Redis lock in `initialize_database` to avoid `IntegrityError` (UniqueViolation) on Enums during simultaneous startup of multiple backend workers.
+  - **Orchestration**: Successfully restarted the full stack (7 services).
+  - **Health Validation**: Verified health of all containers (all are `healthy`).
+- **Next task**: Resume backend development (CVE polling, profile actions) or resolve remaining `mypy` errors from iteration #12.
+- **Points of vigilance**:
+  - SHA256 digests were synchronized with functional local versions.
+  - CSP was eased to allow normal Next.js operation in production without complex nonces.
+- **Updated files**: docker-compose.yml · frontend/next.config.ts · backend/app/main.py · backend/app/core/init_db.py · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
+### Handoff #12 — 2026-06-01
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **Gemini CI/CD Skill**: Created the `cicd-expert` skill to automate and guide pipeline maintenance.
+  - **Quality Pipeline++**: Added `mypy` (static typing) and `bandit` (security linting) in GitHub Actions.
+  - **Bug Fixes (CI-driven)**: Corrected several typing and logic errors identified by new tools (Scheduler, ScanSchema, etc.).
+- **Next task**: Resolve 28 remaining `mypy` errors (see local output) or continue development of backend features (CVE polling, profile actions).
+- **Points of vigilance**:
+  - `mypy` configuration in `pyproject.toml` was relaxed (`strict = false`) to allow a gradual introduction without blocking all development.
+  - `bandit` now specifically ignores a false positive in `app/schemas/scan.py` via `# nosec`.
+- **Updated files**: .github/workflows/ci.yml · backend/pyproject.toml · ROADMAP.md · AI_AGENT_GUIDE.md · Several backend files for corrections.
+
+***
+
+### Handoff #11 — 2026-06-01
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **CI/CD GitHub Actions**: Created the `.github/workflows/ci.yml` workflow.
+  - **Quality Pipeline**: Automated linting (Ruff, ESLint), Next.js build, and pytest tests.
+  - **Automated Security Audit**: Integrated `detect-secrets`, `npm audit`, and `pip-audit` into the pipeline.
+  - **Infrastructure Verification**: Added Docker images build validation in CI.
+- **Next task**: Configure "Branch Protection Rules" on GitHub to make these checks mandatory before any merge to `main`.
+- **Points of vigilance**:
+  - `pip-audit` may fail if critical vulnerabilities are found in Python dependencies (expected behavior to block insecure PRs).
+  - Next.js build in CI requires environment variables (Mocks used in workflow).
+- **Updated files**: .github/workflows/ci.yml · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
+### Handoff #10 — 2026-06-01
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **Internationalization (i18n)**: Full FR/EN support setup on the frontend via `next-intl`.
+  - **Translation**: Coverage of critical pages (Dashboard, Login, MFA, Profile, Intelligence/Monitoring, Scans, Reports).
+  - **Localization**: Dynamic date formats and durations management according to user language.
+  - **Documentation**: Updated `ROADMAP.md` (Iteration 36).
+- **Next task**: Continue translation of specific tool pages (HIBP, GitHub, etc.) and remaining UI components (confirmation modals, complex tooltips).
+- **Points of vigilance**:
+  - Properly use `useTranslations` hook in client components and `getTranslations` in server components.
+  - Ensure new translation keys are added to both `en.json` and `fr.json` files simultaneously.
+- **Updated files**: frontend/messages/*.json · frontend/src/app/(dashboard)/**/*.tsx · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
+### Handoff #9 — 2026-06-01
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **Project Immersion**: Deep analysis of documentation, architecture, and security standards.
+  - **Security Roadmap**: Created a full test strategy in `TODO.md` (Audit, Code Audit/Pentest, RBAC, Front-Back Communications).
+  - **Skill Activation**: Initialized the `senior-webapp-cyber-auditor` skill to guide the next securing steps.
+- **Next task**: Start Phase 1 audit (Supply Chain, Docker tags, Secrets leaks) as defined in `TODO.md` and follow the `CYBER_SECURITY_CHECKLIST.md`.
+- **Points of vigilance**:
+  - Critical vulnerabilities in Next.js 15.1.3 must be addressed first during Phase 1 testing.
+  - Ensure Docker images are pinned via SHA256 to avoid tag poisoning attacks.
+- **Updated files**: TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md · CYBER_SECURITY_CHECKLIST.md
+
+
+### Handoff #8 — 2026-05-23
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : `cb12e58` (base) + Audit Reports
+- **Tasks accomplished**:
+  - **Versions Security Audit**:
+    - Backend SCA Scan (`pip-audit`): 6 vulnerabilities found (`idna` < 3.15, `urllib3` < 2.7.0).
+    - Frontend SCA Scan (`npm audit`): 6 vulnerabilities found, including **Next.js 15.1.3 (CRITICAL)**.
+    - Created `PROCEDURE_CHECKS.md` to systematize future checks.
+    - Updated `TECH_STACK.md` with real system versions (Python 3.14.3, Node 22.12.0).
+- **Next task**: Remediate critical vulnerabilities (Update Next.js, urllib3, idna).
+- **Points of vigilance**:
+  - **URGENT**: The used Next.js version has documented RCE and SSRF risks.
+  - The local Python version (3.14) is well ahead of the Docker image (3.12).
+- **Updated files**: ROADMAP.md · AI_AGENT_GUIDE.md · TODO.md · PROCEDURE_CHECKS.md · TECH_STACK.md
+
+***
+
+### Handoff #7 — 2026-05-23
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : `77a21a7` (base) + v0.2.3
+- **Tasks accomplished**:
+  - **MFA & Session Refactoring**: Fixed premature logout, added backup codes, recovery mode, UX auto-focus.
+  - **Digital Intelligence/Monitoring (v0.2.3)**:
+    - Implemented `IntelligenceMonitor` engine (RSS, GitHub, Pastebin stub).
+    - `CRITICAL` alerting system via Webhook/Email integrated into the collector.
+    - `/intelligence` interface with dynamic filters (Severity, Read/Unread).
+    - Added 5 major cyber sources including IT-Connect.
+  - Diagnostic and correction of backend crash related to DB schema (SQL migration performed).
+  - Validation of the entire Docker stack (all services are healthy).
+- **Next task**: Advanced NotificationEngine linkage (Templating) and mass actions on the Feed.
+- **Points of vigilance**:
+  - `cyber_findings.extra_metadata` is a flexible JSONB, ideal for storing specificities of each source.
+  - Deduplication is based on a SHA256 hash of the URL/external_id.
+- **Updated files**: ROADMAP.md · AI_AGENT_GUIDE.md · README.md · TODO.md · changelog/page.tsx
+
+***
+
+### Handoff #6 — 2026-05-21
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : `92c060f`
+- **Tasks accomplished**:
+  - Full analysis of current MFA implementation (Backend auth.py & Frontend login page).
+  - Created a detailed implementation roadmap in `TODO.md` (MFA flow, Admin controls, Hardening).
+- **Next task**: Implement `/mfa` page in the frontend and update middleware to authorize its access (see `TODO.md`).
+- **Points of vigilance**:
+  - Next.js middleware redirects to `/login` if `access_token` is missing, which blocks `/mfa`.
+  - Backend `MFAVerifyRequest` schema does not contain a user identifier (requires email or Redis scan of the challenge token).
+- **Updated files**: TODO.md · ROADMAP.md · AI_AGENT_GUIDE.md
 
 
 ***
 
 
-## 8. Maintenance des Fichiers d'Audit (Avant Tout Run d'Audit)
+## 7. Style & Quality Instructions
 
 
-> Cette section remplace `READ_BEFORE_RUN_AUDIT.md`. À lire avant toute session d'audit sécurité.
+- **Maximum technical precision** — zero generality, zero approximation
+- **Clean, commented, and modular code** — each function has a docstring, each module has a header comment
+- **No useless chatter** — focus on execution and progress tracking
+- **Mandatory tests** for all new business code: pytest + pytest-asyncio
+- **Linting before commit**: `ruff check .` and `mypy` must not return any blocking errors
+- **Secrets**: never hardcode a sensitive value — always use `settings` (pydantic-settings)
+- **No `print()`** in production — use the logger configured in `main.py`
+- **Favor `rtk`** to reduce useless shell command output when the tool is available
+- **Avoid shell substitutions** when an explicit alternative exists
 
 
-### 8.1 — Vérification préalable au run
+***
 
 
-Avant de lancer l'audit, effectuer les vérifications suivantes.
+## 8. Audit File Maintenance (Before Any Audit Run)
 
 
-**Comparer le commit actuel avec le dernier commit audité :**
+> This section replaces `READ_BEFORE_RUN_AUDIT.md`. To be read before any security audit session.
 
 
-Récupérer le SHA du dernier commit audité dans `TECH_STACK.md` (champ `Dernier commit audité`).
-Comparer avec le HEAD actuel du dépôt via :
+### 8.1 — Pre-run Verification
+
+
+Before launching the audit, perform the following verifications.
+
+
+**Compare current commit with last audited commit:**
+
+
+Retrieve the SHA of the last audited commit in `TECH_STACK.md` (`Dernier commit audité` field).
+Compare with the current HEAD of the repository via:
 
 
 ```bash
 git log --oneline -20
-git diff <sha_dernier_audit> HEAD --name-only
+git diff <sha_last_audit> HEAD --name-only
 ```
 
 
-Si des fichiers ont changé depuis le dernier audit, passer à l'étape suivante.
-Si aucun changement, l'audit peut démarrer directement.
+If critical files have changed since the last audit, proceed to the next step.
+If no change, the audit can start directly.
 
 
-**Classifier les fichiers modifiés selon leur impact :**
+**Classify modified files by impact:**
 
 
-| Fichier modifié | Action requise |
+| Modified File | Required Action |
 |-----------------|----------------|
-| `backend/app/routers/*.py` | Mettre à jour section 1.2 de `AUDIT_INSTRUCTIONS.md` + section 2 de `TECH_STACK.md` |
-| `backend/app/core/config.py` | Mettre à jour sections Secrets et Backend de `TECH_STACK.md` |
-| `backend/app/core/security.py` | Mettre à jour section 1.1 de `AUDIT_INSTRUCTIONS.md` |
-| `backend/pyproject.toml` | Mettre à jour les dépendances dans `TECH_STACK.md` section 2 |
-| `frontend/package.json` | Mettre à jour les dépendances dans `TECH_STACK.md` section 3 |
-| `frontend/next.config.ts` | Mettre à jour section 3 de `TECH_STACK.md` (headers CSP) |
-| `docker-compose.yml` | Mettre à jour section 4 de `TECH_STACK.md` |
-| `backend/Dockerfile` ou `frontend/Dockerfile` | Mettre à jour section 4 de `TECH_STACK.md` |
-| `backend/app/engine/logic.py` | Mettre à jour section 1.6 de `AUDIT_INSTRUCTIONS.md` |
-| `backend/app/clients/` | Mettre à jour section 6 de `TECH_STACK.md` (sources OSINT) |
-| `.env.example` | Mettre à jour section 5 de `TECH_STACK.md` (secrets) |
+| `backend/app/routers/*.py` | Update section 1.2 of `AUDIT_INSTRUCTIONS.md` + section 2 of `TECH_STACK.md` |
+| `backend/app/core/config.py` | Update Secrets and Backend sections of `TECH_STACK.md` |
+| `backend/app/core/security.py` | Update section 1.1 of `AUDIT_INSTRUCTIONS.md` |
+| `backend/pyproject.toml` | Update dependencies in `TECH_STACK.md` section 2 |
+| `frontend/package.json` | Update dependencies in `TECH_STACK.md` section 3 |
+| `frontend/next.config.ts` | Update section 3 of `TECH_STACK.md` (CSP headers) |
+| `docker-compose.yml` | Update section 4 of `TECH_STACK.md` |
+| `backend/Dockerfile` or `frontend/Dockerfile` | Update section 4 of `TECH_STACK.md` |
+| `backend/app/engine/logic.py` | Update section 1.6 of `AUDIT_INSTRUCTIONS.md` |
+| `backend/app/clients/` | Update section 6 of `TECH_STACK.md` (OSINT sources) |
+| `.env.example` | Update section 5 of `TECH_STACK.md` (secrets) |
 
 
-### 8.2 — Quand mettre à jour TECH_STACK.md
+### 8.2 — When to update TECH_STACK.md
 
 
-Mettre à jour `TECH_STACK.md` **obligatoirement** si l'une des conditions suivantes est remplie :
+Update `TECH_STACK.md` **obligatorily** if any of the following conditions are met:
 
 
-| Condition | Section à mettre à jour |
+| Condition | Section to update |
 |-----------|--------------------------|
-| Nouvelle dépendance dans `pyproject.toml` ou `package.json` | Section 2 (Backend) ou 3 (Frontend) |
-| Changement de version d'une dépendance existante | Section correspondante + vérifier CVE |
-| Nouveau service dans `docker-compose.yml` | Section 4 (Conteneurisation) |
-| Nouvelle variable dans `.env.example` | Section 5 (Secrets) |
-| Nouvelle source OSINT dans `sources.yaml` ou `clients/` | Section 6 (Sources OSINT) |
-| Nouveau router ou module dans `backend/app/` | Section 2 (Backend) + Section 8 (Fichiers clés) |
-| Changement d'image Docker de base | Section 4 (Conteneurisation) |
+| New dependency in `pyproject.toml` or `package.json` | Section 2 (Backend) or 3 (Frontend) |
+| Version change of an existing dependency | Corresponding section + check CVE |
+| New service in `docker-compose.yml` | Section 4 (Containerization) |
+| New variable in `.env.example` | Section 5 (Secrets) |
+| New OSINT source in `sources.yaml` or `clients/` | Section 6 (OSINT Sources) |
+| New router or module in `backend/app/` | Section 2 (Backend) + Section 8 (Key files) |
+| Change of base Docker image | Section 4 (Containerization) |
 
 
-Après mise à jour, actualiser le champ :
+After update, refresh the field:
 ```
 Dernier commit audité : <SHA>
 Date de mise à jour   : YYYY-MM-DD
 ```
 
 
-### 8.3 — Quand mettre à jour AUDIT_INSTRUCTIONS.md
+### 8.3 — When to update AUDIT_INSTRUCTIONS.md
 
 
-Mettre à jour `AUDIT_INSTRUCTIONS.md` **obligatoirement** si l'une des conditions suivantes est remplie :
+Update `AUDIT_INSTRUCTIONS.md` **obligatorily** if any of the following conditions are met:
 
 
 | Condition | Action |
 |-----------|--------|
-| Nouveau fichier dans `backend/app/routers/` | Ajouter dans les fichiers cibles du pilier concerné |
-| Nouvelle fonctionnalité critique (SSO, export, import, nouveau rôle) | Ajouter les points d'analyse dans le pilier pertinent |
-| Faille documentée résolue | Marquer `[RÉSOLU - commit <SHA>]` puis archiver |
-| Changement d'infrastructure (Nginx, Kubernetes, reverse proxy...) | Mettre à jour le pilier 1.4 |
-| Nouvel endpoint d'authentification | Mettre à jour le pilier 1.1 |
+| New file in `backend/app/routers/` | Add in target files of the concerned pillar |
+| New critical functionality (SSO, export, import, new role) | Add analysis points in the relevant pillar |
+| Resolved documented vulnerability | Mark `[RESOLVED - commit <SHA>]` then archive |
+| Infrastructure change (Nginx, Kubernetes, reverse proxy...) | Update pillar 1.4 |
+| New authentication endpoint | Update pillar 1.1 |
 
 
-**Règle d'or** : ne jamais supprimer un point d'analyse sans l'avoir marqué `[RÉSOLU]` avec le SHA du commit de correction.
+**Golden Rule**: never delete an analysis point without having marked it `[RESOLVED]` with the correction commit SHA.
 
 
-### 8.4 — Archivage des rapports d'audit
+### 8.4 — Archiving Audit Reports
 
 
-Chaque rapport d'audit produit doit être sauvegardé selon la convention suivante :
+Each audit report produced must be saved according to the following convention:
 
 
 ```
 audit_reports/
-└── YYYY-MM-DD_<sha-court>_audit-report.md
+└── YYYY-MM-DD_<short-sha>_audit-report.md
 ```
 
 
-Exemple : `audit_reports/2026-05-04_a3f9c12_audit-report.md`
+Example: `audit_reports/2026-05-04_a3f9c12_audit-report.md`
 
 
-Le rapport doit inclure en en-tête :
+The report must include in the header:
 
 
 ```
-Commit audité  : <SHA complet>
-Date d'audit   : YYYY-MM-DD
-Auditeur       : [Nom / Outil IA]
-Fichiers lus   : TECH_STACK.md, AUDIT_INSTRUCTIONS.md (versions du jour)
+Commit audited  : <Full SHA>
+Audit date     : YYYY-MM-DD
+Auditor        : [Name / AI Tool]
+Files read     : TECH_STACK.md, AUDIT_INSTRUCTIONS.md (current versions)
 ```
 
 
-### 8.5 — Contrôle de cohérence finale (fin de session d'audit)
+### 8.5 — Final Consistency Check (end of audit session)
 
 
-- [ ] `TECH_STACK.md` reflète l'état actuel du dépôt (pas de dépendance manquante, pas de service non documenté)
+- [ ] `TECH_STACK.md` reflects the current state of the repository (no missing dependency, no undocumented service)
 - [ ] `AUDIT_INSTRUCTIONS.md` covers all active files and components of the repository
 - [ ] The field `Dernier commit audité` in `TECH_STACK.md` is up to date
 - [ ] The audit report is archived in `audit_reports/` with the naming convention
-- [ ] Fixed vulnerabilities since the last audit have been removed or marked `[RÉSOLU]` in `AUDIT_INSTRUCTIONS.md`
+- [ ] Fixed vulnerabilities since the last audit have been removed or marked `[RESOLVED]` in `AUDIT_INSTRUCTIONS.md`
 - [ ] No sensitive information (API key, password, token) appears in clear text in the documentation files
