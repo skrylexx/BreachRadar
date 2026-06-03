@@ -735,15 +735,15 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: Backend foundations in place (Models, Security, Routers). CVE engine initialized.
-**Commit**: `HEAD`
-**What's left (Backend Priority)**:
-- [ ] Finalize `CVEMonitor` (implement OSV.dev and actual polling).
-- [ ] Connect the Profile page to actual actions (Change Password, Toggle MFA).
-- [ ] Implement storage and testing of "Custom Sources" (RSS/Atom).
-- [ ] Finalize actual PDF export and global report generation.
+**Stopped at**: `frontend/next.config.ts` — CSP made dynamic.
+**Commit**: `c048f50f4e361164fa61783a03c7fb58fe3ae016`
+**What's left**:
+- [ ] Resume backend development (CVE polling, profile actions).
+- [ ] Resolve remaining 28 `mypy` errors in the backend.
+- [ ] Finalize OSV.dev fetcher for CVE engine.
 
 **Watch points**:
-- Respect NVD rate-limits (5 req/30s).
-- Use `feedparser` for custom sources (watch out for XSS injections).
-- Properly migrate secrets from `.env` to DB in a secure manner.
+- CSP is now dynamic; ensure `NEXT_PUBLIC_API_URL` is correctly set in production environments.
+- NVD rate-limits (5 req/30s) still apply for CVE polling.
+- Manual `ALTER TABLE` in `init_db.py` is a pragmatic fix for dev; consider Alembic if schema complexity increases.
+
