@@ -199,6 +199,10 @@ BreachRadar integrates strict role management to meet SOC requirements.
 1.  Check the [ROADMAP.md](ROADMAP.md) to see what's planned.
 2.  Read the [CONTRIBUTING.md](CONTRIBUTING.md) guide for coding standards and pull request procedures.
 
+<br/>
+
+[![Support the project on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20the%20project-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/skrylexx)
+
 ---
 
 ## Legal Framework
