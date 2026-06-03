@@ -281,6 +281,22 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 ## 6. Handoff History
 
+### Handoff #16 — 2026-06-03
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : `6634dcf1f76bb3f45d691745849c0b09ca70d8aa`
+- **Tasks accomplished**:
+  - **CORS & Proxy Fix**: Resolved the "Access-Control-Allow-Origin" error by forcing the frontend to use the Next.js rewrite proxy.
+  - **next.config.ts**: Updated to use an absolute `backendUrl` for the server-side proxy and CSP, while exposing an empty `NEXT_PUBLIC_API_URL` to the client to ensure relative paths are used.
+  - **Backend CORS**: Broadened `cors_origins` in `backend/app/core/config.py` to support more development scenarios.
+- **Next task**: Verify the fix on the user's environment and resume backend development.
+- **Points of vigilance**:
+  - The proxy now expects `/api` in the frontend path and correctly forwards it to the backend's `/api` prefix.
+- **Updated files**: frontend/next.config.ts · backend/app/core/config.py · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
 ### Handoff #15 — 2026-06-03
 
 - **Outgoing Agent**           : Gemini CLI
