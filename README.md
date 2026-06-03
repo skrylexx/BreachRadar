@@ -8,19 +8,25 @@
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org)
 [![Next.js 15.5](https://img.shields.io/badge/Next.js-15.5-black.svg)](https://nextjs.org/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![CI/CD Security Audit](https://github.com/skrylexx/BreachRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/skrylexx/BreachRadar/actions)
 
 ---
 
 ## Présentation
 
-BreachRadar détecte si des données appartenant à un domaine (`@mondomaine.fr`) ont été compromises, en agrégeant plusieurs sources publiques et APIs légitimes, et produit un **rapport neutre sans donnée sensible exposée** directement dans une interface web dédiée (WebUI).
+**BreachRadar est un agrégateur souverain de Threat Intelligence (CTI).**
+Il détecte si des données appartenant à un domaine (`@mondomaine.fr`) ont été compromises en interrogeant et en unifiant simultanément plusieurs dizaines de sources publiques et APIs spécialisées (Clear, Deep et Dark Web).
 
-**Deux dimensions complémentaires :**
+🛡️ **La promesse pour les équipes SOC & CERT :**
+> Ne dispersez plus vos analystes sur 5 outils différents. BreachRadar centralise la détection de fuites, surveille l'activité des groupes Ransomware en temps réel, et génère des **rapports neutres et actionnables (zéro donnée sensible stockée)** directement dans une interface web unifiée (WebUI). Gagnez en réactivité et divisez votre temps de qualification par trois.
 
-| Dimension | Description | Sources |
+**Deux dimensions complémentaires de détection :**
+
+| Dimension | Description | Sources Agrégées |
 |---|---|---|
-| **Backward-looking** | Fuites passées dans des breaches connues | HIBP, LeakCheck, Dehashed, IntelX |
-| **Forward-looking** | Early Warning ransomware — domaine listé avant publication | **RansomLook** (gratuit, Docker ou SaaS) |
+| **Backward-looking** | Fuites de données passées et mots de passe compromis | HIBP, LeakCheck, Dehashed, IntelX... |
+| **Forward-looking** | Early Warning ransomware — domaine listé avant publication | **RansomLook** (Veille Dark Web active) |
 
 > ⚠️ **RansomLook** est la seule source capable de détecter une compromission massive *en cours*, avant que les données ne soient publiées. Fenêtre de réaction typique : 5 à 30 jours.
 

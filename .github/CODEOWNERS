@@ -1,0 +1,10 @@
+# 🛡️ CODEOWNERS - BreachRadar
+# Ce fichier assigne automatiquement les relecteurs des Pull Requests.
+
+# Par défaut, skrylexx est propriétaire de tout le code.
+* @skrylexx
+
+# Plus tard, si l'équipe s'agrandit, on pourra spécifier par dossier :
+# /frontend/ @expert-front
+# /backend/ @expert-back
+# /.github/workflows/ @devops-team

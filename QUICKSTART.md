@@ -26,10 +26,29 @@ Ce guide vous accompagne pas à pas pour configurer l'environnement et lancer Br
 
 Cette méthode lance toute l'infrastructure (PostgreSQL, Redis, Tor, Backend, Frontend) en quelques secondes.
 
-1. **Lancez la stack complète** :
+Vous avez deux façons de lancer le projet selon votre besoin : le **Mode Production** (réel) ou le **Mode Démonstration** (Mocks).
+
+### 🚀 Lancement Classique (Mode Production)
+C'est le mode standard. BreachRadar interroge les vraies API avec les clés que vous avez configurées.
+1. Assurez-vous que `MOCK_MODE=false` dans votre fichier `.env`.
+2. **Lancez la stack complète** :
    ```bash
    docker compose up -d
    ```
+
+### 📸 Lancement pour Démonstration (Mode Mock)
+Ce mode génère de fausses données (alertes critiques, CVE, ransomwares, fuites d'emails) dynamiquement. Il est **idéal pour tester l'interface**, faire des démonstrations ou prendre des **captures d'écran pour LinkedIn** sans exposer vos vraies données ni consommer de vrais quotas API.
+1. Ouvrez votre fichier `.env` et définissez :
+   ```bash
+   MOCK_MODE=true
+   ```
+2. **Lancez la stack complète** :
+   ```bash
+   docker compose up -d
+   ```
+*(Note : Vous pouvez aussi basculer ce mode à chaud sans redémarrer Docker via l'interface web dans **Admin > Paramètres > Avancé**).*
+
+---
 
 2. **Vérifiez le statut** :
    ```bash
