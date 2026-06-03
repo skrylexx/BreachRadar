@@ -1,219 +1,219 @@
-# SECURITY.md — Procédures de Sécurité BreachRadar
+# SECURITY.md — BreachRadar Security Procedures
 
-> **Document critique** — À lire avant toute manipulation de clés API.
-> Révisé : 2026-04-30 | Version : 1.0
-
----
-
-## Contexte de risque
-
-Ce projet manipule des **clés API à coût réel** (certaines > 100 €/mois) et accède à des données de sécurité sensibles. Une fuite de clé API peut entraîner :
-
-- Facturation non autorisée sur votre compte (surtout IntelX, Dehashed)
-- Exposition de vos données de surveillance à un tiers
-- Invalidation de vos tokens par les fournisseurs (perte d'accès immédiate)
+> **Critical Document** — Read before any API key manipulation.
+> Revised: 2026-04-30 | Version: 1.0
 
 ---
 
-## 1. Règles absolues (non négociables)
+## Risk Context
+
+This project handles **real-cost API keys** (some > €100/month) and accesses sensitive security data. An API key leak can lead to:
+
+- Unauthorized billing on your account (especially IntelX, Dehashed)
+- Exposure of your monitoring data to a third party
+- Invalidation of your tokens by providers (immediate loss of access)
+
+---
+
+## 1. Absolute Rules (Non-negotiable)
 
 ```
-❌ JAMAIS de clé API dans un fichier versionné (git commit)
-❌ JAMAIS de clé API dans les logs applicatifs
-❌ JAMAIS de clé API dans les variables Docker exposées publiquement
-❌ JAMAIS de partage de clé API par email ou messagerie non chiffrée
-❌ JAMAIS de clé API dans un rapport généré
+❌ NEVER put API keys in a versioned file (git commit)
+❌ NEVER put API keys in application logs
+❌ NEVER put API keys in publicly exposed Docker variables
+❌ NEVER share API keys via email or unencrypted messaging
+❌ NEVER put API keys in a generated report
 
-✅ Uniquement dans .env (gitignored)
-✅ Chiffrement en base de données via Fernet pour les clés configurées depuis la WebUI
-✅ Une clé = un usage = un projet
+✅ Only in .env (gitignored)
+✅ Database encryption via Fernet for keys configured from the WebUI
+✅ One key = one use = one project
 ```
 
 ---
 
-## 2. Checklist avant le premier lancement
+## 2. Checklist Before First Launch
 
-### 2.1 Vérification du .gitignore
+### 2.1 .gitignore Verification
 
 ```bash
-# S'assurer que .env est bien ignoré
+# Ensure .env is properly ignored
 cat .gitignore | grep "^\.env$"
-# Doit afficher : .env
+# Should display: .env
 
-# Vérifier qu'aucune clé n'est déjà suivie par git
+# Verify that no key is already tracked by git
 git ls-files | grep "\.env"
-# Doit retourner VIDE — si non, voir section 5.2
+# Should return EMPTY — if not, see section 5.2
 ```
 
-### 2.2 Vérification avant chaque commit
+### 2.2 Verification Before Each Commit
 
 ```bash
-# Scanner le repo pour détecter des secrets potentiels
-# (à lancer manuellement ou via pre-commit hook)
+# Scan the repo for potential secrets
+# (to be run manually or via pre-commit hook)
 git diff --cached | grep -iE "(api[_-]?key|token|secret|password|passwd)\s*[:=]\s*\S+"
-# Doit retourner VIDE
+# Should return EMPTY
 
-# Alternative avec detect-secrets (recommandé)
+# Alternative with detect-secrets (recommended)
 pip install detect-secrets
 detect-secrets scan > .secrets.baseline
 detect-secrets audit .secrets.baseline
 ```
 
-### 2.3 Validation du .env
+### 2.3 .env Validation
 
 ```bash
-# Vérifier que .env existe et n'est pas vide
-test -f .env && echo "OK" || echo "MANQUANT — copier .env.example"
+# Verify that .env exists and is not empty
+test -f .env && echo "OK" || echo "MISSING — copy .env.example"
 
-# Vérifier que TARGET_DOMAIN est configuré
-grep "^TARGET_DOMAIN=" .env | grep -v "=mondomaine.fr" | grep -v "=$"
-# Doit afficher votre domaine réel
+# Verify that TARGET_DOMAIN is configured
+grep "^TARGET_DOMAIN=" .env | grep -v "=mydomain.com" | grep -v "=$"
+# Should display your real domain
 
-# Scanner .env pour des clés non vides
+# Scan .env for non-empty keys
 grep -E "^[A-Z_]+=.+$" .env | grep -v "^#" | wc -l
-# Affiche le nombre de variables configurées
+# Displays the number of configured variables
 ```
 
 ---
 
-## 3. Gestion des clés API par service
+## 3. API Key Management by Service
 
-### 3.1 Tableau des risques
+### 3.1 Risk Table
 
-| Service | Coût si compromis | Révocation | Monitoring |
+| Service | Cost if Compromised | Revocation | Monitoring |
 |---|---|---|---|
-| **HIBP** | ~3,50 USD/mois max | Immédiate via dashboard | Email si usage anormal |
-| **GitHub Token** | 0 € (lecture seule) | Paramètres → Tokens | Log d'audit GitHub |
-| **URLScan** | 0 € (gratuit) | Dashboard URLScan | — |
-| **OTX AlienVault** | 0 € (gratuit) | Dashboard OTX | — |
-| **LeakCheck** | ~50 USD/mois max | Dashboard LeakCheck | Alertes d'usage |
-| **Dehashed** | ~180 USD/mois max | Dashboard Dehashed | Vérifier les logs |
-| **IntelX** | **~500 EUR/mois** ⚠️ | Contact support | **CRITIQUE — surveiller** |
-| **Shodan** | ~65 USD (one-time) | Dashboard Shodan | — |
-| **Telegram** | 0 € | Révoquer session | Sessions Telegram |
+| **HIBP** | ~3.50 USD/month max | Immediate via dashboard | Email if abnormal usage |
+| **GitHub Token** | €0 (read-only) | Settings → Tokens | GitHub audit log |
+| **URLScan** | €0 (free) | URLScan dashboard | — |
+| **OTX AlienVault** | €0 (free) | OTX dashboard | — |
+| **LeakCheck** | ~50 USD/month max | LeakCheck dashboard | Usage alerts |
+| **Dehashed** | ~180 USD/month max | Dehashed dashboard | Check logs |
+| **IntelX** | **~500 EUR/month** ⚠️ | Contact support | **CRITICAL — monitor** |
+| **Shodan** | ~65 USD (one-time) | Shodan dashboard | — |
+| **Telegram** | €0 | Revoke session | Telegram sessions |
 
-> **IntelX est le service le plus risqué** financièrement. Configurer des alertes de dépenses si votre fournisseur le permet.
+> **IntelX is the most financially risky service.** Configure spending alerts if your provider allows it.
 
-### 3.2 Principe de moindre privilège
+### 3.2 Principle of Least Privilege
 
-Pour chaque token, accorder **uniquement les droits nécessaires** :
+For each token, grant **only the necessary rights**:
 
 ```
-GitHub Token   → Scopes : public_repo (lecture seule UNIQUEMENT)
-                 ❌ Ne pas cocher : repo, admin, write:*, delete:*
+GitHub Token   → Scopes: public_repo (read-only ONLY)
+                 ❌ Do not check: repo, admin, write:*, delete:*
 
-GitLab Token   → Scopes : read_api UNIQUEMENT
-                 ❌ Ne pas cocher : write_repository, api (complet)
+GitLab Token   → Scopes: read_api ONLY
+                 ❌ Do not check: write_repository, api (full)
 
-URLScan        → Permission : Search (lecture seule)
-                 ❌ Ne pas cocher : Submit scans
+URLScan        → Permission: Search (read-only)
+                 ❌ Do not check: Submit scans
 
-Shodan         → API key standard (pas de droits admin)
+Shodan         → Standard API key (no admin rights)
 ```
 
 ---
 
-## 4. Procédures en cas d'incident
+## 4. Incident Procedures
 
-### 4.1 Clé API suspectée compromise
+### 4.1 Suspected Compromised API Key
 
 ```
-Séquence d'urgence (< 5 minutes) :
+Emergency sequence (< 5 minutes):
 
-1. RÉVOQUER la clé immédiatement (avant toute investigation)
-   → Ne pas attendre de confirmer la compromission
-   → Une révocation non nécessaire est moins grave qu'une clé active compromise
+1. REVOKE the key immediately (before any investigation)
+   → Do not wait to confirm compromise
+   → An unnecessary revocation is less serious than an active compromised key
 
-2. GÉNÉRER une nouvelle clé (nouveau secret, nouvelle valeur)
+2. GENERATE a new key (new secret, new value)
 
-3. METTRE À JOUR le .env local (remplacer l'ancienne valeur)
+3. UPDATE the local .env (replace the old value)
 
-4. VÉRIFIER les logs d'utilisation de l'ancienne clé (si le service le permet)
-   → Identifier les requêtes anormales
+4. VERIFY the usage logs of the old key (if the service allows it)
+   → Identify abnormal requests
 
-5. NOTER l'incident : date, service, clé concernée, vecteur supposé
+5. NOTE the incident: date, service, concerned key, suspected vector
 
-6. Si IntelX ou Dehashed compromis → contacter le support pour signaler
-   un usage frauduleux potentiel
+6. If IntelX or Dehashed compromised → contact support to report
+   potential fraudulent usage
 ```
 
-### 4.2 Secret trouvé dans un commit git
+### 4.2 Secret Found in a Git Commit
 
 ```bash
-# 1. Ne pas paniquer — mais agir vite
+# 1. Do not panic — but act fast
 
-# 2. Révoquer la clé IMMÉDIATEMENT (voir 4.1)
+# 2. Revoke the key IMMEDIATELY (see 4.1)
 
-# 3. Nettoyer l'historique git (si repo public ou partagé)
-#    ATTENTION : réécriture d'historique — coordonner avec les collaborateurs
+# 3. Clean git history (if public or shared repo)
+#    CAUTION: history rewriting — coordinate with collaborators
 
-# Option A : git filter-branch (deprecated mais universel)
+# Option A: git filter-branch (deprecated but universal)
 git filter-branch --force --index-filter \
   'git rm --cached --ignore-unmatch .env' \
   --prune-empty --tag-name-filter cat -- --all
 
-# Option B : BFG Repo Cleaner (recommandé, plus rapide)
+# Option B: BFG Repo Cleaner (recommended, faster)
 # https://rtyley.github.io/bfg-repo-cleaner/
 java -jar bfg.jar --delete-files .env
 
-# 4. Force-push (DANGEREUX — confirmer avec l'équipe)
+# 4. Force-push (DANGEROUS — confirm with team)
 git push origin --force --all
 git push origin --force --tags
 
-# 5. Invalider les clones existants (GitHub : contacter le support)
+# 5. Invalidate existing clones (GitHub: contact support)
 ```
 
-### 4.3 Rapport généré contenant des données inattendues
+### 4.3 Generated Report Containing Unexpected Data
 
 ```bash
-# 1. Supprimer le rapport immédiatement
-rm reports/<fichier_suspect>
+# 1. Delete the report immediately
+rm reports/<suspect_file>
 
-# 2. Vérifier les autres rapports du même scan
+# 2. Check other reports from the same scan
 ls -la reports/
 
-# 3. Analyser ce qui a "filtré" en utilisant grep
+# 3. Analyze what "leaked" using grep
 grep -rE "(password|hash|[a-f0-9]{40})" reports/
-# Si résultat non vide → bug critique dans le sanitizer → ouvrir une issue
+# If result is not empty → critical bug in the sanitizer → open an issue
 
-# 4. Ne jamais transmettre le rapport suspect — le purger
+# 4. Never transmit the suspect report — purge it
 ```
 
 ---
 
-## 5. Configuration de l'environnement de développement sécurisé
+## 5. Secure Development Environment Configuration
 
-### 5.1 Pre-commit hooks (fortement recommandé)
+### 5.1 Pre-commit Hooks (Strongly Recommended)
 
 ```bash
-# Installer pre-commit
+# Install pre-commit
 pip install pre-commit
 
-# Créer .pre-commit-config.yaml à la racine
+# Create .pre-commit-config.yaml at root
 ```
 
-Contenu du `.pre-commit-config.yaml` :
+`.pre-commit-config.yaml` content:
 
 ```yaml
 repos:
-  # Détection de secrets
+  # Secret detection
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
 
-  # Vérification que .env n'est pas commité
+  # Verify .env is not committed
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
       - id: check-merge-conflict
-      - id: detect-private-key      # Détecte les clés privées RSA/SSH
+      - id: detect-private-key      # Detects RSA/SSH private keys
       - id: no-commit-to-branch
-        args: ['--branch', 'main']  # Interdit les commits directs sur main
+        args: ['--branch', 'main']  # Forbids direct commits to main
 
-  # Linter Python
+  # Python Linter
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.0
     hooks:
@@ -222,82 +222,82 @@ repos:
 ```
 
 ```bash
-# Activer les hooks
+# Activate hooks
 pre-commit install
 
-# Générer la baseline des secrets (faux positifs à ignorer)
+# Generate secrets baseline (false positives to ignore)
 detect-secrets scan > .secrets.baseline
 
-# Tester sur tout le repo
+# Test on the whole repo
 pre-commit run --all-files
 ```
 
-### 5.2 Variables d'environnement — bonnes pratiques
+### 5.2 Environment Variables — Best Practices
 
 ```bash
-# BIEN : charger les variables pour une seule session shell
-export HIBP_API_KEY="votre_clé"   # Temporaire, pas dans l'historique
+# GOOD: load variables for a single shell session
+export HIBP_API_KEY="your_key"   # Temporary, not in history
 
-# ENCORE MIEUX : utiliser direnv (charge .env automatiquement)
+# EVEN BETTER: use direnv (loads .env automatically)
 # https://direnv.net/
 # .envrc (gitignored) → direnv allow
 ```
 
-### 5.3 Permissions des fichiers sensibles
+### 5.3 Sensitive File Permissions
 
 ```bash
-# Sur Linux/macOS : restreindre les permissions du .env
+# On Linux/macOS: restrict .env permissions
 chmod 600 .env
 ls -la .env
-# Doit afficher : -rw------- (lecture/écriture uniquement par le propriétaire)
+# Should display: -rw------- (read/write only by owner)
 
-# Vérifier régulièrement
+# Check regularly
 find . -name ".env" -perm /044 -ls
-# Affiche les .env lisibles par group ou others — à corriger
+# Displays .env readable by group or others — to be fixed
 ```
 
 ---
 
-## 6. Tests de sécurité du code
+## 6. Code Security Tests
 
-### 6.1 Scanner le code avec Bandit
+### 6.1 Scan Code with Bandit
 
 ```bash
-# Installer bandit (analyseur de sécurité Python)
+# Install bandit (Python security analyzer)
 uv add --dev bandit
 
-# Scan complet du code source
+# Full scan of source code
 cd backend && uv run bandit -r app/ -ll -f txt
 
-# Rapport détaillé en HTML
+# Detailed report in HTML
 cd backend && uv run bandit -r app/ -f html -o security_report.html
 
-# Codes à surveiller particulièrement :
+# Codes to monitor particularly:
 # B105, B106, B107 → hardcoded passwords
-# B501, B502       → vérification SSL désactivée
-# B603, B604       → injection shell
-# B608             → injection SQL (pas de SQL ici, mais bon réflexe)
+# B501, B502       → SSL verification disabled
+# B603, B604       → shell injection
+# B608             → SQL injection (no SQL here, but good reflex)
 ```
 
-### 6.2 Scanner les dépendances avec Safety
+### 6.2 Scan Dependencies with Safety
 
 ```bash
-# Vérifier les dépendances pour des CVE connus
+# Check dependencies for known CVEs
 pip install safety
 safety check
 
-# Via uv (exporte d'abord les requirements)
+# Via uv (export requirements first)
 uv pip compile pyproject.toml -o /tmp/req.txt
 safety check -r /tmp/req.txt
 ```
 
-### 6.3 Lancer les tests de sécurité BreachRadar
+### 6.3 Run BreachRadar Security Tests
 
 ```bash
-# Tests unitaires de non-régression sécurité
+# Unit security non-regression tests
 cd backend && uv run pytest tests/test_security.py -v
 
-# Résultats attendus :
+# Expected results:
 # PASSED  test_leak_finding_has_no_sensitive_fields
 # PASSED  test_report_does_not_contain_passwords
 # PASSED  test_ransom_finding_portal_url_stored_but_visible
@@ -306,24 +306,24 @@ cd backend && uv run pytest tests/test_security.py -v
 # PASSED  test_no_ransom_no_forced_critical
 # PASSED  test_empty_scan_returns_no_severity
 
-# Tests sanitizer complets
+# Full sanitizer tests
 cd backend && uv run pytest tests/test_sanitizer.py -v --tb=short
 
-# Couverture complète
+# Full coverage
 cd backend && uv run pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
-### 6.4 Vérification manuelle du sanitizer
+### 6.4 Manual Sanitizer Verification
 
 ```python
-# Script de vérification rapide (à lancer avant chaque release)
-# Sauvegarder comme backend/scripts/verify_sanitizer.py
+# Quick verification script (to be run before each release)
+# Save as backend/scripts/verify_sanitizer.py
 
 from app.engine.sanitizer import DataSanitizer
 
 sanitizer = DataSanitizer()
 
-# Cas de test critiques
+# Critical test cases
 test_cases = [
     ("password:abc123",                           True,  "password"),
     ("5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8",  True,  "sha1"),
@@ -331,90 +331,90 @@ test_cases = [
     ("$2b$12$EIXZet8OhK5P9YMQjL9BreWEcEidiFuUxH6EzkyovJlbHcCy9TLWK",   True,  "bcrypt"),
     ("ghp_1234567890abcdefghij1234567890abcdef12",                        True,  "github_token"),
     ("api_key=sk-prod-xxxxxxxxxxxxx",              True,  "api_key"),
-    ("alice@mondomaine.fr",                        False, "clean_email"),
+    ("alice@mydomain.com",                        False, "clean_email"),
     ("Adobe 2013",                                 False, "clean_breach"),
 ]
 
-print("=== Vérification Sanitizer ===\n")
+print("=== Sanitizer Verification ===\n")
 all_ok = True
 for text, should_be_sensitive, label in test_cases:
     result = sanitizer.sanitize(text)
     is_sensitive = result.has_any_sensitive_data
-    status = "✅" if is_sensitive == should_be_sensitive else "❌ ÉCHEC"
+    status = "✅" if is_sensitive == should_be_sensitive else "❌ FAILURE"
     if is_sensitive != should_be_sensitive:
         all_ok = False
-    print(f"{status} [{label}] has_sensitive={is_sensitive} (attendu={should_be_sensitive})")
+    print(f"{status} [{label}] has_sensitive={is_sensitive} (expected={should_be_sensitive})")
 
-print(f"\n{'✅ Tous les tests passent.' if all_ok else '❌ DES TESTS ÉCHOUENT — NE PAS DÉPLOYER'}")
+print(f"\n{'✅ All tests passed.' if all_ok else '❌ SOME TESTS FAILED — DO NOT DEPLOY'}")
 ```
 
 ```bash
-# Lancer la vérification
+# Run verification
 cd backend && uv run python scripts/verify_sanitizer.py
 ```
 
 ---
 
-## 7. Checklist de déploiement
+## 7. Deployment Checklist
 
-Avant chaque mise en production ou partage du projet :
+Before each production release or project sharing:
 
 ```
-[ ] .env est dans .gitignore ET n'est pas tracké par git
-[ ] git status ne montre aucun fichier sensible en staged
-[ ] detect-secrets scan ne retourne aucun nouveau secret
-[ ] pre-commit run --all-files passe sans erreur
-[ ] uv run pytest tests/test_security.py passe à 100%
-[ ] uv run bandit -r breachradar/ -ll ne retourne aucun HIGH
-[ ] Les clés API dans .env ont les permissions minimales nécessaires
-[ ] Les clés API ont une date d'expiration configurée (si le service le permet)
-[ ] Un mécanisme de révocation rapide est documenté (section 4.1)
-[ ] docker-compose.yml : RansomLook exposé sur 127.0.0.1 uniquement (jamais 0.0.0.0)
-[ ] Aucune donnée sensible dans les rapports générés (reports/)
+[ ] .env is in .gitignore AND is not tracked by git
+[ ] git status shows no sensitive files in staged
+[ ] detect-secrets scan returns no new secrets
+[ ] pre-commit run --all-files passes without error
+[ ] uv run pytest tests/test_security.py passes 100%
+[ ] uv run bandit -r breachradar/ -ll returns no HIGH
+[ ] API keys in .env have the minimum necessary permissions
+[ ] API keys have a configured expiration date (if the service allows it)
+[ ] A quick revocation mechanism is documented (section 4.1)
+[ ] docker-compose.yml: RansomLook exposed on 127.0.0.1 only (never 0.0.0.0)
+[ ] No sensitive data in generated reports (reports/)
 ```
 
 ---
 
-## 8. Rotation périodique des clés
+## 8. Periodic Key Rotation
 
-Planifier la rotation selon le coût/risque du service :
+Schedule rotation based on service cost/risk:
 
-| Service | Fréquence recommandée | Action |
+| Service | Recommended Frequency | Action |
 |---|---|---|
-| GitHub Token | Tous les 90 jours | Paramètres → Tokens → Régénérer |
-| HIBP | Tous les 6 mois | Dashboard HIBP → Nouvelle clé |
-| GitLab Token | Tous les 90 jours | Préférences → Tokens |
-| IntelX | Tous les 3 mois ⚠️ | Support IntelX |
-| Dehashed | Tous les 6 mois | Dashboard → API Key |
-| LeakCheck | Tous les 6 mois | Dashboard → API |
-| URLScan | Annuel | Dashboard URLScan |
-| OTX | Annuel | Settings → API Key |
+| GitHub Token | Every 90 days | Settings → Tokens → Regenerate |
+| HIBP | Every 6 months | HIBP Dashboard → New key |
+| GitLab Token | Every 90 days | Preferences → Tokens |
+| IntelX | Every 3 months ⚠️ | IntelX Support |
+| Dehashed | Every 6 months | Dashboard → API Key |
+| LeakCheck | Every 6 months | Dashboard → API |
+| URLScan | Annual | URLScan Dashboard |
+| OTX | Annual | Settings → API Key |
 
-> Après chaque rotation : mettre à jour `.env` ou l'interface d'administration WebUI, et vérifier le tableau de bord des connecteurs API.
+> After each rotation: update `.env` or the WebUI administration interface, and check the API connectors dashboard.
 
 ---
 
-## 9. Isolation réseau recommandée
+## 9. Recommended Network Isolation
 
 ```bash
-# Option 1 : Proxy dédié pour les requêtes OSINT
-# Configurer dans .env :
+# Option 1: Dedicated proxy for OSINT requests
+# Configure in .env:
 HTTP_PROXY=socks5://127.0.0.1:1080
 HTTPS_PROXY=socks5://127.0.0.1:1080
 
-# Option 2 : VPN ou VPS dédié à BreachRadar
-# Avantage : les requêtes OSINT n'exposent pas votre IP réelle aux services tiers
+# Option 2: Dedicated VPN or VPS for BreachRadar
+# Advantage: OSINT requests do not expose your real IP to third-party services
 
-# Option 3 (développement uniquement) : Wireguard local
-# → Isole le trafic BreachRadar du reste de la machine
+# Option 3 (development only): Local Wireguard
+# → Isolates BreachRadar traffic from the rest of the machine
 ```
 
 ---
 
-## 10. Références
+## 10. References
 
 - [OWASP Secrets Management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
-- [GitHub : Scanning for secrets](https://docs.github.com/en/code-security/secret-scanning)
+- [GitHub: Scanning for secrets](https://docs.github.com/en/code-security/secret-scanning)
 - [detect-secrets](https://github.com/Yelp/detect-secrets)
 - [Bandit — Python Security Linter](https://bandit.readthedocs.io)
-- [ANSSI — Guide des bonnes pratiques](https://www.ssi.gouv.fr/guide/recommandations-relatives-a-lauthentification-multifacteur-et-aux-mots-de-passe/)
+- [ANSSI — Best Practices Guide](https://www.ssi.gouv.fr/guide/recommandations-relatives-a-lauthentification-multifacteur-et-aux-mots-de-passe/)

@@ -1,84 +1,84 @@
 # QUICKSTART — BreachRadar WebUI
 
-Ce guide vous accompagne pas à pas pour configurer l'environnement et lancer BreachRadar.
+This guide takes you step-by-step to configure the environment and launch BreachRadar.
 
-## Étape 1 : Préparation de la configuration
+## Step 1: Configuration Preparation
 
-1. **Copiez le fichier d'exemple** pour initialiser votre configuration :
+1. **Copy the example file** to initialize your configuration:
    ```bash
    cp .env.example .env
    ```
 
-2. **Éditez le fichier `.env`** en ajoutant a minima ces informations obligatoires :
-   - `TARGET_DOMAIN` : Le domaine de votre organisation (ex: `votre-entreprise.com`).
-   - `UI_DB_PASSWORD` : Un mot de passe fort pour PostgreSQL.
-   - `UI_REDIS_PASSWORD` : Un mot de passe fort pour Redis.
-   - `UI_JWT_SECRET` : Clé de chiffrement JWT (générer avec `openssl rand -hex 32`).
-   - `UI_ADMIN_EMAIL` & `UI_ADMIN_PASSWORD` : Identifiants du premier compte Admin (⚠️ le MFA est désactivé par défaut lors de la création de ce compte pour éviter de vous bloquer. L'interface vous proposera de l'activer à la première connexion).
+2. **Edit the `.env` file** by adding at least this mandatory information:
+   - `TARGET_DOMAIN`: Your organization's domain (e.g., `your-company.com`).
+   - `UI_DB_PASSWORD`: A strong password for PostgreSQL.
+   - `UI_REDIS_PASSWORD`: A strong password for Redis.
+   - `UI_JWT_SECRET`: JWT encryption key (generate with `openssl rand -hex 32`).
+   - `UI_ADMIN_EMAIL` & `UI_ADMIN_PASSWORD`: Credentials for the first Admin account (⚠️ MFA is disabled by default during the creation of this account to avoid blocking you. The interface will offer to activate it upon first login).
 
-3. **Choisissez le mode RansomLook** :
-   - **Mode local (par défaut)** : `RANSOMLOOK_MODE=local`.
-   - **Mode SaaS (API hébergée)** : `RANSOMLOOK_MODE=saas` + `RANSOMLOOK_SAAS_API_KEY`.
+3. **Choose RansomLook mode**:
+   - **Local Mode (default)**: `RANSOMLOOK_MODE=local`.
+   - **SaaS Mode (hosted API)**: `RANSOMLOOK_MODE=saas` + `RANSOMLOOK_SAAS_API_KEY`.
 
 ---
 
-## Option A : Lancement avec Docker (Recommandé)
+## Option A: Launch with Docker (Recommended)
 
-Cette méthode lance toute l'infrastructure (PostgreSQL, Redis, Tor, Backend, Frontend) en quelques secondes.
+This method launches the entire infrastructure (PostgreSQL, Redis, Tor, Backend, Frontend) in seconds.
 
-Vous avez deux façons de lancer le projet selon votre besoin : le **Mode Production** (réel) ou le **Mode Démonstration** (Mocks).
+You have two ways to launch the project depending on your needs: **Production Mode** (real) or **Demonstration Mode** (Mocks).
 
-### 🚀 Lancement Classique (Mode Production)
-C'est le mode standard. BreachRadar interroge les vraies API avec les clés que vous avez configurées.
-1. Assurez-vous que `MOCK_MODE=false` dans votre fichier `.env`.
-2. **Lancez la stack complète** :
+### 🚀 Classic Launch (Production Mode)
+This is the standard mode. BreachRadar queries real APIs with the keys you have configured.
+1. Ensure `MOCK_MODE=false` in your `.env` file.
+2. **Launch the full stack**:
    ```bash
    docker compose up -d
    ```
 
-### 📸 Lancement pour Démonstration (Mode Mock)
-Ce mode génère de fausses données (alertes critiques, CVE, ransomwares, fuites d'emails) dynamiquement. Il est **idéal pour tester l'interface**, faire des démonstrations ou prendre des **captures d'écran pour LinkedIn** sans exposer vos vraies données ni consommer de vrais quotas API.
-1. Ouvrez votre fichier `.env` et définissez :
+### 📸 Demonstration Launch (Mock Mode)
+This mode dynamically generates fake data (critical alerts, CVEs, ransomwares, email breaches). It is **ideal for testing the interface**, making demonstrations, or taking **screenshots for LinkedIn** without exposing your real data or consuming real API quotas.
+1. Open your `.env` file and set:
    ```bash
    MOCK_MODE=true
    ```
-2. **Lancez la stack complète** :
+2. **Launch the full stack**:
    ```bash
    docker compose up -d
    ```
-*(Note : Vous pouvez aussi basculer ce mode à chaud sans redémarrer Docker via l'interface web dans **Admin > Paramètres > Avancé**).*
+*(Note: You can also switch this mode on the fly without restarting Docker via the web interface in **Admin > Settings > Advanced**).*
 
 ---
 
-2. **Vérifiez le statut** :
+2. **Verify status**:
    ```bash
    docker compose ps
    ```
 
-3. **Accès** :
-   - Frontend : [http://localhost:3000](http://localhost:3000)
-   - Backend API : [http://localhost:8000/docs](http://localhost:8000/docs)
+3. **Access**:
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend API: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## Option B : Lancement sans Docker (Développement local)
+## Option B: Launch without Docker (Local Development)
 
-Utile pour modifier le code et voir les changements instantanément sans reconstruire les images.
+Useful for modifying code and seeing changes instantly without rebuilding images.
 
-### 1. Prérequis
-- PostgreSQL et Redis doivent être installés et lancés localement (ou via Docker pour ces services uniquement).
-- Python 3.12+ et Node.js 20+.
+### 1. Prerequisites
+- PostgreSQL and Redis must be installed and launched locally (or via Docker for these services only).
+- Python 3.12+ and Node.js 20+.
 
-### 2. Lancer le Backend
+### 2. Launch the Backend
 ```bash
 cd backend
 python -m venv venv
-# Activer le venv (source venv/bin/activate ou .\venv\Scripts\activate)
+# Activate venv (source venv/bin/activate or .\venv\Scripts\activate)
 pip install -e .[dev]
 uvicorn app.main:app --reload --port 8000
 ```
 
-### 3. Lancer le Frontend
+### 3. Launch the Frontend
 ```bash
 cd frontend
 npm install
@@ -87,28 +87,27 @@ npm run dev
 
 ---
 
-## Étape 3 : Accès et Premier Pas
+## Step 3: Access and First Steps
 
-1. Connectez-vous sur **[http://localhost:3000](http://localhost:3000)** avec vos identifiants admin.
-2. Si vous n'avez pas encore de clés API (HIBP, etc.), activez le **Mode Démonstration (Mock Data)** dans **Admin > Paramètres > Avancé**.
-3. Lancez votre premier scan depuis le Dashboard !
+1. Log in at **[http://localhost:3000](http://localhost:3000)** with your admin credentials.
+2. If you don't have API keys yet (HIBP, etc.), activate **Demonstration Mode (Mock Data)** in **Admin > Settings > Advanced**.
+3. Launch your first scan from the Dashboard!
 
-## Étape 4 : Tests de validation
+## Step 4: Validation Tests
 
-Simulation d'un événement GitHub (Secret Scanning) :
+Simulation of a GitHub event (Secret Scanning):
 ```bash
 curl -X POST http://localhost:8000/webhooks/github \
      -H "Content-Type: application/json" \
      -H "X-GitHub-Event: secret_scanning_alert" \
-     -d '{"action": "created", "repository": {"full_name": "votre/repo"}, "alert": {"secret_type": "aws_access_key", "html_url": "https://github.com/votre/repo/security/secret-scanning/1"}}'
+     -d '{"action": "created", "repository": {"full_name": "your/repo"}, "alert": {"secret_type": "aws_access_key", "html_url": "https://github.com/your/repo/security/secret-scanning/1"}}'
 ```
 
 ---
 
-## Fin des tests
+## End of Tests
 
-Pour éteindre proprement la stack Docker :
+To cleanly shut down the Docker stack:
 ```bash
 docker compose down
 ```
-

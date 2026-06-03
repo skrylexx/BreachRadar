@@ -1,85 +1,85 @@
 # BreachRadar — Backend API
 
-Ce dossier contient le cœur de l'application BreachRadar : l'API FastAPI et le moteur d'orchestration OSINT.
+This directory contains the core of the BreachRadar application: the FastAPI API and the OSINT orchestration engine.
 
-## 🚀 Technologies utilisées
+## 🚀 Technologies Used
 
-- **Langage** : Python 3.12+
-- **Framework Web** : [FastAPI](https://fastapi.tiangolo.com/) (Asynchrone)
-- **Base de données** : PostgreSQL avec [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (Asyncio)
-- **Migrations** : [Alembic](https://alembic.sqlalchemy.org/)
-- **Validation & Schémas** : [Pydantic v2](https://docs.pydantic.dev/)
-- **Sécurité** : JWT (HS256), BCrypt, MFA TOTP ([PyOTP](https://github.com/pyauth/pyotp))
-- **Gestion des tâches** : [APScheduler](https://apscheduler.agronholm.net/) pour les scans planifiés
-- **Cache & Rate Limiting** : [Redis](https://redis.io/) avec [SlowAPI](https://github.com/laurentS/slowapi)
-- **Gestion des dépendances** : [uv](https://github.com/astral-sh/uv) & `pyproject.toml`
+- **Language**: Python 3.12+
+- **Web Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Asynchronous)
+- **Database**: PostgreSQL with [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (Asyncio)
+- **Migrations**: [Alembic](https://alembic.sqlalchemy.org/)
+- **Validation & Schemas**: [Pydantic v2](https://docs.pydantic.dev/)
+- **Security**: JWT (HS256), BCrypt, MFA TOTP ([PyOTP](https://github.com/pyauth/pyotp))
+- **Task Management**: [APScheduler](https://apscheduler.agronholm.net/) for scheduled scans
+- **Cache & Rate Limiting**: [Redis](https://redis.io/) with [SlowAPI](https://github.com/laurentS/slowapi)
+- **Dependency Management**: [uv](https://github.com/astral-sh/uv) & `pyproject.toml`
 
-## 🛠️ Utilités du Backend
+## 🛠️ Backend Features
 
-1. **Orchestration des scans** : Pilote les différents modules de recherche (HIBP, GitHub, RansomLook, etc.).
-2. **Système CVE** : Surveille en temps réel les vulnérabilités via les flux NVD (NIST) et OSV.dev.
-3. **Persistance Historique** : Stockage des alertes critiques (ex: Ransomware `CyberFinding`) en base pour le traçage historique.
-4. **Gestion Utilisateurs** : Authentification sécurisée, rôles (Admin/Viewer), et gestion du MFA.
-5. **Génération de rapports** : Agrégation des résultats de scan en rapports HTML, Markdown ou PDF.
-6. **Webhooks** : Endpoint de réception pour les alertes externes (ex: GitHub Secret Scanning).
+1. **Scan Orchestration**: Drives various research modules (HIBP, GitHub, RansomLook, etc.).
+2. **CVE System**: Monitors vulnerabilities in real-time via NVD (NIST) and OSV.dev feeds.
+3. **Historical Persistence**: Storage of critical alerts (e.g., Ransomware `CyberFinding`) in the database for historical tracking.
+4. **User Management**: Secure authentication, roles (Admin/Viewer), and MFA management.
+5. **Report Generation**: Aggregates scan results into HTML, Markdown, or PDF reports.
+6. **Webhooks**: Reception endpoint for external alerts (e.g., GitHub Secret Scanning).
 
-## 📡 Endpoints principaux
+## 📡 Main Endpoints
 
-L'API est documentée via Swagger UI à l'adresse `/docs` (en mode développement).
+The API is documented via Swagger UI at `/docs` (in development mode).
 
-- `/auth` : Authentification, rafraîchissement de token, vérification MFA.
-- `/users` : Gestion des comptes utilisateurs et profils.
-- `/scans` : Déclenchement manuel et historique des scans de domaine.
-- `/api/v1/dashboard` : Statistiques agrégées pour les graphiques du frontend.
-- `/api/v1/cve` : Consultation et filtrage des vulnérabilités détectées.
-- `/api/v1/ransomlook` : Données de surveillance des groupes de ransomware.
-- `/api/v1/intelligence` : Flux de veille et de menaces persistantes (Ransomware, RSS).
-- `/api/v1/settings` : Configuration globale, gestion des clés API OSINT.
-- `/webhooks` : Réception d'alertes externes.
+- `/auth`: Authentication, token refresh, MFA verification.
+- `/users`: User account and profile management.
+- `/scans`: Manual triggering and history of domain scans.
+- `/api/v1/dashboard`: Aggregated statistics for frontend charts.
+- `/api/v1/cve`: Consultation and filtering of detected vulnerabilities.
+- `/api/v1/ransomlook`: Ransomware group monitoring data.
+- `/api/v1/intelligence`: Intelligence and persistent threat feeds (Ransomware, RSS).
+- `/api/v1/settings`: Global configuration, OSINT API key management.
+- `/webhooks`: Reception of external alerts.
 
-## 💻 Installation locale (sans Docker)
+## 💻 Local Installation (without Docker)
 
-Si vous souhaitez lancer le backend nativement pour le développement :
+If you want to run the backend natively for development:
 
-### 1. Prérequis
-- Python 3.12 installé.
-- Une instance **PostgreSQL** active (créer une DB `breachradar`).
-- Une instance **Redis** active.
+### 1. Prerequisites
+- Python 3.12 installed.
+- An active **PostgreSQL** instance (create a `breachradar` DB).
+- An active **Redis** instance.
 
-### 2. Setup de l'environnement
+### 2. Environment Setup
 ```bash
-# Se placer dans le dossier backend
+# Go to the backend directory
 cd backend
 
-# Créer l'environnement virtuel
+# Create the virtual environment
 python -m venv venv
 
-# Activer l'environnement virtuel
-# Sur Windows :
+# Activate the virtual environment
+# On Windows:
 .\venv\Scripts\activate
-# Sur Linux/macOS :
+# On Linux/macOS:
 source venv/bin/activate
 
-# Installer les dépendances en mode éditable
+# Install dependencies in editable mode
 pip install -e .[dev]
 ```
 
 ### 3. Configuration
-Assurez-vous d'avoir un fichier `.env` à la racine du projet (BreachRadar/) avec les variables nécessaires (voir `.env.example`).
+Ensure you have a `.env` file at the project root (BreachRadar/) with the necessary variables (see `.env.example`).
 
-### 4. Lancement
+### 4. Running
 ```bash
-# Lancer l'API avec auto-reload
+# Run the API with auto-reload
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
-L'API sera accessible sur [http://localhost:8000](http://localhost:8000).
+The API will be accessible at [http://localhost:8000](http://localhost:8000).
 
-## 🧪 Tests & Qualité
+## 🧪 Tests & Quality
 ```bash
-# Lancer les tests
+# Run tests
 pytest
 
-# Vérification du typage
+# Type checking
 mypy .
 
 # Linting

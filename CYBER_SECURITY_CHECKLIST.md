@@ -1,72 +1,72 @@
-# 🛡️ Procédure de Vérification Cyber & Maintenance — BreachRadar
+# 🛡️ Cyber Verification & Maintenance Procedure — BreachRadar
 
-Ce document détaille les points de contrôle critiques à valider à chaque itération de développement pour maintenir un niveau de sécurité maximal ("Secure by Default").
+This document details the critical control points to validate at each development iteration to maintain a maximum security level ("Secure by Default").
 
-## 📅 Fréquence recommandée : À chaque Pull Request ou Itération majeure.
-
----
-
-## 🏗️ 1. Intégrité de la Supply Chain (Docker & Build)
-*Objectif : Empêcher l'empoisonnement de la chaîne de build et garantir la reproductibilité.*
-
-- [ ] **Épinglage des Images** : Vérifier que tous les `FROM` dans les `Dockerfile` et les `image:` dans `docker-compose.yml` utilisent des hash SHA256 (`image:tag@sha256:...`).
-- [ ] **Installation de Paquets** : Interdire l'usage de `curl | sh`. Utiliser les images officielles (ex: `COPY --from=ghcr.io/astral-sh/uv...`) ou des gestionnaires de paquets avec signature.
-- [ ] **Privilèges Conteneurs** : 
-    - [ ] `security_opt: [no-new-privileges:true]` activé sur tous les services.
-    - [ ] `cap_drop: [ALL]` par défaut, avec réactivation chirurgicale uniquement si nécessaire (`SETUID`, `SETGID`, etc.).
-    - [ ] Utilisateur non-root (`brapi`, `nextjs`) utilisé à l'exécution.
-
-## 🔍 2. Sécurité Applicative & Anti-Injection
-*Objectif : Neutraliser les vecteurs d'attaque web classiques (OWASP Top 10).*
-
-- [ ] **Validation SSRF** : Tout paramètre utilisateur servant de cible de scan (ex: `target_domain`) doit être validé par une Regex stricte et une blacklist d'IPs locales (127.0.0.1, localhost).
-- [ ] **Sanitization OSINT** : Vérifier que les données brutes des API tierces passent par `DataSanitizer` avant stockage et que le frontend utilise l'auto-escaping (par défaut dans React/Next.js).
-- [ ] **Injections SQL/Commandes** : 
-    - [ ] Utiliser exclusivement SQLAlchemy ORM avec paramètres liés (pas de f-strings dans les requêtes).
-    - [ ] Interdire `shell=True` dans `subprocess` et valider les arguments passés à `theHarvester`.
-- [ ] **Webhooks** : Vérifier systématiquement la signature HMAC (ex: `X-Hub-Signature-256` pour GitHub).
-
-## 🔐 3. Authentification & Contrôle d'Accès (RBAC)
-*Objectif : Garantir l'étanchéité des privilèges et la protection des comptes.*
-
-- [x] **MFA (Multi-Factor Auth)** : 
-    - [x] Vérifier que le secret TOTP est chiffré en base via Fernet.
-    - [x] Valider la présence d'une protection brute-force (Redis counter) sur l'endpoint `/mfa/verify`.
-    - [x] S'assurer que les codes de secours (backup codes) sont hachés (Bcrypt).
-- [x] **Permissions API** : Vérifier que les endpoints sensibles (`/settings`, `/api_keys`, `/users`) utilisent la dépendance `AdminUser` et non `ViewerUser`.
-- [x] **Gestion des Secrets** : 
-    - [x] Aucune clé API ou mot de passe ne doit apparaître dans les logs (`logger.info`).
-    - [x] Les clés API OSINT ne doivent jamais être renvoyées au frontend (masquage ou omission dans les schémas Pydantic).
-
-## 🌐 4. Sécurisation des Communications & Sessions
-*Objectif : Protéger les données en transit et les jetons d'accès.*
-
-- [x] **Sécurité des Cookies** : 
-    - [x] `HttpOnly: true`, `Secure: true` (en prod), `SameSite: Lax`.
-    - [x] `path` restreint pour le `refresh_token` (ex: `/api/v1/auth/refresh`).
-- [x] **Headers HTTP (CSP)** : 
-    - [x] `Content-Security-Policy` sans `unsafe-inline` ni `unsafe-eval` pour les scripts.
-    - [x] `HSTS` activé avec un `max-age` long (1 an).
-    - [x] `Permissions-Policy` configurée pour désactiver caméra/micro.
-- [x] **CORS** : `allow_origins` restreint aux domaines autorisés (jamais `*`).
-
-## 📦 5. Veille Dépendances & SCA (Software Composition Analysis)
-*Objectif : Identifier et corriger les vulnérabilités dans les bibliothèques tierces.*
-
-- [x] **Scan Backend** : Exécuter `rtk python -m pip_audit` (ou équivalent) sur le répertoire `backend/`.
-- [x] **Scan Frontend** : Exécuter `npm audit` dans le répertoire `frontend/`.
-- [x] **Vigilance Critique** : Surveiller les versions de `Next.js`, `FastAPI`, `Cryptography` et `Pydantic`.
+## 📅 Recommended Frequency: At every Pull Request or major iteration.
 
 ---
 
-## 🛠️ Outils de vérification rapide
+## 🏗️ 1. Supply Chain Integrity (Docker & Build)
+*Goal: Prevent build chain poisoning and guarantee reproducibility.*
+
+- [ ] **Image Pinning**: Verify that all `FROM` in `Dockerfile` and `image:` in `docker-compose.yml` use SHA256 hashes (`image:tag@sha256:...`).
+- [ ] **Package Installation**: Prohibit the use of `curl | sh`. Use official images (e.g., `COPY --from=ghcr.io/astral-sh/uv...`) or package managers with signatures.
+- [ ] **Container Privileges**: 
+    - [ ] `security_opt: [no-new-privileges:true]` enabled on all services.
+    - [ ] `cap_drop: [ALL]` by default, with surgical reactivation only if necessary (`SETUID`, `SETGID`, etc.).
+    - [ ] Non-root user (`brapi`, `nextjs`) used at runtime.
+
+## 🔍 2. Application Security & Anti-Injection
+*Goal: Neutralize classic web attack vectors (OWASP Top 10).*
+
+- [ ] **SSRF Validation**: Any user parameter serving as a scan target (e.g., `target_domain`) must be validated by a strict Regex and a blacklist of local IPs (127.0.0.1, localhost).
+- [ ] **OSINT Sanitization**: Verify that raw data from third-party APIs passes through `DataSanitizer` before storage and that the frontend uses auto-escaping (default in React/Next.js).
+- [ ] **SQL/Command Injections**: 
+    - [ ] Exclusively use SQLAlchemy ORM with bound parameters (no f-strings in queries).
+    - [ ] Prohibit `shell=True` in `subprocess` and validate arguments passed to `theHarvester`.
+- [ ] **Webhooks**: Systematically verify HMAC signatures (e.g., `X-Hub-Signature-256` for GitHub).
+
+## 🔐 3. Authentication & Access Control (RBAC)
+*Goal: Ensure privilege isolation and account protection.*
+
+- [x] **MFA (Multi-Factor Auth)**: 
+    - [x] Verify that the TOTP secret is encrypted in the database via Fernet.
+    - [x] Validate the presence of brute-force protection (Redis counter) on the `/mfa/verify` endpoint.
+    - [x] Ensure that backup codes are hashed (Bcrypt).
+- [x] **API Permissions**: Verify that sensitive endpoints (`/settings`, `/api_keys`, `/users`) use the `AdminUser` dependency and not `ViewerUser`.
+- [x] **Secrets Management**: 
+    - [x] No API keys or passwords should appear in logs (`logger.info`).
+    - [x] OSINT API keys must never be returned to the frontend (masking or omission in Pydantic schemas).
+
+## 🌐 4. Communication & Session Security
+*Goal: Protect data in transit and access tokens.*
+
+- [x] **Cookie Security**: 
+    - [x] `HttpOnly: true`, `Secure: true` (in prod), `SameSite: Lax`.
+    - [x] `path` restricted for the `refresh_token` (e.g., `/api/v1/auth/refresh`).
+- [x] **HTTP Headers (CSP)**: 
+    - [x] `Content-Security-Policy` without `unsafe-inline` or `unsafe-eval` for scripts.
+    - [x] `HSTS` enabled with a long `max-age` (1 year).
+    - [x] `Permissions-Policy` configured to disable camera/microphone.
+- [x] **CORS**: `allow_origins` restricted to authorized domains (never `*`).
+
+## 📦 5. Dependency Monitoring & SCA (Software Composition Analysis)
+*Goal: Identify and fix vulnerabilities in third-party libraries.*
+
+- [x] **Backend Scan**: Run `rtk python -m pip_audit` (or equivalent) in the `backend/` directory.
+- [x] **Frontend Scan**: Run `npm audit` in the `frontend/` directory.
+- [x] **Critical Vigilance**: Monitor versions of `Next.js`, `FastAPI`, `Cryptography`, and `Pydantic`.
+
+---
+
+## 🛠️ Quick Verification Tools
 ```bash
-# Vérifier les images Docker non-hashées
+# Check for unhashed Docker images
 grep "image:" docker-compose.yml | grep -v "@sha256"
 
-# Chercher des usages dangereux de subprocess
+# Search for dangerous subprocess usage
 grep -r "shell=True" backend/app/
 
-# Vérifier les endpoints Admin potentiellement mal protégés
+# Check for potentially unprotected Admin endpoints
 grep -r "ViewerUser" backend/app/routers/ | grep -E "settings|api_keys|users"
 ```

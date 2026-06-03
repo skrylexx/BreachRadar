@@ -1,50 +1,50 @@
 # AUDIT_INSTRUCTIONS — BreachRadar Security Audit
 
-> ⚠️ Lire `READ_BEFORE_RUN.md` avant toute exécution.
-> Ce fichier définit le périmètre, les livrables et les règles d'audit.
-> La description technique complète est dans `TECH_STACK.md`.
+> ⚠️ Read `READ_BEFORE_RUN.md` before any execution.
+> This file defines the scope, deliverables, and audit rules.
+> The full technical description is in `TECH_STACK.md`.
 
 ***
 
-## 0. Rôle & Posture
+## 0. Role & Stance
 
-Agis en tant qu'**Expert Senior en Cybersécurité et Ingénieur DevSecOps**.
-Tu réalises un audit de sécurité **critique, exhaustif et opérationnel** du dépôt BreachRadar.
-Tu ne fais **aucune généralité** : chaque finding cite le fichier exact, la ligne ou le bloc de code concerné.
-Si un point d'audit ne présente aucune faille, tu **justifies explicitement** pourquoi la configuration est considérée comme sûre.
+Act as a **Senior Cybersecurity Expert and DevSecOps Engineer**.
+You are performing a **critical, exhaustive, and operational** security audit of the BreachRadar repository.
+You make **no generalizations**: each finding cites the exact file, line, or code block concerned.
+If an audit point presents no flaw, you **explicitly justify** why the configuration is considered safe.
 
 ***
 
-## 1. Périmètre de l'Audit
+## 1. Audit Scope
 
-L'audit couvre **six piliers** dans cet ordre de priorité décroissant :
+The audit covers **six pillars** in this descending order of priority:
 
-### 1.1 — Authentification & Gestion des Tokens
+### 1.1 — Authentication & Token Management
 
-**Fichiers cibles :**
+**Target Files:**
 
 - `backend/app/routers/auth.py`
 - `backend/app/core/security.py`
 - `backend/app/core/redis.py`
-- `backend/app/dependencies/` (auth.py, rôles)
+- `backend/app/dependencies/` (auth.py, roles)
 
-**Points à analyser :**
+**Points to Analyze:**
 
-- Flux JWT : création, vérification, blacklist Redis (logout), rotation des access/refresh tokens
-- Algorithme HS256 : adéquation et risques (symétrique, secret partagé)
-- Cookies HttpOnly : `COOKIE_SECURE` conditionnel à `ENVIRONMENT=production` → comportement en dev
-- `COOKIE_SAMESITE = "lax"` : évaluation de la protection CSRF dans ce contexte
-- Refresh token path restreint à `/auth/refresh` : vérifier l'implémentation effective
-- MFA TOTP : endpoint `/auth/mfa/verify` retourne `501 NOT_IMPLEMENTED` → absence de MFA effectif
-- MFA setup `/auth/mfa/setup` : le secret est stocké dans `user.mfa_secret` sans activation → risque de secret orphelin non chiffré en base
-- Challenge MFA stocké dans Redis (`store_mfa_challenge`) : TTL, lien avec le user_id, résistance au brute-force
-- `password_length` stocké en clair dans le modèle User → information sensible
-- Vérification timing-constant (dummy_hash) : analyser la robustesse réelle
-- Gestion de la rotation des mots de passe : `last_password_change` + `password_length` en DB
+- JWT Flow: creation, verification, Redis blacklist (logout), access/refresh token rotation.
+- HS256 Algorithm: adequacy and risks (symmetric, shared secret).
+- HttpOnly Cookies: `COOKIE_SECURE` conditional on `ENVIRONMENT=production` → behavior in dev.
+- `COOKIE_SAMESITE = "lax"`: evaluation of CSRF protection in this context.
+- Refresh token path restricted to `/auth/refresh`: verify effective implementation.
+- MFA TOTP: endpoint `/auth/mfa/verify` returns `501 NOT_IMPLEMENTED` → absence of effective MFA.
+- MFA setup `/auth/mfa/setup`: the secret is stored in `user.mfa_secret` without activation → risk of orphaned unencrypted secret in database.
+- MFA challenge stored in Redis (`store_mfa_challenge`): TTL, link with user_id, resistance to brute-force.
+- `password_length` stored in plain text in the User model → sensitive information.
+- Constant-timing verification (dummy_hash): analyze real robustness.
+- Password rotation management: `last_password_change` + `password_length` in DB.
 
-### 1.2 — Backend FastAPI (Code & Dépendances)
+### 1.2 — Backend FastAPI (Code & Dependencies)
 
-**Fichiers cibles :**
+**Target Files:**
 
 - `backend/app/routers/scans.py`
 - `backend/app/routers/webhooks.py`
@@ -53,169 +53,169 @@ L'audit couvre **six piliers** dans cet ordre de priorité décroissant :
 - `backend/app/core/config.py`
 - `backend/app/core/init_db.py`
 - `backend/app/engine/logic.py` + `scheduler.py`
-- `backend/app/clients/` (appels OSINT externes)
+- `backend/app/clients/` (external OSINT calls)
 - `backend/pyproject.toml`
 
-**Points à analyser :**
+**Points to Analyze:**
 
-- **RBAC / Broken Access Control** : `AdminUser` vs `ViewerUser` dependencies — vérifier qu'aucun endpoint sensible n'utilise uniquement `ViewerUser` ou pas de dépendance du tout
-- **Scan trigger** (`POST /scans/trigger`) : `body.target_domain` est passé directement à `ScanManager.run_full_scan` — vérifier la validation Pydantic du domaine et les risques SSRF si ce domaine est utilisé dans des requêtes HTTP sortantes
-- **Webhook GitHub** (`POST /webhooks/github`) : vérification signature HMAC conditionnelle (`if secret_token`) — si `github_webhook_secret` absent des settings, tout POST est accepté sans authentification
-- **`init_db.py`** : création de l'admin initial depuis `INITIAL_ADMIN_EMAIL` et `INITIAL_ADMIN_PASSWORD` — vérifier si re-créé à chaque démarrage ou protégé par une condition idempotente
-- **`config.py`** : `lru_cache` sur `get_settings()` — vérifier les implications en cas de rechargement des variables d'env
-- **`extra="ignore"`** dans pydantic-settings — des variables mal nommées peuvent passer silencieusement sans erreur
-- **Dépendances** : analyser les CVE connus pour les versions pinned dans `pyproject.toml` (python-jose 3.3.0, passlib 1.7.4, python-multipart, aiohttp, etc.)
-- **`allow_headers=["*"]`** dans CORSMiddleware avec `allow_credentials=True` : évaluer la surface d'attaque CORS
-- **Logs / fuites d'informations** : vérifier que les clés API, tokens, et données sensibles ne sont pas loggués dans les clients OSINT ou le moteur
+- **RBAC / Broken Access Control**: `AdminUser` vs `ViewerUser` dependencies — verify that no sensitive endpoint uses only `ViewerUser` or no dependency at all.
+- **Scan trigger** (`POST /scans/trigger`): `body.target_domain` is passed directly to `ScanManager.run_full_scan` — verify Pydantic domain validation and SSRF risks if this domain is used in outgoing HTTP requests.
+- **GitHub Webhook** (`POST /webhooks/github`): conditional HMAC signature verification (`if secret_token`) — if `github_webhook_secret` is missing from settings, any POST is accepted without authentication.
+- **`init_db.py`**: creation of initial admin from `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` — verify if recreated at each startup or protected by an idempotent condition.
+- **`config.py`**: `lru_cache` on `get_settings()` — verify implications in case of env variable reloading.
+- **`extra="ignore"`** in pydantic-settings — poorly named variables can pass silently without error.
+- **Dependencies**: analyze known CVEs for versions pinned in `pyproject.toml` (python-jose 3.3.0, passlib 1.7.4, python-multipart, aiohttp, etc.).
+- **`allow_headers=["*"]`** in CORSMiddleware with `allow_credentials=True`: evaluate CORS attack surface.
+- **Logs / Information Leakage**: verify that API keys, tokens, and sensitive data are not logged in OSINT clients or the engine.
 
-### 1.3 — Gestion des Secrets
+### 1.3 — Secrets Management
 
-**Fichiers cibles :**
+**Target Files:**
 
 - `.env.example`
 - `docker-compose.yml`
 - `backend/app/core/config.py`
 
-**Points à analyser :**
+**Points to Analyze:**
 
-- `UI_REDIS_PASSWORD` passé dans la commande `redis-server --requirepass ${UI_REDIS_PASSWORD}` — visible via `docker inspect` ou `ps aux`
-- `NEXT_PUBLIC_API_URL` encodée dans le bundle JS statique au build-time (intentionnel mais à qualifier)
-- Absence de Docker Secrets natifs ou de gestionnaire type Vault
-- Les clés API OSINT (Shodan, HIBP, IntelX...) transitent par variables d'env — vérifier qu'elles ne sont pas exposées dans les réponses API ou les logs
-- `initial_admin_password` chargé depuis l'env au démarrage — si la DB est déjà initialisée, vérifier qu'il n'est pas re-écrit ou loggué
+- `UI_REDIS_PASSWORD` passed in the `redis-server --requirepass ${UI_REDIS_PASSWORD}` command — visible via `docker inspect` or `ps aux`.
+- `NEXT_PUBLIC_API_URL` encoded in the static JS bundle at build-time (intentional but to be qualified).
+- Absence of native Docker Secrets or Vault-like manager.
+- OSINT API keys (Shodan, HIBP, IntelX...) transit through env variables — verify they are not exposed in API responses or logs.
+- `initial_admin_password` loaded from env at startup — if the DB is already initialized, verify it is not rewritten or logged.
 
-### 1.4 — Conteneurisation (Docker & Docker Compose)
+### 1.4 — Containerization (Docker & Docker Compose)
 
-**Fichiers cibles :**
+**Target Files:**
 
 - `backend/Dockerfile`
 - `frontend/Dockerfile`
 - `docker-compose.yml`
-- `Dockerfile` (racine — si présent)
+- `Dockerfile` (root — if present)
 
-**Points à analyser :**
+**Points to Analyze:**
 
-- **Supply chain** : `curl -LsSf https://astral.sh/uv/install.sh | sh` exécuté au build — absence de vérification d'intégrité (hash/signature)
-- **Images non épinglées** : `dperson/torproxy:latest` et `travishunting/ransomlook:latest` — tags `latest` sans digest SHA256
-- **UV_SYSTEM_PYTHON=1** : installe les dépendances dans Python système (pas de venv isolé) — implications en cas de compromission
-- **`ENV HOSTNAME="0.0.0.0"`** dans le frontend runner — écoute toutes interfaces dans le conteneur (acceptable si le port est lié à 127.0.0.1 côté host, mais à documenter)
-- **Absence de `read_only: true`** sur les systèmes de fichiers des conteneurs
-- **Absence de `cap_drop: ALL`** et profils seccomp/AppArmor
-- **Bind mount `./reports:/app/reports`** — vérifier les permissions et risques de path traversal si le nom du rapport est contrôlé par un utilisateur
-- **uv installé via `/root/.cargo/bin`** puis `USER brapi` — vérifier que l'utilisateur non-root ne peut pas appeler uv pour installer des packages
+- **Supply Chain**: `curl -LsSf https://astral.sh/uv/install.sh | sh` executed at build — absence of integrity check (hash/signature).
+- **Unpinned Images**: `dperson/torproxy:latest` and `travishunting/ransomlook:latest` — `latest` tags without SHA256 digest.
+- **UV_SYSTEM_PYTHON=1**: installs dependencies in system Python (no isolated venv) — implications in case of compromise.
+- **`ENV HOSTNAME="0.0.0.0"`** in frontend runner — listens on all interfaces in the container (acceptable if port is bound to 127.0.0.1 on host side, but to be documented).
+- **Absence of `read_only: true`** on container filesystems.
+- **Absence of `cap_drop: ALL`** and seccomp/AppArmor profiles.
+- **Bind mount `./reports:/app/reports`** — verify permissions and path traversal risks if report name is user-controlled.
+- **uv installed via `/root/.cargo/bin`** then `USER brapi` — verify that non-root user cannot call uv to install packages.
 
-### 1.5 — Frontend Next.js (Headers & Exposition)
+### 1.5 — Frontend Next.js (Headers & Exposure)
 
-**Fichiers cibles :**
+**Target Files:**
 
 - `frontend/next.config.ts`
 - `frontend/package.json`
-- `frontend/src/` (composants, pages, appels API)
+- `frontend/src/` (components, pages, API calls)
 
-**Points à analyser :**
+**Points to Analyze:**
 
-- **CSP `unsafe-inline` + `unsafe-eval`** dans `script-src` — invalide la majorité des protections XSS offertes par la CSP
-- **`connect-src 'self' http://localhost:8000`** — hardcodé en HTTP (pas HTTPS), inadapté à une mise en production réelle
-- **Absence de HSTS** (`Strict-Transport-Security`) dans les headers
-- **Absence de `Permissions-Policy`** header
-- **`js-cookie`** utilisé côté client — vérifier que les tokens JWT ne sont pas stockés dans des cookies accessibles en JS (doit rester HttpOnly posé par le backend)
-- **`NEXT_PUBLIC_API_URL`** injectée au build — vérifier qu'aucune autre variable sensible ne suit ce pattern
-- **Dépendances npm** : analyser les vulnérabilités connues dans `next@15.1.3`, `react@19.0.0`, et les composants Radix UI
+- **CSP `unsafe-inline` + `unsafe-eval`** in `script-src` — invalidates most XSS protections offered by CSP.
+- **`connect-src 'self' http://localhost:8000`** — hardcoded in HTTP (not HTTPS), unsuitable for real production deployment.
+- **Absence of HSTS** (`Strict-Transport-Security`) in headers.
+- **Absence of `Permissions-Policy`** header.
+- **`js-cookie`** used on client side — verify that JWT tokens are not stored in cookies accessible via JS (must remain HttpOnly set by the backend).
+- **`NEXT_PUBLIC_API_URL`** injected at build — verify no other sensitive variable follows this pattern.
+- **npm Dependencies**: analyze known vulnerabilities in `next@15.1.3`, `react@19.0.0`, and Radix UI components.
 
-### 1.6 — Fonctions Critiques Métier
+### 1.6 — Business Critical Functions
 
-**Fichiers cibles :**
+**Target Files:**
 
 - `backend/app/engine/logic.py` (ScanManager)
 - `backend/app/engine/scheduler.py` (ScanScheduler)
-- `backend/app/clients/` (clients HTTP vers sources OSINT)
+- `backend/app/clients/` (HTTP clients to OSINT sources)
 - `backend/app/notifications/engine.py`
 - `backend/app/report/`
 
-**Points à analyser :**
+**Points to Analyze:**
 
-- **SSRF (Server-Side Request Forgery)** : le `target_domain` fourni par l'admin est-il validé avant d'être utilisé dans des requêtes HTTP sortantes ? Risque de pointer vers des ressources internes (169.254.0.0/16, 10.0.0.0/8)
-- **Injection dans les appels OSINT** : les termes de recherche (`ransomlook_search_terms`, domaine) sont-ils sanitisés avant d'être interpolés dans des URLs ou des requêtes
-- **`ScanManager.run_full_scan`** lancé en `BackgroundTasks` FastAPI : gestion des erreurs, timeout, isolation
-- **Scheduler APScheduler** : vérifier que le `_scan_callback` dans `main.py` ne permet pas un déclenchement concurrent non contrôlé
-- **Génération des rapports** : si le nom de fichier ou le contenu intègre des données utilisateur, vérifier les risques d'injection (path traversal, template injection Jinja2)
-- **`NotificationEngine`** : vérifier que l'URL du webhook (`ransomlook_alert_webhook`) est validée avant d'être appelée (SSRF)
+- **SSRF (Server-Side Request Forgery)**: is the `target_domain` provided by the admin validated before being used in outgoing HTTP requests? Risk of pointing to internal resources (169.254.0.0/16, 10.0.0.0/8).
+- **Injection in OSINT calls**: are search terms (`ransomlook_search_terms`, domain) sanitized before being interpolated into URLs or requests?
+- **`ScanManager.run_full_scan`** launched in FastAPI `BackgroundTasks`: error management, timeout, isolation.
+- **APScheduler Scheduler**: verify that the `_scan_callback` in `main.py` does not allow uncontrolled concurrent triggering.
+- **Report Generation**: if filename or content integrates user data, verify injection risks (path traversal, Jinja2 template injection).
+- **`NotificationEngine`**: verify that the webhook URL (`ransomlook_alert_webhook`) is validated before being called (SSRF).
 
 ***
 
-## 2. Format du Livrable
+## 2. Deliverable Format
 
-### 2.1 — Résumé Exécutif
+### 2.1 — Executive Summary
 
-En tête de rapport, présenter le bloc de synthèse suivant :
+At the top of the report, present the following summary block:
 
 ```
-SCORE DE RISQUE GLOBAL : [Critique / Haute / Moyenne / Basse]
+GLOBAL RISK SCORE: [Critical / High / Medium / Low]
 ─────────────────────────────────────
-🔴 Critiques  : X
-🟠 Hautes     : X
-🟡 Moyennes   : X
-🔵 Basses     : X
-✅ Conformes  : X
+🔴 Critical   : X
+🟠 High       : X
+🟡 Medium     : X
+🔵 Low        : X
+✅ Compliant  : X
 ─────────────────────────────────────
-Commit audité : [SHA]
-Date d'audit  : [YYYY-MM-DD]
+Audited Commit: [SHA]
+Audit Date    : [YYYY-MM-DD]
 ```
 
-### 2.2 — Tableau des Vulnérabilités
+### 2.2 — Vulnerability Table
 
-Présenter chaque finding sous forme de tableau Markdown avec les colonnes suivantes :
+Present each finding as a Markdown table with the following columns:
 
-| # | Sévérité | Pilier | Composant / Fichier | Description de la faille | PoC / Ligne de code | Remédiation immédiate |
-|---|----------|--------|---------------------|--------------------------|---------------------|-----------------------|
+| # | Severity | Pillar | Component / File | Flaw Description | PoC / Code Line | Immediate Remediation |
+|---|----------|--------|------------------|------------------|-----------------|-----------------------|
 
-**Échelle de sévérité :**
+**Severity Scale:**
 
-- 🔴 **Critique** — exploitable à distance, impact direct sur la confidentialité ou l'intégrité des données
-- 🟠 **Haute** — exploitable avec conditions, impact significatif
-- 🟡 **Moyenne** — exploitable en combinaison ou avec accès préalable
-- 🔵 **Basse** — bonne pratique non respectée, impact limité
-- ✅ **Conforme** — point analysé, configuration considérée sûre (avec justification)
+- 🔴 **Critical** — remotely exploitable, direct impact on data confidentiality or integrity.
+- 🟠 **High** — exploitable with conditions, significant impact.
+- 🟡 **Medium** — exploitable in combination or with prior access.
+- 🔵 **Low** — best practice not followed, limited impact.
+- ✅ **Compliant** — point analyzed, configuration considered safe (with justification).
 
-**Règle de classement :** Trier le tableau par sévérité décroissante (Critique → Basse → Conforme).
-
-***
-
-## 3. Plan d'Action Post-Audit (Roadmap)
-
-Conclure par une roadmap prioritisée en **trois horizons temporels**.
-
-### Horizon 1 — Immédiat (< 7 jours)
-
-Actions bloquantes à traiter avant toute mise en production.
-
-Exemples attendus : activer le webhook HMAC sans condition, implémenter `/auth/mfa/verify`, pinner les images Docker avec digest SHA256.
-
-### Horizon 2 — Court terme (< 30 jours)
-
-Durcissement structurel sans urgence critique.
-
-Exemples attendus : remplacer `curl | sh` par un binaire versionné et vérifié, ajouter HSTS, corriger la CSP, supprimer `unsafe-eval` et `unsafe-inline`.
-
-### Horizon 3 — Moyen terme (< 90 jours)
-
-Stratégie de sécurité pérenne.
-
-Exemples attendus : pipeline CI/CD avec Trivy + Bandit + OWASP Dependency-Check, Docker Secrets ou HashiCorp Vault, DAST sur staging, politique de rotation des secrets OSINT, monitoring des CVE sur les dépendances.
-
-**Pour chaque action de la roadmap, préciser :**
-
-| Action | Effort | Impact | Fichier(s) / Service(s) |
-|--------|--------|--------|--------------------------|
-| Description de l'action | Faible / Moyen / Élevé | Critique / Haute / Moyenne / Basse | Fichiers concernés |
+**Sorting Rule:** Sort the table by descending severity (Critical → Low → Compliant).
 
 ***
 
-## 4. Règles d'Exécution
+## 3. Post-Audit Action Plan (Roadmap)
 
-1. **Lire `TECH_STACK.md` en intégralité** avant de commencer — toutes les versions et configurations y sont documentées.
-2. **Ne pas généraliser** : chaque finding doit référencer un fichier et une ligne ou un bloc de code précis.
-3. **Croiser les CVE** : pour chaque dépendance listée dans `pyproject.toml` et `package.json`, vérifier les CVE connus à la date d'audit.
-4. **Tester la logique, pas seulement la configuration** : analyser les flux complets (ex : login → MFA → token → logout) pour détecter les failles de logique métier.
-5. **Signaler les `TODO` et `NOT_IMPLEMENTED`** comme des findings à part entière (ex : `/auth/mfa/verify` retourne 501).
-6. **Ne pas supposer** : si une information manque dans `TECH_STACK.md`, l'indiquer explicitement plutôt qu'émettre une hypothèse non vérifiée.
+Conclude with a prioritized roadmap in **three time horizons**.
+
+### Horizon 1 — Immediate (< 7 days)
+
+Blocking actions to be addressed before any production release.
+
+Expected examples: enable HMAC webhook unconditionally, implement `/auth/mfa/verify`, pin Docker images with SHA256 digest.
+
+### Horizon 2 — Short Term (< 30 days)
+
+Structural hardening without critical urgency.
+
+Expected examples: replace `curl | sh` with a versioned and verified binary, add HSTS, fix CSP, remove `unsafe-eval` and `unsafe-inline`.
+
+### Horizon 3 — Medium Term (< 90 days)
+
+Long-term security strategy.
+
+Expected examples: CI/CD pipeline with Trivy + Bandit + OWASP Dependency-Check, Docker Secrets or HashiCorp Vault, DAST on staging, OSINT secret rotation policy, dependency CVE monitoring.
+
+**For each roadmap action, specify:**
+
+| Action | Effort | Impact | File(s) / Service(s) |
+|--------|--------|--------|----------------------|
+| Action Description | Low / Medium / High | Critical / High / Medium / Low | Concerned Files |
+
+***
+
+## 4. Execution Rules
+
+1. **Read `TECH_STACK.md` in full** before starting — all versions and configurations are documented there.
+2. **Do not generalize**: each finding must reference a specific file and line or code block.
+3. **Cross-reference CVEs**: for each dependency listed in `pyproject.toml` and `package.json`, check for known CVEs at the audit date.
+4. **Test logic, not just configuration**: analyze complete flows (e.g., login → MFA → token → logout) to detect business logic flaws.
+5. **Report `TODO` and `NOT_IMPLEMENTED`** as findings in their own right (e.g., `/auth/mfa/verify` returns 501).
+6. **Do not assume**: if information is missing from `TECH_STACK.md`, explicitly state it rather than making an unverified hypothesis.

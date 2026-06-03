@@ -1,10 +1,10 @@
 # 🔍 BreachRadar WebUI
 
-<img src="images/logo_full.png" alt="Logo BreachRadar">
+<img src="images/logo_full.png" alt="BreachRadar Logo">
 
-> **Plateforme Web de détection de fuites de données ciblée sur un domaine.**
-> Usage légal — surveillance défensive de votre propre domaine uniquement.
-> Cadre : OSINT défensif — RGPD Art. 6.1.f (intérêt légitime)
+> **Domain-targeted data breach detection web platform.**
+> Legal use — defensive monitoring of your own domain only.
+> Framework: Defensive OSINT — GDPR Art. 6.1.f (legitimate interest)
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org)
 [![Next.js 15.5](https://img.shields.io/badge/Next.js-15.5-black.svg)](https://nextjs.org/)
@@ -13,194 +13,207 @@
 
 ---
 
-## Présentation
+## Overview
 
-**BreachRadar est un agrégateur souverain de Threat Intelligence (CTI).**
-Il détecte si des données appartenant à un domaine (`@mondomaine.fr`) ont été compromises en interrogeant et en unifiant simultanément plusieurs dizaines de sources publiques et APIs spécialisées (Clear, Deep et Dark Web).
+**BreachRadar is a sovereign Threat Intelligence (CTI) aggregator.**
+It detects if data belonging to a domain (`@mydomain.com`) has been compromised by querying and unifying dozens of public sources and specialized APIs (Clear, Deep, and Dark Web) simultaneously.
 
-🛡️ **La promesse pour les équipes SOC & CERT :**
-> Ne dispersez plus vos analystes sur 5 outils différents. BreachRadar centralise la détection de fuites, surveille l'activité des groupes Ransomware en temps réel, et génère des **rapports neutres et actionnables (zéro donnée sensible stockée)** directement dans une interface web unifiée (WebUI). Gagnez en réactivité et divisez votre temps de qualification par trois.
+🛡️ **The promise for SOC & CERT teams:**
+> Stop scattering your analysts across 5 different tools. BreachRadar centralizes breach detection, monitors Ransomware group activity in real-time, and generates **neutral and actionable reports (zero sensitive data stored)** directly in a unified web interface (WebUI). Increase reactivity and divide your qualification time by three.
 
-**Deux dimensions complémentaires de détection :**
+**Two complementary detection dimensions:**
 
-| Dimension | Description | Sources Agrégées |
+| Dimension | Description | Aggregated Sources |
 |---|---|---|
-| **Backward-looking** | Fuites de données passées et mots de passe compromis | HIBP, LeakCheck, Dehashed, IntelX... |
-| **Forward-looking** | Early Warning ransomware — domaine listé avant publication | **RansomLook** (Veille Dark Web active) |
+| **Backward-looking** | Past data leaks and compromised passwords | HIBP, LeakCheck, Dehashed, IntelX... |
+| **Forward-looking** | Ransomware Early Warning — domain listed before publication | **RansomLook** (Active Dark Web monitoring) |
 
-> ⚠️ **RansomLook** est la seule source capable de détecter une compromission massive *en cours*, avant que les données ne soient publiées. Fenêtre de réaction typique : 5 à 30 jours.
+> ⚠️ **RansomLook** is the only source capable of detecting a massive *ongoing* compromise before the data is published. Typical reaction window: 5 to 30 days.
 
 ---
 
-## Architecture technique
+## Technical Architecture
 
-BreachRadar fonctionne avec une architecture micro-services complète, englobant une application web riche et un moteur asynchrone performant.
+BreachRadar operates with a full micro-services architecture, encompassing a rich web application and a high-performance asynchronous engine.
 
-### Stack WebUI & Moteur
+### WebUI & Engine Stack
 
-| Couche | Technologie |
+| Layer | Technology |
 |---|---|
 | **Frontend** | Next.js 15.5 + Shadcn/UI + Tailwind CSS 3.4 (i18n: FR/EN) |
-| **Backend (Moteur)** | FastAPI (Python 3.12+) |
-| **Base de données** | PostgreSQL 16 (Persistance des alertes et rapports) |
-| **Cache / Sessions** | Redis 7 (Verrous distribués et rate-limiting) |
-| **Authentification** | JWT HttpOnly Cookies |
+| **Backend (Engine)** | FastAPI (Python 3.12+) |
+| **Database** | PostgreSQL 16 (Alert and report persistence) |
+| **Cache / Sessions** | Redis 7 (Distributed locks and rate-limiting) |
+| **Authentication** | JWT HttpOnly Cookies |
 | **MFA** | TOTP RFC 6238 (Google Auth, Authy, Microsoft Auth) |
-| **Scheduling** | APScheduler 3.x (intégré dans FastAPI, synchronisé via Redis) |
-| **CI/CD & Sécurité** | GitHub Actions (Mypy, Ruff, Bandit, ESLint, pip-audit, detect-secrets) |
+| **Scheduling** | APScheduler 3.x (integrated in FastAPI, synchronized via Redis) |
+| **CI/CD & Security** | GitHub Actions (Mypy, Ruff, Bandit, ESLint, pip-audit, detect-secrets) |
 | **Package manager** | uv (Backend), npm (Frontend) |
 
 ---
 
-## Prérequis
+## Prerequisites
 
-- **Docker + Docker Compose v2** (Pour l'exécution simplifiée) :
+- **Docker + Docker Compose v2** (For simplified execution):
   ```bash
   docker --version        # >= 24.x
   docker compose version  # >= 2.x
   ```
-- *Optionnel (Développement)* : Python 3.12+, `uv`, Node.js 20+
+- *Optional (Development)*: Python 3.12+, `uv`, Node.js 20+
 
 ---
 
-## Démarrage Rapide (Production)
+## Quick Start (Production)
 
-L'outil s'exécute intégralement via Docker. Il n'y a plus d'interface en ligne de commande (CLI), tout est pilotable depuis la WebUI.
+The tool runs entirely via Docker. There is no longer a command-line interface (CLI); everything is manageable from the WebUI.
 
 ```bash
-# 1. Cloner le projet
+# 1. Clone the project
 git clone https://github.com/yourorg/breachradar.git
 cd breachradar
 
-# 2. Configurer les variables d'environnement
+# 2. Configure environment variables
 cp .env.example .env
-# Éditer .env with vos clés API et définir des mots de passe sécurisés 
+# Edit .env with your API keys and set secure passwords 
 # (UI_DB_PASSWORD, UI_REDIS_PASSWORD, UI_JWT_SECRET, UI_ADMIN_EMAIL, UI_ADMIN_PASSWORD)
 
-# 3. Lancer la plateforme
+# 3. Launch the platform
 docker compose up -d
 
-# 4. Accéder à l'interface
-# Ouvrez votre navigateur sur http://localhost:3000
+# 4. Access the interface
+# Open your browser at http://localhost:3000
 ```
 
-> **Note sur RansomLook** :
-> - Par défaut, la stack démarre en **mode local** : RansomLook est déployé en Docker et accessible uniquement en interne (`http://ransomlook-app:8888`).
-> - Pour utiliser l’API hébergée RansomLook (**mode SaaS**), définissez dans `.env` :
+> **Note on RansomLook**:
+> - By default, the stack starts in **local mode**: RansomLook is deployed in Docker and accessible only internally (`http://ransomlook-app:8888`).
+> - To use the hosted RansomLook API (**SaaS mode**), set in `.env`:
 >   - `RANSOMLOOK_MODE=saas`
 >   - `RANSOMLOOK_SAAS_API_URL=https://www.ransomlook.io/api`
->   - `RANSOMLOOK_SAAS_API_KEY=<clé obtenue depuis votre compte RansomLook>`
->   puis relancez `docker compose up -d`.
-> - L’API Backend ajoute automatiquement le header `Authorization` lorsque `RANSOMLOOK_MODE=saas`.
+>   - `RANSOMLOOK_SAAS_API_KEY=<key obtained from your RansomLook account>`
+>   then restart `docker compose up -d`.
+> - The Backend API automatically adds the `Authorization` header when `RANSOMLOOK_MODE=saas`.
 
 ---
 
-## Configuration des clés API
+## API Key Configuration
 
-Voir [`.env.example`](.env.example) pour la liste complète.
+See [`.env.example`](.env.example) for the full list.
 
-| Clé | Source | Coût | Priorité |
+| Key | Source | Cost | Priority |
 |---|---|---|---|
-| `TARGET_DOMAIN` | Le domaine que vous surveillez | *NA* | **Obligatoire** |
-| `HIBP_API_KEY` | haveibeenpwned.com/API/Key | ~3,50 USD/mois | **Indispensable** |
-| `GITHUB_TOKEN` | github.com/settings/tokens | Gratuit | **Indispensable** |
-| `URLSCAN_API_KEY` | urlscan.io | Gratuit | **Indispensable** |
-| `OTX_API_KEY` | otx.alienvault.com | Gratuit | **Indispensable** |
-| `LEAKCHECK_API_KEY` | leakcheck.io | ~10 USD/mois | Très recommandé |
-| `DEHASHED_API_KEY` | dehashed.com | ~5 USD/mois | Très recommandé |
+| `TARGET_DOMAIN` | The domain you are monitoring | *NA* | **Required** |
+| `HIBP_API_KEY` | haveibeenpwned.com/API/Key | ~3.50 USD/month | **Essential** |
+| `GITHUB_TOKEN` | github.com/settings/tokens | Free | **Essential** |
+| `URLSCAN_API_KEY` | urlscan.io | Free | **Essential** |
+| `OTX_API_KEY` | otx.alienvault.com | Free | **Essential** |
+| `LEAKCHECK_API_KEY` | leakcheck.io | ~10 USD/month | Highly recommended |
+| `DEHASHED_API_KEY` | dehashed.com | ~5 USD/month | Highly recommended |
 
-Pour RansomLook :
+For RansomLook:
 
-- **Mode local** (par défaut) :
+- **Local mode** (default):
   - `RANSOMLOOK_MODE=local`
   - `RANSOMLOOK_LOCAL_URL=http://ransomlook-app:8888`
-- **Mode SaaS** :
+- **SaaS mode**:
   - `RANSOMLOOK_MODE=saas`
   - `RANSOMLOOK_SAAS_API_URL=https://www.ransomlook.io/api`
-  - `RANSOMLOOK_SAAS_API_KEY=<clé API obtenue dans votre compte RansomLook>`
+  - `RANSOMLOOK_SAAS_API_KEY=<API key obtained from your RansomLook account>`
 
-Les termes de recherche peuvent être enrichis via :
+Search terms can be enriched via:
 
-- `RANSOMLOOK_SEARCH_TERMS` : liste de noms commerciaux / filiales, séparés par des virgules.
+- `RANSOMLOOK_SEARCH_TERMS`: list of commercial names / subsidiaries, separated by commas.
 
 ---
 
-## Arborescence du Projet
+## Project Structure
 
-L'arborescence a été simplifiée pour une architecture 100% WebUI.
+The structure has been simplified for a 100% WebUI architecture.
 
 ```
 breachradar/
-├── README.md                 # Ce fichier
-├── ROADMAP.md                # Suivi de projet
-├── Makefile                  # Raccourcis commandes de dev
-├── .env.example              # Variables d'environnement unifiées
-├── docker-compose.yml        # Stack complète (Postgres, Redis, API, UI, RansomLook)
+├── README.md                 # This file
+├── ROADMAP.md                # Project tracking
+├── Makefile                  # Dev command shortcuts
+├── .env.example              # Unified environment variables
+├── docker-compose.yml        # Full stack (Postgres, Redis, API, UI, RansomLook)
 │
-├── backend/                  # API FastAPI + Moteur BreachRadar
+├── backend/                  # FastAPI API + BreachRadar Engine
 │   ├── Dockerfile
-│   ├── pyproject.toml        # Dépendances (uv)
-│   ├── tests/                # Tests unitaires
+│   ├── pyproject.toml        # Dependencies (uv)
+│   ├── tests/                # Unit tests
 │   └── app/
-│       ├── main.py           # Point d'entrée FastAPI
-│       ├── core/             # Configuration globale (Settings), init DB
-│       ├── clients/          # Connecteurs (HIBP, GitHub, RansomLook...)
-│       ├── engine/           # Cœur métier (Orchestrateur, Scheduler, Sanitizer)
-│       ├── models/           # Modèles SQLAlchemy (Users) & Pydantic (Findings)
-│       ├── routers/          # Endpoints API (Scans, Users, Auth, Webhooks)
+│       ├── main.py           # FastAPI entry point
+│       ├── core/             # Global configuration (Settings), DB init
+│       ├── clients/          # Connectors (HIBP, GitHub, RansomLook...)
+│       ├── engine/           # Business logic (Orchestrator, Scheduler, Sanitizer)
+│       ├── models/           # SQLAlchemy models (Users) & Pydantic (Findings)
+│       ├── routers/          # API endpoints (Scans, Users, Auth, Webhooks)
 │       └── services/         # Notifications, Reports, Resolvers
 │
-└── frontend/                 # Application Next.js
+└── frontend/                 # Next.js Application
     ├── Dockerfile
     ├── package.json
     ├── src/
-        ├── app/              # Routage App Router (Next 15)
-        ├── components/       # Composants réutilisables (Shadcn, Recharts)
-        └── lib/              # Utilitaires (api.ts, i18n)
+        ├── app/              # App Router routing (Next 15)
+        ├── components/       # Reusable components (Shadcn, Recharts)
+        └── lib/              # Utilities (api.ts, i18n)
 ```
 
 ---
 
-## Gouvernance SOC et RBAC
+## SOC Governance and RBAC
 
-BreachRadar intègre une gestion des rôles stricte pour répondre aux exigences SOC.
+BreachRadar integrates strict role management to meet SOC requirements.
 
 | Action | Admin | Viewer |
 |---|---|---|
-| Voir le dashboard principal | ✅ | ✅ |
-| Consulter l'historique des alertes | ✅ | ✅ |
-| Exporter les rapports (PDF, CSV) | ✅ | ✅ |
-| Déclencher un scan manuel | ✅ | ❌ |
-| Modifier la configuration (Clés API, SMTP) | ✅ | ❌ |
-| Gérer les utilisateurs (RBAC) | ✅ | ❌ |
-| Accéder aux Audit Logs complets | ✅ | ❌ |
+| View main dashboard | ✅ | ✅ |
+| Consult alert history | ✅ | ✅ |
+| Export reports (PDF, CSV) | ✅ | ✅ |
+| Trigger manual scan | ✅ | ❌ |
+| Modify configuration (API Keys, SMTP) | ✅ | ❌ |
+| Manage users (RBAC) | ✅ | ❌ |
+| Access full Audit Logs | ✅ | ❌ |
 
 ---
 
-## Sécurité — Garanties
+## Security Guarantees
 
-- ❌ Aucun mot de passe, hash ou credential stocké en clair.
-- ❌ Aucune URL .onion dans les rapports exportés.
-- ✅ Sanitizer appliqué sur toutes les données brutes avant l'affichage ou le stockage en base.
-- ✅ Données temporaires purgées en mémoire après traitement.
-- ✅ Clés API uniquement dans `.env` ou chiffrées en base (Fernet).
-- ✅ **Authentification SOC** : MFA (TOTP) obligatoire pour l'admin, codes de secours et gestion de sessions robuste.
-- ✅ **Veille Numérique & Cyber** : Flux temps réel (RSS/Atom, GitHub) avec filtrage intelligent par mots-clés et sévérité.
-- ✅ **Mode Démonstration** : Possibilité d'afficher des données fictives sécurisées (Mocks) pour tester l'interface sans clés API réelles.
-- ✅ RansomLook exposé uniquement sur le réseau Docker interne (jamais `0.0.0.0`).
-- ✅ Authentification forte (JWT HttpOnly + MFA obligatoire pour Admin).
+- ❌ No passwords, hashes, or credentials stored in plain text.
+- ❌ No .onion URLs in exported reports.
+- ✅ Sanitizer applied to all raw data before display or storage in the database.
+- ✅ Temporary data purged in memory after processing.
+- ✅ API keys only in `.env` or encrypted in the database (Fernet).
+- ✅ **SOC Authentication**: Mandatory MFA (TOTP) for admin, backup codes, and robust session management.
+- ✅ **Digital & Cyber Intelligence**: Real-time feeds (RSS/Atom, GitHub) with intelligent keyword and severity filtering.
+- ✅ **Demonstration Mode**: Ability to display secure fake data (Mocks) to test the interface without real API keys.
+- ✅ RansomLook exposed only on the internal Docker network (never `0.0.0.0`).
+- ✅ Strong authentication (JWT HttpOnly + mandatory MFA for Admin).
 
 ---
 
-## Cadre légal
+## Contributing
 
-| Ce projet FAIT | Ce projet NE FAIT PAS |
+**Feel free to contribute!** Whether it's reporting a bug, suggesting a new feature, or adding an OSINT connector, all contributions are welcome.
+
+1.  Check the [ROADMAP.md](ROADMAP.md) to see what's planned.
+2.  Read the [CONTRIBUTING.md](CONTRIBUTING.md) guide for coding standards and pull request procedures.
+
+<br/>
+
+[![Support the project on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20the%20project-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/skrylexx)
+
+---
+
+## Legal Framework
+
+| This project DOES | This project DOES NOT |
 |---|---|
-| Requêtes sur APIs publiques légitimes | Accès à des systèmes non autorisés |
-| Surveillance de votre propre domaine | Surveillance de domaines tiers |
-| Traitement en mémoire et DB sécurisée | Stockage prolongé de données personnelles |
-| Rapport sans données sensibles | Revente ou partage des découvertes |
+| Query legitimate public APIs | Access unauthorized systems |
+| Monitor your own domain | Monitor third-party domains |
+| Process in memory and secure DB | Long-term storage of personal data |
+| Report without sensitive data | Resell or share findings |
 
-**Base légale** : RGPD Art. 6.1.f (intérêt légitime) + Directive NIS2 (transposée fin 2024).
+**Legal Basis**: GDPR Art. 6.1.f (legitimate interest) + NIS2 Directive (transposed late 2024).
 
-> ⚠️ L'utilisation sur des domaines ne vous appartenant pas peut constituer une infraction au Code Pénal (Art. 323-1) et au RGPD.
+> ⚠️ Using this on domains that do not belong to you may constitute an offense under the Penal Code and GDPR.
