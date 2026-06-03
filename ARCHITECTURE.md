@@ -21,9 +21,9 @@ Contient toute la logique métier, les collecteurs OSINT et l'API.
 *   `backend/app/engine/` : Moteur d'exécution.
     *   `orchestrator.py` : Coordonne les scans et les collecteurs.
     *   `aggregator.py` : Fusionne et dédoublonne les résultats.
-    *   `scheduler.py` : Gère les tâches planifiées.
+    *   `scheduler.py` : Gère les tâches planifiées (protégé par **Verrou Distribué Redis** pour éviter les conflits multi-workers).
 *   `backend/app/clients/` : Clients API pour les sources externes (HIBP, IntelX, Dehashed, RansomLook, etc.).
-*   `backend/app/models/` : Définitions des tables SQL (SQLAlchemy).
+*   `backend/app/models/` : Définitions des tables SQL (SQLAlchemy), incluant la persistance historique `CyberFinding` pour les alertes Ransomware.
 *   `backend/app/routers/` : Endpoints de l'API REST organisés par domaine (auth, scans, cve, dashboard).
 *   `backend/app/schemas/` : Modèles de validation de données (Pydantic) pour les requêtes/réponses API.
 *   `backend/tests/` : Suite de tests unitaires et d'intégration utilisant `pytest`.
@@ -34,12 +34,15 @@ Application Next.js (App Router) développée en TypeScript.
 *   `frontend/src/app/` : Structure des pages et layouts (Dashboard, Login, Admin).
 *   `frontend/src/components/` : Composants UI réutilisables (shadcn/ui, tableaux, graphiques).
 *   `frontend/src/lib/` : Utilitaires, gestion du store (Zustand/Context) et client API.
-*   `frontend/messages/` : Fichiers de traduction (i18n) en français et anglais.
+*   `frontend/messages/` : Fichiers de traduction (**i18n**) en français et anglais.
 
 ### 🔹 `/ransomlook_config`
 Contient les scripts et fichiers de configuration spécifiques à l'intégration de RansomLook (monitoring des groupes ransomware).
 *   `start_local.sh` : Script de démarrage du service dans Docker.
 *   `patch_api.py` / `patch_redis.py` : Scripts utilitaires pour ajuster le comportement de RansomLook.
+
+### 🔹 `.github/workflows/` — Intégration Continue (CI/CD)
+*   `ci.yml` : Pipeline de sécurité et de qualité automatisée (Ruff, Mypy, Bandit, NPM Audit, detect-secrets) exécutée à chaque Pull Request pour bloquer les régressions et les failles.
 
 ### 🔹 `/security_audits`
 Dossier dédié à la documentation de sécurité et aux procédures d'audit.
