@@ -192,6 +192,15 @@ BreachRadar integrates strict role management to meet SOC requirements.
 
 ---
 
+## Contributing
+
+**Feel free to contribute!** Whether it's reporting a bug, suggesting a new feature, or adding an OSINT connector, all contributions are welcome.
+
+1.  Check the [ROADMAP.md](ROADMAP.md) to see what's planned.
+2.  Read the [CONTRIBUTING.md](CONTRIBUTING.md) guide for coding standards and pull request procedures.
+
+---
+
 ## Legal Framework
 
 | This project DOES | This project DOES NOT |
