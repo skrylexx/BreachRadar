@@ -53,18 +53,20 @@ Phase 5 — Validation  [██████████] 100%
 
 ### Iteration 43 — 2026-06-03 (Gemini CLI)
 
-**Iteration Objective**: Make Content Security Policy (CSP) dynamic and based on environment variables.
+**Iteration Objective**: Make Content Security Policy (CSP) dynamic and launch v0.5.0 (Open Source).
 
 #### Created/Modified Files
 
 | File | Nature | Description |
 |---|---|---|
 | `frontend/next.config.ts` | Modification | Dynamic CSP implementation using `NEXT_PUBLIC_API_URL` for `connect-src`. |
+| `frontend/src/app/(dashboard)/changelog/page.tsx` | Modification | Added v0.5.0 (Open Source Launch) to the changelog. |
 | `ROADMAP.md` | Modification | Iteration 43 logging. |
 | `AI_AGENT_GUIDE.md` | Modification | Added handoff #15. |
 
-#### ✅ Security & DX
+#### ✅ Security & Open Source
 - **Dynamic CSP**: The `connect-src` directive now automatically includes the backend URL defined in `NEXT_PUBLIC_API_URL`, preventing blocking issues when the API is not on `localhost:8000`.
+- **v0.5.0 Launch**: Official transition to Open Source and functional code updates documented in the UI changelog.
 - **Config Refactoring**: Centralized `apiUrl` constant in `next.config.ts` for better maintainability.
 
 ---

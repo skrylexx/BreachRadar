@@ -285,14 +285,15 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 - **Outgoing Agent**           : Gemini CLI
 - **Incoming Agent**           : undefined
-- **End-of-session commit**    : `c048f50f4e361164fa61783a03c7fb58fe3ae016`
+- **End-of-session commit**    : *(see commit associated with this push)*
 - **Tasks accomplished**:
   - **Dynamic CSP**: Refactored `frontend/next.config.ts` to make the `Content-Security-Policy` header dynamic. It now uses `NEXT_PUBLIC_API_URL` (with a fallback to `localhost:8000`) for the `connect-src` directive.
+  - **v0.5.0 Open Source**: Updated `frontend/src/app/(dashboard)/changelog/page.tsx` to announce the v0.5.0 Open Source launch and functional updates.
   - **Code Quality**: Centralized `apiUrl` logic in `next.config.ts` to ensure consistency across `env`, `rewrites`, and `headers`.
 - **Next task**: Resume backend development (CVE polling, profile actions) or resolve remaining `mypy` errors as indicated in ROADMAP.
 - **Points of vigilance**:
   - The CSP still allows `unsafe-inline` and `unsafe-eval` for Next.js hydration, which is a known point of vigilance.
-- **Updated files**: frontend/next.config.ts · ROADMAP.md · AI_AGENT_GUIDE.md
+- **Updated files**: frontend/next.config.ts · frontend/src/app/(dashboard)/changelog/page.tsx · ROADMAP.md · AI_AGENT_GUIDE.md
 
 ***
 
