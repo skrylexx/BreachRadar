@@ -14,7 +14,7 @@ Particularités:
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.clients.base import BaseLeakClient
 from app.engine.sanitizer import DataSanitizer

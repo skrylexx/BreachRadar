@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { User, Mail, Shield, Lock, Save, Loader2, Key, CheckCircle2, AlertCircle, DownloadCloud, Copy } from "lucide-react";
 import { authApi, User as UserType } from "@/lib/api";
@@ -123,19 +123,6 @@ export default function ProfilePage() {
       alert(err.message || tc("error"));
     } finally {
       setPwdLoading(false);
-    }
-  };
-
-  const startMfaSetup = async () => {
-    setMfaLoading(true);
-    try {
-      const data = await authApi.mfaSetup();
-      setMfaSetupData(data);
-      setMfaStep("confirm");
-    } catch (err: any) {
-      alert(tc("error"));
-    } finally {
-      setMfaLoading(false);
     }
   };
 

@@ -251,7 +251,7 @@ class RansomLookClient(BaseLeakClient):
             elif item.get("discovered") or item.get("added"):
                 status = RansomStatus.LISTED
 
-            from datetime import datetime
+            from datetime import UTC, datetime
 
             discovered_at_str = item.get("added") or item.get("discovered")
             if discovered_at_str:
