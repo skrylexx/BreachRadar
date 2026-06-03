@@ -738,7 +738,7 @@ Phase 5 — Validation  [██████████] 100%
 ## 🤖 Next Agent — Resume Here
 
 **Stopped at**: `frontend/next.config.ts` — CSP made dynamic.
-**Commit**: `c048f50f4e361164fa61783a03c7fb58fe3ae016`
+**Commit**: `45c6ce6f29a6f7ea046a86c7ed0210e50d377f65`
 **What's left**:
 - [ ] Resume backend development (CVE polling, profile actions).
 - [ ] Resolve remaining 28 `mypy` errors in the backend.
