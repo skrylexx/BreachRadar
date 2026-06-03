@@ -282,6 +282,22 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 ## 6. Handoff History
 
 
+### Handoff #14 — 2026-06-03
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**:
+  - **Database Schema Auto-Sync**: Fixed `ProgrammingError: column users.token_version does not exist` by implementing an automatic schema upgrade in `backend/app/core/init_db.py`. Missing columns are now added via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`.
+  - **Environment Clarification**: Clarified that the correct environment variable for demonstration mode is `MOCK_MODE` (and not `MOCK`).
+- **Next task**: Resume backend development (CVE polling, profile actions) or resolve remaining `mypy` errors as indicated in ROADMAP.
+- **Points of vigilance**:
+  - Manual `ALTER TABLE` is used because SQLAlchemy `create_all` does not update existing tables. This is a pragmatic fix for dev/demo environments with persistent volumes.
+- **Updated files**: backend/app/core/init_db.py · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
+
 ### Handoff #1 — 2026-05-04
 
 

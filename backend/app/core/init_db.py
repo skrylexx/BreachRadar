@@ -49,6 +49,18 @@ async def initialize_database() -> None:
             # On utilise run_sync pour appeler create_all qui est synchrone dans SQLAlchemy
             await conn.run_sync(Base.metadata.create_all)
 
+            # --- Migration manuelle pour les colonnes manquantes (Upgrade) ---
+            # SQLAlchemy create_all ne rajoute pas de colonnes sur des tables existantes.
+            # On force l'ajout des colonnes critiques si elles manquent.
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1 NOT NULL"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN DEFAULT FALSE NOT NULL"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_required BOOLEAN DEFAULT FALSE NOT NULL"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_secret VARCHAR(255)"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_backup_codes JSON"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_password_change TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_length INTEGER DEFAULT 0 NOT NULL"))
+
         # 2. Création admin initial
         async with AsyncSessionLocal() as session:
             # Vérifier si l'admin existe déjà (par email)
