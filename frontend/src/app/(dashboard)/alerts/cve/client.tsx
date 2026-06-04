@@ -184,7 +184,7 @@ export default function CVEClient() {
         </button>
       </PageHeader>
 
-      {/* ─── Statut des sources ────────────────────────────────────────── */}
+      {/* ─── Sources Status ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {status.map((src) => (
           <Card key={src.source} className="p-4 flex items-center justify-between bg-card/30">
@@ -207,7 +207,7 @@ export default function CVEClient() {
         ))}
       </div>
 
-      {/* ─── Graphique d'évolution ─────────────────────────────────────── */}
+      {/* ─── Evolution Chart ─────────────────────────────────────── */}
       <Card className="p-6 bg-card/30">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -255,7 +255,7 @@ export default function CVEClient() {
         </div>
       </Card>
 
-      {/* ─── Filtres et Tableau ────────────────────────────────────────── */}
+      {/* ─── Filters and Table ────────────────────────────────────────── */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">

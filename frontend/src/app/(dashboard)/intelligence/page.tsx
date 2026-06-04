@@ -93,7 +93,7 @@ export default function IntelligenceFeedPage() {
         icon={ScrollText}
       />
 
-      {/* Barre d'outils / Filtres */}
+      {/* Toolbar / Filters */}
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
         <div className="relative w-full lg:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -106,7 +106,7 @@ export default function IntelligenceFeedPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          {/* Filtre Statut de lecture */}
+          {/* Read Status Filter */}
           <select 
             value={readFilter}
             onChange={(e) => setReadFilter(e.target.value)}
@@ -117,7 +117,7 @@ export default function IntelligenceFeedPage() {
             <option value="read">{t("filter_read")}</option>
           </select>
 
-          {/* Filtre Sévérité */}
+          {/* Severity Filter */}
           <select 
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
@@ -143,7 +143,7 @@ export default function IntelligenceFeedPage() {
         </div>
       </div>
 
-      {/* Liste des findings */}
+      {/* Findings List */}
       <div className="grid gap-4">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
@@ -165,7 +165,7 @@ export default function IntelligenceFeedPage() {
                          ${finding.is_read ? "opacity-60" : "border-l-4 border-l-radar"}`}
             >
               <div className="flex flex-col sm:flex-row gap-4">
-                {/* Icône & Source */}
+                {/* Icon & Source */}
                 <div className="flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:w-32 flex-shrink-0">
                   <div className="w-10 h-10 rounded-lg bg-radar/10 flex items-center justify-center border border-radar/20">
                     {finding.finding_type === "rss" ? <ScrollText className="w-5 h-5 text-radar" /> : 
@@ -180,7 +180,7 @@ export default function IntelligenceFeedPage() {
                   </div>
                 </div>
 
-                {/* Contenu principal */}
+                {/* Main Content */}
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-start justify-between gap-4">
                     <h3 className="text-sm font-semibold text-foreground line-clamp-1">
