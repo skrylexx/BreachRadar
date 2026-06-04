@@ -61,10 +61,12 @@ Phase 5 — Validation  [██████████] 100%
 |---|---|---|
 | `frontend/src/app/(auth)/login/page.tsx` | Modification | Replaced `||` with `??` for NEXT_PUBLIC_API_URL. |
 | `frontend/src/components/layout/Header.tsx` | Modification | Replaced `||` with `??` for NEXT_PUBLIC_API_URL. |
+| `frontend/next.config.ts` | Modification | Updated `backendUrl` to prioritize `INTERNAL_API_URL` over `NEXT_PUBLIC_API_URL` for rewrites. |
 | `ROADMAP.md` | Modification | Iteration 44 logging. |
 
 #### ✅ Fixes & Maintenance
 - **CORS Login Bug**: Fixed the CORS preflight issue where the client-side fetch would hit `http://localhost:8000` directly instead of using the Next.js API proxy (`/api/...`). The fallback operator was changed from `||` to `??` to respect the empty string injected by `next.config.ts`.
+- **Proxy 500 Error Fix**: Resolved an Internal Server Error (500) occurring after the CORS fix. The Next.js rewrite `destination` was previously resolving to `http://localhost:8000` inside the Docker container (which points to the Next.js container itself). It now prioritizes `INTERNAL_API_URL`, correctly resolving to `http://breachradar-api:8000` when running in Docker.
 
 ---
 
