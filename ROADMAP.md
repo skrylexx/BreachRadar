@@ -829,7 +829,6 @@ Phase 5 — Validation  [██████████] 100%
     - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
     - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
 - [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
-- [ ] **Documentation**: Prepare deployment documentation and polish the Open Source community guides.
 
 **Watch points**:
 - The backend must maintain strict typing standards for any new contributions.

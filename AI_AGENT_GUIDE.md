@@ -120,11 +120,12 @@ BreachRadar/
 ### 3.1 — Development (Feature / Fix)
 
 1. **Code**: functional, clean, and commented source files according to ROADMAP.md priorities
-2. **TODO.md / ROADMAP.md** updated:
-   - **Remove** completed tasks from the "What's left" or "Next Agent" section once they are fully implemented and verified.
-   - Do not just check them off (`- [x]`); delete the line to keep the list focused on pending work.
-3. **ROADMAP.md** updated:
-   - CHANGELOG section: each modification listed precisely (file, line, nature of change)
+2. **ROADMAP.md Task Management** (CRITICAL):
+   - **Delete** completed tasks from the "What's left" or "Next Agent" section once they are fully implemented and verified.
+   - **Move** the description of the accomplished mission to the relevant **Iteration log** (Changelog section).
+   - The "What's left" list must ONLY contain pending work. Never leave a checked task (`- [x]`) in this section; remove it entirely.
+3. **ROADMAP.md Logging**:
+   - CHANGELOG section: each modification listed precisely (file, nature of change)
    - Progress indicator updated (e.g., `[████░░] 60%`)
    - "Next Agent" section updated with only the remaining tasks if the session stops.
 4. **README.md** updated if the architecture or installation instructions evolve
@@ -286,6 +287,21 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 
 ## 6. Handoff History
+
+### Handoff #19 — 2026-06-04
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : (Pending)
+- **Tasks accomplished**:
+  - **Roadmap Maintenance**: Removed the completed "Documentation" mission from the "What's left" section in `ROADMAP.md`.
+  - **Guideline Hardening**: Updated `AI_AGENT_GUIDE.md` (Section 3.1) to explicitly require AI agents and developers to **delete** completed tasks from the "What's left" section and move the details to the Iteration log. This ensures the roadmap remains clean and actionable.
+- **Next task**: Resume Backend QA (Mypy zero-defects) or finalize OSV.dev fetcher as per the roadmap.
+- **Points of vigilance**:
+  - Future missions added to "What's left" must be deleted once completed.
+- **Updated files**: ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
 
 ### Handoff #18 — 2026-06-04
 
