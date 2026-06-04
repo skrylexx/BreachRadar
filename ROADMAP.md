@@ -51,6 +51,23 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 45 — 2026-06-04 (Gemini CLI)
+
+**Iteration Objective**: Resolve security vulnerabilities (CVE-2026-34993, CVE-2026-47265) in `aiohttp` dependency.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `backend/pyproject.toml` | Modification | Upgraded `aiohttp` to version `3.14.0`. |
+| `backend/uv.lock` | Modification | Updated lock file with the secure version of `aiohttp`. |
+| `ROADMAP.md` | Modification | Iteration 45 logging. |
+
+#### ✅ Security & Maintenance
+- **Dependency Audit Fix**: Upgraded `aiohttp` from `3.13.5` to `3.14.0` in response to CI security audit failure. This resolves two critical vulnerabilities (CVE-2026-34993 and CVE-2026-47265).
+
+---
+
 ### Iteration 44 — 2026-06-04 (Gemini CLI)
 
 **Iteration Objective**: Fix CORS bug on login by using the ?? operator instead of || for NEXT_PUBLIC_API_URL, to allow empty string prefix for relative paths.
