@@ -62,6 +62,7 @@ Phase 5 — Validation  [██████████] 100%
 | `frontend/src/app/(auth)/login/page.tsx` | Modification | Replaced `||` with `??` for NEXT_PUBLIC_API_URL. |
 | `frontend/src/components/layout/Header.tsx` | Modification | Replaced `||` with `??` for NEXT_PUBLIC_API_URL. |
 | `frontend/next.config.ts` | Modification | Updated `backendUrl` to prioritize `INTERNAL_API_URL` over `NEXT_PUBLIC_API_URL` for rewrites. |
+| `images/mocked_dashboard.png` | Addition | Added mocked dashboard image for product presentation. |
 | `ROADMAP.md` | Modification | Iteration 44 logging. |
 
 #### ✅ Fixes & Maintenance
