@@ -1,13 +1,13 @@
 """
 breachradar/models/report.py
 
-Modèles Pydantic pour le rapport final.
+Pydantic templates for the final report.
 
-Structure du rapport :
-- ReportMetadata : informations sur l'exécution du scan
-- SeverityBreakdown : répartition des findings par niveau
-- DataIntegrity : attestation de conformité RGPD
-- FinalReport : rapport complet agrégé
+Structure of the report:
+- ReportMetadata: information about the scan execution
+- SeverityBreakdown: distribution of findings by level
+- DataIntegrity: GDPR compliance certificate
+- FinalReport: complete aggregated report
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from app.models.ransom import RansomFinding, RansomStats
 
 
 class RansomLookInstanceInfo(BaseModel):
-    """Informations sur l'instance RansomLook utilisée lors du scan."""
+    """Information about the RansomLook instance used during the scan."""
 
     url: str
     is_healthy: bool
@@ -31,7 +31,7 @@ class RansomLookInstanceInfo(BaseModel):
 
 
 class ReportMetadata(BaseModel):
-    """Métadonnées d'exécution du scan."""
+    """Scan execution metadata."""
 
     generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     target_domain: str
@@ -47,7 +47,7 @@ class ReportMetadata(BaseModel):
 
 
 class SeverityBreakdown(BaseModel):
-    """Répartition des findings par niveau de sévérité."""
+    """Distribution of findings by severity level."""
 
     CRITICAL: int = 0
     HIGH: int = 0
@@ -59,7 +59,7 @@ class SeverityBreakdown(BaseModel):
 
 
 class ReportSummary(BaseModel):
-    """Résumé global du rapport."""
+    """Overall summary of the report."""
 
     global_severity: Severity | None = None
     ransomware_detected: bool = False
@@ -72,7 +72,7 @@ class ReportSummary(BaseModel):
 
 
 class RansomwareAlerts(BaseModel):
-    """Section dédiée aux alertes ransomware dans le rapport."""
+    """Section dedicated to ransomware alerts in the report."""
 
     domain_listed: bool = False
     alert_count: int = 0
@@ -81,8 +81,8 @@ class RansomwareAlerts(BaseModel):
 
 class DataIntegrity(BaseModel):
     """
-    Attestation de conformité RGPD et sécurité des données.
-    Incluse dans chaque rapport pour garantir la traçabilité.
+    GDPR and data security compliance certificate.
+    Included in each report to guarantee traceability.
     """
 
     no_plaintext_passwords_stored: bool = True
@@ -95,10 +95,10 @@ class DataIntegrity(BaseModel):
 
 class FinalReport(BaseModel):
     """
-    Rapport final complet — structure principale du livrable.
+    Complete final report — main structure of the deliverable.
 
-    Format de sortie : JSON + Markdown (+ HTML et PDF optionnels).
-    Ce modèle est sérialisé par le ReportEngine via les templates Jinja2.
+    Output format: JSON + Markdown (+ optional HTML and PDF).
+    This model is serialized by the ReportEngine via Jinja2 templates.
     """
 
     report_metadata: ReportMetadata
@@ -115,11 +115,11 @@ class FinalReport(BaseModel):
     data_integrity: DataIntegrity = Field(default_factory=DataIntegrity)
 
     def has_critical_alert(self) -> bool:
-        """True si une alerte ransomware est présente — action immédiate requise."""
+        """True if a ransomware alert is present — immediate action required."""
         return self.ransomware_alerts.domain_listed
 
     def get_global_severity_label(self) -> str:
-        """Retourne un label emoji pour l'affichage console."""
+        """Returns an emoji label for console display."""
         if self.has_critical_alert():
             return "🔴 CRITICAL (Ransomware détecté)"
         labels = {

@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Health
-====================================
-Endpoint simple pour les healthchecks Docker.
+BreachRadar WebUI — Health Router
+======================================
+Simple endpoint for Docker healthchecks.
 """
 
 from fastapi import APIRouter
@@ -12,5 +12,5 @@ router = APIRouter()
 
 @router.get("/health")
 async def health_check() -> JSONResponse:
-    """Healthcheck endpoint — utilisé par Docker et les load balancers."""
+    """Healthcheck endpoint — used by Docker and load balancers."""
     return JSONResponse(content={"status": "ok", "service": "breachradar-api"})

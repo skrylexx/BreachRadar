@@ -1,18 +1,18 @@
 /**
- * lib/api.ts — Client HTTP centralisé BreachRadar
- * Toutes les requêtes API passent par cette couche.
+ * lib/api.ts — Centralized BreachRadar HTTP Client
+ * All API requests go through this layer.
  *
- * Fonctionnalités :
- *   - Fetch wrapper avec gestion des cookies HttpOnly
+ * Features:
+ *   - Fetch wrapper with HttpOnly cookie management
  *   - Redirect 401 → /login
  *   - Redirect 403 password expired
- *   - Fonctions typées par domaine métier
+ *   - Domain-typed functions
  */
 
 // ─── Base URL ──────────────────────────────────────────────────────────────────
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-// ─── Types globaux ─────────────────────────────────────────────────────────────
+// ─── Global Types ─────────────────────────────────────────────────────────────
 
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE";
 
@@ -48,7 +48,7 @@ export async function apiFetch<T = unknown>(
     credentials: "include", // HttpOnly cookies (JWT)
   });
 
-  // 401 → redirection vers login
+  // 401 → redirect to login
   if (response.status === 401 && !skipAuth && !suppressRedirect) {
     if (typeof window !== "undefined") {
       window.location.href = "/login";
@@ -56,7 +56,7 @@ export async function apiFetch<T = unknown>(
     throw new Error("Unauthorized");
   }
 
-  // 403 → password expiré ou insuffisant
+  // 403 → password expired or insufficient permissions
   if (response.status === 403) {
     const data = await response.json().catch(() => ({}));
     if (response.headers.get("X-Password-Expired") === "true") {
@@ -79,7 +79,7 @@ export async function apiFetch<T = unknown>(
   return response.json() as Promise<T>;
 }
 
-// ─── Helpers HTTP ──────────────────────────────────────────────────────────────
+// ─── HTTP Helpers ──────────────────────────────────────────────────────────────
 export const api = {
   get: <T>(path: string, options?: FetchOptions) =>
     apiFetch<T>(path, { ...options, method: "GET" }),
@@ -109,7 +109,7 @@ export const api = {
     apiFetch<T>(path, { ...options, method: "DELETE" }),
 };
 
-// ─── Types métier ──────────────────────────────────────────────────────────────
+// ─── Domain Types ──────────────────────────────────────────────────────────────
 
 // Dashboard
 export interface DashboardStats {

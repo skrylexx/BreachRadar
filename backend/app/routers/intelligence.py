@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Intelligence
-=========================================
-Endpoints pour la veille numérique (RSS, GitHub, etc.).
+BreachRadar WebUI — Router Intelligence
+===========================================================
+Endpoints for digital monitoring (RSS, GitHub, etc.).
 """
 
 from fastapi import APIRouter, Depends, Query
@@ -28,7 +28,7 @@ async def list_intelligence_findings(
     is_read: bool | None = None,
 ):
     """
-    Liste les trouvailles de la veille numérique avec pagination et filtres.
+    List of digital monitoring findings with pagination and filters.
     """
     stmt = select(CyberFinding)
 
@@ -41,7 +41,7 @@ async def list_intelligence_findings(
     if is_read is not None:
         stmt = stmt.where(CyberFinding.is_read == is_read)
 
-    # Count total
+    # Total count
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = await db.scalar(count_stmt)
 
@@ -57,7 +57,7 @@ async def list_intelligence_findings(
 
 @router.post("/{finding_id}/read")
 async def mark_as_read(finding_id: str, current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
-    """Marque une trouvaille comme lue."""
+    """Mark a find as read."""
     result = await db.execute(select(CyberFinding).where(CyberFinding.id == finding_id))
     item = result.scalar_one_or_none()
     if item:
@@ -68,7 +68,7 @@ async def mark_as_read(finding_id: str, current_user: ViewerUser, db: AsyncSessi
 
 @router.post("/read-all")
 async def mark_all_as_read(current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
-    """Marque toutes les trouvailles comme lues."""
+    """Marks all findings as read."""
     from sqlalchemy import update
 
     await db.execute(update(CyberFinding).where(CyberFinding.is_read.is_(False)).values(is_read=True))

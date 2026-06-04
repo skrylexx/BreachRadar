@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Reports
+BreachRadar WebUI — Reports Router
 ====================================
-Gestion des rapports de sécurité (liste, génération globale, export PDF).
+Management of security reports (listing, global generation, PDF export).
 """
 
 import uuid
@@ -23,7 +23,7 @@ from app.schemas.common import PaginatedResponse
 
 router = APIRouter()
 
-# ─── Schémas ──────────────────────────────────────────────────────────────────
+# ─── Schemas ──────────────────────────────────────────────────────────────────
 
 from pydantic import BaseModel
 
@@ -57,7 +57,7 @@ async def list_reports(
     offset: int = Query(0, ge=0),
     period: str | None = Query(None, pattern="^(7d|1m|30d|6m|12m)$"),
 ) -> PaginatedResponse[ReportRead]:
-    """Liste les rapports générés (basé sur les ScanResult terminés)."""
+    """Lists generated reports (based on completed ScanResults)."""
     stmt = select(ScanResult).where(ScanResult.status == ScanStatus.COMPLETED).order_by(desc(ScanResult.completed_at))
 
     if period:
@@ -75,7 +75,7 @@ async def list_reports(
 
     items = []
     for s in scans:
-        # Transformation de ScanResult en ReportRead
+        # Transform ScanResult to ReportRead
         items.append(
             ReportRead(
                 id=str(s.id),
@@ -85,7 +85,7 @@ async def list_reports(
                 emails_compromised=s.breach_findings,
                 has_ransomware_alert=s.ransomware_findings > 0,
                 type="manual" if s.triggered_by.startswith("manual") else "scheduled",
-                finding_counts=s.findings_by_source or {},  # Simplifié pour le Record<Severity, number>
+                finding_counts=s.findings_by_source or {},  # Simplified for the Record<Severity, number>
             )
         )
 
@@ -99,7 +99,7 @@ async def export_report(
     format: str = Query("pdf", pattern="^(pdf|json|html)$"),
     db: AsyncSession = Depends(get_db),
 ):
-    """Exporte un rapport existant dans le format demandé."""
+    """Exports an existing report in the requested format."""
     result = await db.execute(select(ScanResult).where(ScanResult.id == uuid.UUID(report_id)))
     scan = result.scalar_one_or_none()
 
@@ -108,13 +108,13 @@ async def export_report(
 
     base_path = Path(scan.report_path)
     if not base_path.exists():
-        # Tenter de retrouver le fichier si le chemin a changé (ex: docker restart)
+        # Try to find the file if the path has changed (e.g. docker restart)
         filename = base_path.name
         base_path = Path(settings.report_output_dir) / filename
         if not base_path.exists():
             raise HTTPException(status_code=404, detail="Report file missing on disk")
 
-    # Si on veut du JSON ou HTML, on renvoie directement le fichier existant
+    # If JSON or HTML is requested, return the existing file directly
     if format == "json":
         json_path = base_path.with_suffix(".json")
         if json_path.exists():
@@ -124,15 +124,15 @@ async def export_report(
         if html_path.exists():
             return FileResponse(html_path, media_type="text/html", filename=html_path.name)
 
-    # Si on veut du PDF, on vérifie s'il existe déjà ou on le génère
+    # If PDF is requested, check if it already exists or generate it
     pdf_path = base_path.with_suffix(".pdf")
     if pdf_path.exists():
         return FileResponse(pdf_path, media_type="application/pdf", filename=pdf_path.name)
 
-    # Génération à la volée si nécessaire
-    # Note: On a besoin du FinalReport complet pour re-générer.
-    # Pour l'instant, on suppose que le scan a déjà généré les fichiers de base.
-    # On va lire le JSON pour reconstruire le FinalReport et appeler _generate_pdf.
+    # On-the-fly generation if necessary
+    # Note: The full FinalReport is needed to re-generate.
+    # For now, assume the scan has already generated the base files.
+    # We will read the JSON to reconstruct the FinalReport and call _generate_pdf.
 
     json_file = base_path.with_suffix(".json")
     if not json_file.exists():
@@ -157,8 +157,8 @@ async def generate_global_report(
     body: ReportGenerateRequest, current_user: AdminUser, db: AsyncSession = Depends(get_db)
 ):
     """
-    Génère un rapport consolidé sur une période donnée.
-    Récupère tous les findings des scans effectués entre start_date et end_date.
+    Generates a consolidated report over a given period.
+    Retrieves all findings from scans performed between start_date and end_date.
     """
     import json
 
@@ -166,7 +166,7 @@ async def generate_global_report(
     from app.models.report import FinalReport, ReportMetadata
     from app.report.engine import ReportEngine
 
-    # 1. Récupérer les ScanResult de la période
+    # 1. Retrieve ScanResults for the period
     stmt = (
         select(ScanResult)
         .where(ScanResult.status == ScanStatus.COMPLETED)
@@ -179,7 +179,7 @@ async def generate_global_report(
     if not scans:
         raise HTTPException(status_code=404, detail="No scans found in this period")
 
-    # 2. Agréger les données de tous les scans
+    # 2. Aggregate data from all scans
     all_leak_findings = []
     all_ransom_findings = []
     sources_queried = set()
@@ -197,26 +197,26 @@ async def generate_global_report(
                 report_data = json.load(f)
                 report_obj = FinalReport.model_validate(report_data)
 
-                # Extraire les findings individuels (LeakFinding)
+                # Extract individual findings (LeakFinding)
                 for email_res in report_obj.findings:
                     all_leak_findings.extend(email_res.findings)
 
-                # Extraire les alertes ransomware
+                # Extract ransomware alerts
                 all_ransom_findings.extend(report_obj.ransomware_alerts.alerts)
 
-                # Fusionner les sources
+                # Merge sources
                 sources_queried.update(report_obj.report_metadata.sources_queried)
         except Exception as e:
             print(f"Error loading report {json_path}: {e}")
 
-    # 3. Créer le nouveau rapport consolidé
+    # 3. Create the new consolidated report
     aggregator = ResultAggregator()
     metadata = ReportMetadata(
         target_domain=settings.target_domain,
         generated_at=datetime.now(UTC),
         scan_duration_seconds=0.0,
         sources_queried=list(sources_queried),
-        total_emails_checked=0,  # Difficile à recalculer sans les logs de scan
+        total_emails_checked=0,  # Hard to recalculate without scan logs
         total_findings=len(all_leak_findings) + len(all_ransom_findings),
     )
 
@@ -224,13 +224,13 @@ async def generate_global_report(
         email_findings=all_leak_findings, ransom_findings=all_ransom_findings, metadata=metadata
     )
 
-    # 4. Générer les fichiers
+    # 4. Generate files
     engine = ReportEngine(output_dir=settings.report_output_dir)
-    # On ajoute "global_" au début du nom de fichier via le timestamp
+    # Add "GLOBAL_" to the beginning of the filename via timestamp
     datetime.now(UTC).strftime("GLOBAL_%Y%m%d_%H%M%S")
     report_files = engine.generate(consolidated_report, formats=["json", "html", "pdf"])
 
-    # 5. Logger l'action
+    # 5. Log the action
     db.add(
         AuditLog(
             user_email=current_user.email,
@@ -250,6 +250,6 @@ async def generate_global_report(
         "message": f"Global report based on {len(scans)} scans has been generated.",
         "report_id": str(
             scans[0].id
-        ),  # On renvoie un ID pour que l'UI puisse le lister ou on devrait créer un ScanResult type "GLOBAL"
+        ),  # Return an ID so the UI can list it, or we should create a "GLOBAL" type ScanResult
         "scans_included": len(scans),
     }

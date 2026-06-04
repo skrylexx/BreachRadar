@@ -1,18 +1,18 @@
 """
 breachradar/core/aggregator.py
 
-Déduplication et agrégation des findings.
+Deduplication and aggregation of findings.
 
-Responsabilités :
-1. Dédupliquer les findings identiques provenant de sources multiples
-2. Calculer la sévérité par email (basée sur les types de données exposées)
-3. Calculer la sévérité globale du rapport
-4. Intégrer les RansomFindings comme signal de sévérité maximale globale
+Responsibilities:
+1. Deduplicate identical findings from multiple sources
+2. Calculate severity per email (based on types of data exposed)
+3. Calculate the overall severity of the report
+4. Integrate RansomFindings as a global maximum severity signal
 
-RÈGLE CRITIQUE RansomLook :
-Si un RansomFinding est présent, la sévérité GLOBALE est TOUJOURS CRITICAL.
-Cette règle n'est pas négociable — une compromission ransomware en cours
-est le scénario le plus grave possible.
+CRITICAL RULE RansomLook:
+If a RansomFinding is present, the OVERALL severity is ALWAYS CRITICAL.
+This rule is non-negotiable — a ransomware compromise in progress
+is the most serious scenario possible.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ from app.models.report import (
 
 logger = logging.getLogger(__name__)
 
-# Recommandations génériques par niveau de sévérité
+# Generic recommendations by severity level
 SEVERITY_RECOMMENDATIONS: dict[Severity, list[str]] = {
     Severity.CRITICAL: [
         "Forcer la réinitialisation du mot de passe immédiatement",
@@ -64,9 +64,9 @@ SEVERITY_RECOMMENDATIONS: dict[Severity, list[str]] = {
 
 class ResultAggregator:
     """
-    Agrège, déduplique et calcule les sévérités des findings.
+    Aggregates, deduplicates and calculates the severities of findings.
 
-    Usage :
+    Usage:
         aggregator = ResultAggregator()
         report = aggregator.aggregate(
             email_findings=all_findings,
@@ -82,43 +82,43 @@ class ResultAggregator:
         metadata: ReportMetadata,
     ) -> FinalReport:
         """
-        Point d'entrée principal — produit le FinalReport complet.
+        Primary entry point — produces the full FinalReport.
 
-        ⚠️  RÈGLE CRITIQUE : Si ransom_findings est non vide, la sévérité
-        globale est CRITICAL quelle que soit la sévérité des email_findings.
+        ⚠️ CRITICAL RULE: If ransom_findings is non-empty, the severity
+        global is CRITICAL regardless of the severity of email_findings.
 
         Args:
-            email_findings: Tous les findings email (toutes sources confondues)
-            ransom_findings: Findings RansomLook (peut être vide)
-            metadata: Métadonnées du scan
+            email_findings: All email findings (all sources)
+            ransom_findings: Findings RansomLook (may be empty)
+            metadata: Scan metadata
 
         Returns:
-            FinalReport complet et prêt à être rendu
+            FinalReport complete and ready to be rendered
         """
-        # 1. Dédupliquer et regrouper les findings par email
+        # 1. Deduplicate and consolidate findings by email
         email_results = self._deduplicate_and_group(email_findings)
 
-        # 2. Calculer la sévérité de chaque email
+        # 2. Calculate the severity of each email
         for result in email_results.values():
             result.severity = self._calculate_email_severity(result.findings)
             result.recommendations = SEVERITY_RECOMMENDATIONS.get(result.severity, [])
 
-        # 3. Construire le bloc d'alertes ransomware
+        # 3. Build the ransomware alert block
         ransomware_alerts = RansomwareAlerts(
             domain_listed=len(ransom_findings) > 0,
             alert_count=len(ransom_findings),
             alerts=ransom_findings,
         )
 
-        # 4. Calculer la sévérité globale
+        # 4. Calculate overall severity
         global_severity = self._calculate_global_severity(list(email_results.values()), ransom_findings)
 
-        # 5. Construire le résumé
+        # 5. Build the summary
         summary = self._build_summary(list(email_results.values()), ransom_findings)
         summary.global_severity = global_severity
         summary.ransomware_detected = len(ransom_findings) > 0
 
-        # 6. Trier les findings par sévérité (CRITICAL en premier)
+        # 6. Sort findings by severity (CRITICAL first)
         sorted_findings = sorted(
             email_results.values(),
             key=lambda r: [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW].index(
@@ -135,17 +135,17 @@ class ResultAggregator:
 
     def _deduplicate_and_group(self, findings: list[LeakFinding]) -> dict[str, EmailFindingResult]:
         """
-        Groupe les findings par email et déduplique les breaches identiques.
-        Un breach est un doublon si (email, breach_name, source) est identique.
+        Group findings by email and deduplicate identical breaches.
+        A breach is a duplicate if (email, breach_name, source) is the same.
 
         Returns:
-            Dictionnaire email → EmailFindingResult dédupliqué
+            Email Dictionary → Deduplicated EmailFindingResult
         """
         grouped: dict[str, list[LeakFinding]] = defaultdict(list)
         seen_breaches: dict[str, set[tuple[str, str]]] = defaultdict(set)
 
         for finding in findings:
-            # Clé de déduplication : (breach_name, source)
+            # Deduplication key: (breach_name, source)
             dedup_key = (finding.breach_name.lower(), finding.source)
 
             if dedup_key in seen_breaches[finding.email]:
@@ -176,15 +176,15 @@ class ResultAggregator:
 
     def _calculate_email_severity(self, findings: list[LeakFinding]) -> Severity:
         """
-        Calcule la sévérité maximale pour un email donné.
+        Calculates the maximum severity for a given email.
 
-        Règles (par ordre de priorité décroissant) :
-        - Credential en clair ou clé API → CRITICAL
-        - Hash de mot de passe → HIGH (+ escalade si récent)
-        - Données PII uniquement → MEDIUM
-        - Données non-sensibles, breach ancienne → LOW
+        Rules (in descending order of priority):
+        - Clear credential or API key → CRITICAL
+        - Password hash → HIGH (+ escalation if recent)
+        - PII data only → MEDIUM
+        - Non-sensitive data, old breach → LOW
 
-        La sévérité est escaladée d'un niveau si la breach est récente (<6 mois).
+        The severity is increased by one level if the breach is recent (<6 months).
         """
         if not findings:
             return Severity.LOW
@@ -199,17 +199,17 @@ class ResultAggregator:
         return max_severity
 
     def _finding_severity(self, finding: LeakFinding) -> Severity:
-        """Calcule la sévérité d'un LeakFinding individuel."""
-        # Credential en clair ou clé API → CRITICAL immédiat
+        """Calculates the severity of an individual LeakFinding."""
+        # Clear credential or API key → immediate CRITICAL
         if finding.has_plaintext_credential or finding.has_api_key:
             return Severity.CRITICAL
 
-        # Hash de mot de passe → HIGH (ou CRITICAL si récent)
+        # Password hash → HIGH (or CRITICAL if recent)
         if finding.has_password or finding.has_hash:
             base = Severity.HIGH
             return self._escalate_if_recent(base, finding.breach_date)
 
-        # Données PII uniquement → MEDIUM
+        # PII data only → MEDIUM
         pii_classes = {
             "email addresses",
             "passwords",
@@ -224,20 +224,20 @@ class ResultAggregator:
             base = Severity.MEDIUM
             return self._escalate_if_recent(base, finding.breach_date)
 
-        # Données non-sensibles ou breach ancienne → LOW
+        # Non-sensitive data or old breach → LOW
         return Severity.LOW
 
     @staticmethod
     def _escalate_if_recent(severity: Severity, breach_date: date | None) -> Severity:
         """
-        Escalade la sévérité d'un niveau si la breach date de moins de 6 mois.
-        Ne peut pas dépasser CRITICAL.
+        Escalate the severity by one level if the breach is less than 6 months old.
+        Cannot exceed CRITICAL.
         """
         if not breach_date:
             return severity
 
         days_old = (date.today() - breach_date).days
-        if days_old < 180:  # < 6 mois
+        if days_old < 180:  # < 6 months
             escalation = {
                 Severity.LOW: Severity.MEDIUM,
                 Severity.MEDIUM: Severity.HIGH,
@@ -254,9 +254,9 @@ class ResultAggregator:
         ransom_findings: list[RansomFinding],
     ) -> Severity | None:
         """
-        Calcule la sévérité globale du rapport.
+        Calculates the overall severity of the report.
 
-        ⚠️  RÈGLE CRITIQUE : La présence d'un seul RansomFinding force CRITICAL.
+        ⚠️ CRITICAL RULE: The presence of a single RansomFinding forces CRITICAL.
         """
         if ransom_findings:
             logger.warning(
@@ -278,11 +278,11 @@ class ResultAggregator:
         email_results: list[EmailFindingResult],
         ransom_findings: list[RansomFinding],
     ) -> ReportSummary:
-        """Construit le bloc de résumé du rapport."""
+        """Constructs the report summary block."""
         compromised = [r for r in email_results if r.is_compromised]
         clean = [r for r in email_results if not r.is_compromised]
 
-        # Répartition par sévérité
+        # Distribution by severity
         breakdown = SeverityBreakdown()
         for result in compromised:
             if result.severity == Severity.CRITICAL:
@@ -294,7 +294,7 @@ class ResultAggregator:
             elif result.severity == Severity.LOW:
                 breakdown.LOW += 1
 
-        # Breaches les plus fréquentes
+        # Most common breaches
         breach_counts: dict[str, int] = defaultdict(int)
         all_dates: list[date] = []
 

@@ -1,8 +1,8 @@
 """
 breachradar/core/scheduler.py
 
-Planificateur de tâches (Scheduler).
-La planification avancée (via APScheduler) est prévue pour la Phase 2.
+Task Scheduler.
+Advanced scheduling (via APScheduler) is planned for Phase 2.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class ScanScheduler:
     """
-    Planificateur de tâches utilisant APScheduler.
+    Task scheduler using APScheduler.
     """
 
     def __init__(self, settings: Settings, scan_callback, cve_callback=None) -> None:
@@ -34,7 +34,7 @@ class ScanScheduler:
             logger.info("Le planificateur est désactivé dans la configuration.")
             return
 
-        # 1. Job de Scan Complet
+        # 1. Full Scan Job
         try:
             trigger = CronTrigger.from_crontab(self.settings.schedule_cron)
             self.scheduler.add_job(
@@ -48,9 +48,9 @@ class ScanScheduler:
         except ValueError as e:
             logger.error(f"Expression cron invalide pour le scan : {self.settings.schedule_cron} - {e}")
 
-        # 2. Job de Veille CVE (si callback fourni)
+        # 2. CVE Watch Job (if callback provided)
         if self.cve_callback:
-            # Interval par défaut : 1 heure si non spécifié
+            # Default interval: 1 hour if not specified
             interval_minutes = getattr(self.settings, "cve_polling_interval", 60)
             self.scheduler.add_job(
                 self._run_cve_job,
@@ -66,7 +66,7 @@ class ScanScheduler:
         logger.info("Planificateur APScheduler démarré.")
 
     def stop(self) -> None:
-        """Arrête le planificateur."""
+        """Stop the scheduler."""
         if self.scheduler.running:
             self.scheduler.shutdown()
             logger.info("Planificateur APScheduler arrêté.")

@@ -1,13 +1,13 @@
 """
 tests/test_security.py
 
-Tests de non-régression sécurité — RGPD compliance.
+Security non-regression tests — GDPR compliance.
 
-Ces tests vérifient que :
-1. Aucune donnée sensible ne transite dans les rapports
-2. Les URLs .onion ne sont jamais incluses dans les rapports finaux
-3. Le sanitizer couvre tous les formats de hash connus
-4. La sévérité CRITICAL est bien forcée par un RansomFinding
+These tests verify that:
+1. No sensitive data passes through the reports
+2. .onion URLs are never included in the final reports
+3. The sanitizer covers all known hash formats
+4. CRITICAL severity is correctly forced by a RansomFinding
 """
 
 from __future__ import annotations
@@ -21,14 +21,14 @@ from app.models.finding import LeakFinding, Severity
 from app.models.ransom import RansomFinding, RansomStatus
 from app.models.report import ReportMetadata
 
-# Patterns sensibles qui ne doivent JAMAIS apparaître dans un rapport final
+# Sensitive patterns that MUST NEVER appear in a final report
 FORBIDDEN_PATTERNS = [
-    r"(?i)password\s*[:=]\s*\S+",  # Mot de passe en clair
-    r"\b[a-f0-9]{32}\b",  # Hash MD5
-    r"\b[a-f0-9]{40}\b",  # Hash SHA-1
-    r"\b[a-f0-9]{64}\b",  # Hash SHA-256
-    r"\$2[ayb]\$.{56}",  # Hash bcrypt
-    r"ghp_[A-Za-z0-9]{36,}",  # Token GitHub
+    r"(?i)password\s*[:=]\s*\S+",  # Plaintext password
+    r"\b[a-f0-9]{32}\b",  # MD5 hash
+    r"\b[a-f0-9]{40}\b",  # SHA-1 hash
+    r"\b[a-f0-9]{64}\b",  # SHA-256 hash
+    r"\$2[ayb]\$.{56}",  # bcrypt hash
+    r"ghp_[A-Za-z0-9]{36,}",  # GitHub token
 ]
 
 
@@ -40,7 +40,7 @@ def _make_metadata(domain: str = "mondomaine.fr") -> ReportMetadata:
 
 
 def _make_finding_with_sensitive_breach() -> LeakFinding:
-    """Finding qui contiendrait des données sensibles si mal sanitisé."""
+    """Finding that would contain sensitive data if poorly sanitized."""
     return LeakFinding(
         source="hibp",
         email="alice@mondomaine.fr",
@@ -57,12 +57,12 @@ def _make_finding_with_sensitive_breach() -> LeakFinding:
 
 
 class TestNoSensitiveDataInReport:
-    """Vérification qu'aucune donnée sensible n'apparaît dans le rapport."""
+    """Verification that no sensitive data appears in the report."""
 
     def test_leak_finding_has_no_sensitive_fields(self) -> None:
         """
-        Le modèle LeakFinding ne doit pas avoir de champ
-        pour stocker un mot de passe, hash ou token.
+        The LeakFinding model must not have a field
+        to store a password, hash or token.
         """
         finding = _make_finding_with_sensitive_breach()
         finding_dict = finding.model_dump()
@@ -75,19 +75,19 @@ class TestNoSensitiveDataInReport:
 
         finding_json = json.dumps(finding_dict, cls=DateTimeEncoder)
 
-        # Vérifier l'absence de champs "password", "hash_value", "token"
+        # Verify the absence of fields "password", "hash_value", "token"
         forbidden_field_names = {"password", "hash_value", "hash", "token", "api_key_value"}
         for field_name in forbidden_field_names:
             assert field_name not in finding_dict, (
-                f"Champ sensible '{field_name}' trouvé dans LeakFinding — ce champ ne doit pas exister dans le modèle"
+                f"Sensitive field '{field_name}' found in LeakFinding — this field must not exist in the model"
             )
 
-        # Vérifier que les patterns sensibles ne sont pas dans la sérialisation JSON
+        # Verify that sensitive patterns are not in the JSON serialization
         for pattern in FORBIDDEN_PATTERNS:
-            assert not re.search(pattern, finding_json), f"Pattern sensible détecté dans LeakFinding JSON : {pattern}"
+            assert not re.search(pattern, finding_json), f"Sensitive pattern detected in LeakFinding JSON: {pattern}"
 
     def test_report_does_not_contain_passwords(self) -> None:
-        """Le rapport final ne doit contenir aucun mot de passe."""
+        """The final report must not contain any passwords."""
         aggregator = ResultAggregator()
         findings = [_make_finding_with_sensitive_breach()]
         metadata = _make_metadata()
@@ -101,21 +101,21 @@ class TestNoSensitiveDataInReport:
 
         for pattern in FORBIDDEN_PATTERNS:
             assert not re.search(pattern, report_json), (
-                f"Donnée sensible détectée dans le rapport final : pattern={pattern}"
+                f"Sensitive data detected in the final report: pattern={pattern}"
             )
 
 
 class TestOnionUrlNotInReport:
-    """Les URLs .onion ne doivent pas apparaître dans les rapports."""
+    """.onion URLs must not appear in reports."""
 
     def test_ransom_finding_portal_url_stored_but_visible(self) -> None:
         """
-        L'URL .onion est stockée dans RansomFinding.portal_url
-        mais le ReportEngine DOIT la masquer lors de la génération du rapport.
+        The .onion URL is stored in RansomFinding.portal_url
+        but the ReportEngine MUST mask it when generating the report.
 
-        Ce test vérifie que le modèle la stocke (pour usage interne),
-        et que la chaîne ".onion" est présente dans le modèle brut.
-        Note : c'est le ReportEngine qui doit la masquer, pas le modèle.
+        This test verifies that the model stores it (for internal use),
+        and that the string ".onion" is present in the raw model.
+        Note: the ReportEngine must mask it, not the model.
         """
         finding = RansomFinding(
             group_name="lockbit3",
@@ -126,12 +126,12 @@ class TestOnionUrlNotInReport:
             portal_url="http://lockbit3abc.onion/post/abc123",
             search_term_matched="mondomaine.fr",
         )
-        # Le modèle stocke l'URL (usage interne)
+        # The model stores the URL (internal use)
         assert finding.portal_url is not None
         assert ".onion" in finding.portal_url
 
     def test_data_integrity_flags_onion_excluded(self) -> None:
-        """Le flag DataIntegrity.onion_urls_excluded_from_report est True."""
+        """The DataIntegrity.onion_urls_excluded_from_report flag is True."""
         from app.models.report import DataIntegrity
 
         integrity = DataIntegrity()
@@ -139,12 +139,12 @@ class TestOnionUrlNotInReport:
 
 
 class TestRansomForcesGlobalCritical:
-    """Vérification de la règle critique RansomLook → sévérité CRITICAL globale."""
+    """Verification of the RansomLook critical rule → global CRITICAL severity."""
 
     def test_ransom_finding_elevates_global_severity_to_critical(self) -> None:
         """
-        Un seul RansomFinding doit forcer la sévérité globale à CRITICAL,
-        même si tous les email_findings sont LOW.
+        A single RansomFinding must force the global severity to CRITICAL,
+        even if all email_findings are LOW.
         """
         aggregator = ResultAggregator()
 
@@ -183,7 +183,7 @@ class TestRansomForcesGlobalCritical:
         assert report.has_critical_alert() is True
 
     def test_no_ransom_no_forced_critical(self) -> None:
-        """Sans RansomFinding, la sévérité globale reste celle des emails."""
+        """Without RansomFinding, the global severity remains that of the emails."""
         aggregator = ResultAggregator()
 
         low_finding = LeakFinding(
@@ -203,7 +203,7 @@ class TestRansomForcesGlobalCritical:
         metadata = _make_metadata()
         report = aggregator.aggregate(
             email_findings=[low_finding],
-            ransom_findings=[],  # Pas de ransomware
+            ransom_findings=[],  # No ransomware
             metadata=metadata,
         )
 
@@ -212,7 +212,7 @@ class TestRansomForcesGlobalCritical:
         assert report.has_critical_alert() is False
 
     def test_empty_scan_returns_no_severity(self) -> None:
-        """Scan vide → sévérité globale None."""
+        """Empty scan → global severity None."""
         aggregator = ResultAggregator()
         metadata = _make_metadata()
         report = aggregator.aggregate(

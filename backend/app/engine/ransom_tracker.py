@@ -1,17 +1,17 @@
 """
 breachradar/core/ransom_tracker.py
 
-Orchestration de la surveillance ransomware via RansomLookClient.
+Ransomware monitoring orchestration via RansomLookClient.
 
-Ce module est distinct du client HTTP (ransomlook.py) qui lui est délégué.
-Il gère :
-1. La vérification de la santé de l'instance RansomLook
-2. L'appel au client pour la recherche multi-termes
-3. Le déclenchement de l'alerte IMMÉDIATE à la détection
+This module is separate from the HTTP client (ransomlook.py) delegated to it.
+It manages:
+1. Checking the health of the RansomLook instance
+2. Calling the customer for multi-term search
+3. Triggering the IMMEDIATE alert upon detection
 
-⚠️  RÈGLE CRITIQUE :
-L'alerte ransomware est envoyée AVANT la fin du scan global.
-La fenêtre de réaction (5-30 jours) justifie cette priorité absolue.
+⚠️ CRITICAL RULE:
+The ransomware alert is sent BEFORE the global scan is completed.
+The response window (5-30 days) justifies this absolute priority.
 """
 
 from __future__ import annotations
@@ -30,17 +30,17 @@ logger = logging.getLogger(__name__)
 
 class RansomwareTracker:
     """
-    Orchestre la surveillance ransomware via RansomLookClient.
+    Orchestrates ransomware monitoring via RansomLookClient.
 
-    Responsabilités :
-    - Vérifier que l'instance RansomLook est opérationnelle avant le scan
-    - Déclencher la recherche multi-termes
-    - Envoyer une alerte IMMÉDIATE pour chaque RansomFinding détecté
-    - Retourner les findings pour intégration dans le rapport final
+    Responsibilities:
+    - Check that the RansomLook instance is operational before scanning
+    - Trigger multi-term search
+    - Send an IMMEDIATE alert for each RansomFinding detected
+    - Return the findings for integration into the final report
 
-    Usage :
+    Usage:
         tracker = RansomwareTracker(client=ransomlook_client, notifier=notifier)
-        findings = await tracker.run(domain="mondomaine.fr")
+        findings = await tracker.run(domain="mydomain.fr")
     """
 
     def __init__(
@@ -50,29 +50,29 @@ class RansomwareTracker:
     ) -> None:
         """
         Args:
-            client: Instance de RansomLookClient configurée
-            notifier: NotificationEngine pour les alertes (optionnel)
+            client: RansomLookClient instance configured
+            notify: NotificationEngine for alerts (optional)
         """
         self.client = client
         self.notifier = notifier
 
     async def run(self, domain: str) -> list[RansomFinding]:
         """
-        Exécute la surveillance ransomware pour un domaine.
+        Runs ransomware monitoring for a domain.
 
-        Séquence :
-        1. Vérifier la santé de l'instance RansomLook
-        2. Si non disponible : log d'erreur + retour vide (non bloquant)
-        3. Recherche multi-termes via RansomLookClient
-        4. Pour chaque finding : alerte IMMÉDIATE (sans attendre la fin du scan)
+        Sequence:
+        1. Check the health of the RansomLook instance
+        2. If not available: error log + empty return (non-blocking)
+        3. Multi-term search via RansomLookClient
+        4. For each finding: IMMEDIATE alert (without waiting for the end of the scan)
 
         Args:
-            domain: Domaine cible (ex: "mondomaine.fr")
+            domain: Target domain (eg: "mydomain.fr")
 
         Returns:
-            Liste de RansomFinding (vide = domaine non compromis ✅)
+            RansomFinding list (empty = uncompromised domain ✅)
         """
-        # 1. Vérifier la santé de l'instance
+        # 1. Check the health of the instance
         stats = await self.client.check_health()
 
         if not stats.is_healthy:
@@ -87,11 +87,11 @@ class RansomwareTracker:
             f"RansomLook opérationnel : {stats.groups_tracked} groupes suivis, {stats.total_posts} victimes indexées"
         )
 
-        # 2. Recherche multi-termes
+        # 2. Multi-term search
         findings = await self.client.check_domain(domain)
 
-        # 3. Alerte immédiate pour chaque finding
-        # ⚠️  Cette étape s'exécute AVANT la fin du scan global
+        # 3. Immediate alert for each finding
+        # ⚠️ This step is executed BEFORE the end of the global scan
         if findings:
             logger.critical(
                 f"🚨 RANSOMWARE DETECTION : {len(findings)} alerte(s) pour '{domain}' — "
@@ -106,28 +106,28 @@ class RansomwareTracker:
 
     async def get_context(self) -> RansomStats:
         """
-        Retourne les statistiques de l'instance RansomLook.
-        Utilisé par le ReportEngine pour enrichir le rapport.
+        Returns the RansomLook instance statistics.
+        Used by the ReportEngine to enrich the report.
         """
         return await self.client.check_health()
 
     async def _send_immediate_alert(self, finding: RansomFinding, domain: str) -> None:
         """
-        Envoie une alerte d'urgence immédiate pour un RansomFinding.
+        Sends an immediate emergency alert for a RansomFinding.
 
-        CONTENU DE L'ALERTE (minimal, sans données sensibles) :
-        - Groupe ransomware détecté
-        - Date de détection
-        - Taille revendiquée (si disponible)
-        - Actions critiques recommandées
+        ALERT CONTENT (minimal, without sensitive data):
+        - Ransomware group detected
+        - Detection date
+        - Claimed size (if available)
+        - Recommended critical actions
 
-        NE CONTIENT PAS :
-        - URL .onion du portail
-        - Description complète (peut contenir des PII)
+        DOES NOT CONTAIN:
+        - .onion URL of the portal
+        - Full description (may contain PII)
 
         Args:
-            finding: Le RansomFinding détecté
-            domain: Le domaine concerné
+            finding: RansomFinding detected
+            domain: The domain concerned
         """
         if not self.notifier:
             logger.warning(

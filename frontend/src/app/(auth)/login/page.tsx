@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Page de connexion — BreachRadar WebUI
- * Design : dark mode, animation radar en fond, formulaire glassmorphism
+ * Login page — BreachRadar WebUI
+ * Design: dark mode, background radar animation, glassmorphism form
  */
 
 import { useState } from "react";
@@ -13,14 +13,14 @@ import { z } from "zod";
 import { Eye, EyeOff, Loader2, Shield } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-// ─── Composant ────────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const router = useRouter();
   const t = useTranslations("Auth");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ─── Schéma de validation ─────────────────────────────────────────────────────
+  // ─── Validation Schema ─────────────────────────────────────────────────────
   const loginSchema = z.object({
     email: z.string().email(t("email_invalid")),
     password: z.string().min(1, t("password_required")),
@@ -51,18 +51,18 @@ export default function LoginPage() {
         return;
       }
 
-      // Récupérer le paramètre return_to
+      // Get the return_to parameter
       const searchParams = new URLSearchParams(window.location.search);
       const returnTo = searchParams.get("return_to") || "/";
 
-      // MFA requis → rediriger vers la page MFA en passant le return_to
+      // MFA required → redirect to MFA page passing return_to
       if (json.requires_mfa) {
         sessionStorage.setItem("mfa_challenge", json.mfa_challenge_token);
         router.push(`/mfa?return_to=${encodeURIComponent(returnTo)}`);
         return;
       }
 
-      // Connexion directe → rediriger vers return_to ou dashboard
+      // Direct connection → redirect to return_to or dashboard
       router.push(returnTo);
     } catch {
       setError(t("error_network"));
@@ -72,14 +72,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
 
-      {/* ─── Fond radar animé ─────────────────────────────────────────── */}
+      {/* ─── Animated radar background ─────────────────────────────────────────── */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04]">
         <RadarBackground />
       </div>
 
-      {/* ─── Card de connexion ────────────────────────────────────────── */}
+      {/* ─── Login card ────────────────────────────────────────── */}
       <div className="relative z-10 w-full max-w-md px-4 animate-fade-in">
-        {/* Logo / Titre */}
+        {/* Logo / Title */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Shield className="w-8 h-8 text-radar animate-glow-pulse" />
@@ -92,7 +92,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Formulaire */}
+        {/* Form */}
         <div className="card-soc p-6 space-y-5">
           <h1 className="text-lg font-semibold text-foreground">{t("login_title")}</h1>
 
@@ -150,7 +150,7 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Erreur API */}
+            {/* API Error */}
             {error && (
               <div className="p-3 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
                 {error}
@@ -177,7 +177,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Lien reset password */}
+          {/* Reset password link */}
           <div className="text-center">
             <a
               href="/reset-password"
@@ -188,7 +188,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer légal */}
+        {/* Legal footer */}
         <p className="text-center text-xs text-muted-foreground/50 mt-4">
           {t("footer_legal")}
         </p>
@@ -197,7 +197,7 @@ export default function LoginPage() {
   );
 }
 
-// ─── Fond radar SVG animé ─────────────────────────────────────────────────────
+// ─── Animated SVG radar background ─────────────────────────────────────────────────────
 function RadarBackground() {
   return (
     <svg
@@ -207,7 +207,7 @@ function RadarBackground() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Cercles concentriques */}
+      {/* Concentric circles */}
       {[60, 120, 180, 240, 300].map((r) => (
         <circle
           key={r}
@@ -217,13 +217,13 @@ function RadarBackground() {
           strokeDasharray="4 8"
         />
       ))}
-      {/* Lignes de grille */}
+      {/* Grid lines */}
       <line x1="300" y1="0" x2="300" y2="600" stroke="#38bdf8" strokeWidth="0.5" />
       <line x1="0" y1="300" x2="600" y2="300" stroke="#38bdf8" strokeWidth="0.5" />
       <line x1="87" y1="87" x2="513" y2="513" stroke="#38bdf8" strokeWidth="0.5" />
       <line x1="513" y1="87" x2="87" y2="513" stroke="#38bdf8" strokeWidth="0.5" />
 
-      {/* Sweep rotatif */}
+      {/* Rotating sweep */}
       <g
         style={{
           transformOrigin: "300px 300px",
@@ -243,7 +243,7 @@ function RadarBackground() {
         />
       </g>
 
-      {/* Point centre */}
+      {/* Center point */}
       <circle cx="300" cy="300" r="4" fill="#38bdf8" />
     </svg>
   );

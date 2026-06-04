@@ -1,8 +1,8 @@
 """
 backend/tests/test_cve_monitor.py
 
-Tests unitaires pour le moteur de veille CVE (CVEMonitor).
-Utilise respx pour mocker les appels API externes.
+Unit tests for the CVE watch engine (CVEMonitor).
+Uses respx to mock external API calls.
 """
 
 from datetime import UTC, datetime
@@ -23,7 +23,7 @@ def mock_db():
     db.commit = AsyncMock()
     db.add = MagicMock()
 
-    # Mock du résultat select pour l'upsert (None par défaut = nouvelle CVE)
+    # Mock the select result for the upsert (None by default = new CVE)
     result = MagicMock()
     result.scalar_one_or_none.return_value = None
     db.execute.return_value = result

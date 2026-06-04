@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur API Keys (Admin uniquement)
-========================================================
-Gestion des clés API des connecteurs OSINT.
+BreachRadar WebUI — API Keys Router (Admin only)
+===============================================================================
+OSINT connector API key management.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -17,7 +17,7 @@ from app.models.audit_log import AuditLog
 
 router = APIRouter()
 
-# Services supportés avec leur description
+# Supported services with their description
 SUPPORTED_SERVICES = {
     "hibp": "Have I Been Pwned",
     "leakcheck": "LeakCheck.io",
@@ -46,7 +46,7 @@ class APIKeyRead(BaseModel):
 
 
 class APIKeyStatus(BaseModel):
-    """Vue d'ensemble de tous les connecteurs (configurés ou non)."""
+    """Overview of all connectors (configured or not)."""
 
     service_name: str
     service_label: str
@@ -61,8 +61,8 @@ async def get_api_keys_status(
     db: AsyncSession = Depends(get_db),
 ) -> list[APIKeyStatus]:
     """
-    Retourne l'état de TOUS les connecteurs supportés.
-    Les non-configurés sont inclus avec configured=False.
+    Returns the status of ALL supported connectors.
+    Unconfigured ones are included with configured=False.
     """
     result = await db.execute(select(APIKey))
     configured_keys = {k.service_name: k for k in result.scalars().all()}
@@ -91,12 +91,12 @@ async def upsert_api_key(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Crée ou met à jour une clé API (admin uniquement)."""
+    """Creates or updates an API key (admin only)."""
     if service_name not in SUPPORTED_SERVICES:
         raise HTTPException(status_code=400, detail=f"Unknown service: {service_name}")
 
-    # Note: En production, chiffrer avec Fernet avant stockage
-    # Pour cette itération : stockage de la clé (TODO: chiffrement Fernet)
+    # Note: In production, encrypt with Fernet before storage
+    # For this iteration: key storage (TODO: Fernet encryption)
     result = await db.execute(select(APIKey).where(APIKey.service_name == service_name))
     existing = result.scalar_one_or_none()
 
@@ -130,7 +130,7 @@ async def delete_api_key(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Supprime une clé API."""
+    """Deletes an API key."""
     result = await db.execute(select(APIKey).where(APIKey.service_name == service_name))
     key = result.scalar_one_or_none()
     if not key:

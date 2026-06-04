@@ -1,8 +1,8 @@
 """
 BreachRadar WebUI — GitHub Webhooks
 ====================================
-Endpoint pour recevoir les alertes GitHub en temps réel
-(ex: Secret Scanning Alerts ou Push events).
+Endpoint to receive real-time GitHub alerts
+(e.g., Secret Scanning Alerts or Push events).
 """
 
 import hashlib
@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 def verify_signature(payload_body: bytes, secret_token: str, signature_header: str) -> bool:
-    """Vérifie la signature HMAC de GitHub."""
+    """Verifies the GitHub HMAC signature."""
     if not signature_header:
         return False
     hash_object = hmac.new(secret_token.encode("utf-8"), msg=payload_body, digestmod=hashlib.sha256)
@@ -34,7 +34,7 @@ async def handle_github_webhook(
     x_hub_signature_256: str = Header(None, alias="X-Hub-Signature-256"),
     x_github_event: str = Header("ping", alias="X-GitHub-Event"),
 ):
-    # Validation du secret (si configuré)
+    # Secret validation (if configured)
     secret_token = getattr(settings, "github_webhook_secret", None)
     if secret_token:
         body = await request.body()
@@ -50,7 +50,7 @@ async def handle_github_webhook(
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request: Invalid JSON")
 
-    # Traitement basique d'une alerte Secret Scanning
+    # Basic processing of a Secret Scanning alert
     if x_github_event == "secret_scanning_alert":
         action = payload.get("action")
         alert = payload.get("alert", {})
@@ -60,7 +60,7 @@ async def handle_github_webhook(
             secret_type = alert.get("secret_type", "unknown_secret")
             logger.error(f"[🚨 ALERTE GITHUB] Secret détecté dans {repo} : {secret_type}")
 
-            # Envoi d'une notification via NotificationEngine (ex: Webhook, Email)
+            # Sending a notification via NotificationEngine (e.g. Webhook, Email)
             notifier = NotificationEngine(settings)
             message = f"ALERTE GITHUB SECRET SCANNING\nRepo: {repo}\nType: {secret_type}\nURL: {alert.get('html_url')}"
 

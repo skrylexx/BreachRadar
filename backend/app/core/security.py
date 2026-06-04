@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Sécurité (JWT + Bcrypt + TOTP)
+BreachRadar WebUI — Security (JWT + Bcrypt + TOTP)
 ====================================================
-Toutes les fonctions de sécurité centralisées ici.
+All security functions centralized here.
 """
 
 import base64
@@ -17,23 +17,23 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# ─── Hachage des mots de passe (Bcrypt) ──────────────────────────────────────
+# ─── Password hashing (Bcrypt) ──────────────────────────────────────
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
-    """Hache un mot de passe avec bcrypt."""
+    """Hash a password with bcrypt."""
     return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Vérifie un mot de passe contre son hash bcrypt."""
+    """Checks a password against its bcrypt hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def validate_password_strength(password: str, is_admin: bool = False) -> tuple[bool, str]:
     """
-    Valide la force du mot de passe selon la politique RBAC.
+    Validates password strength according to RBAC policy.
 
     Returns:
         (is_valid: bool, error_message: str)
@@ -56,11 +56,11 @@ def validate_password_strength(password: str, is_admin: bool = False) -> tuple[b
 
 def is_password_rotation_required(last_password_change: datetime, password_length: int) -> bool:
     """
-    Vérifie si la rotation du mot de passe est requise.
-    Exemption : si le mot de passe fait plus de 24 caractères.
+    Checks if password rotation is required.
+    Exemption: if the password is longer than 24 characters.
     """
     if password_length >= settings.password_rotation_exemption_length:
-        return False  # Exempt de rotation
+        return False  # Free from rotation
 
     rotation_deadline = last_password_change + timedelta(days=settings.password_rotation_days)
     return datetime.now(UTC) > rotation_deadline
@@ -70,7 +70,7 @@ def is_password_rotation_required(last_password_change: datetime, password_lengt
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """Crée un JWT access token (durée courte : 15 min)."""
+    """Creates a JWT access token (short duration: 15 min)."""
     to_encode = data.copy()
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes))
     to_encode.update({"exp": expire, "type": "access"})
@@ -78,7 +78,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def create_refresh_token(data: dict) -> str:
-    """Crée un JWT refresh token (durée longue : 7 jours)."""
+    """Creates a JWT refresh token (long duration: 7 days)."""
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(days=settings.jwt_refresh_token_expire_days)
     to_encode.update({"exp": expire, "type": "refresh"})
@@ -86,7 +86,7 @@ def create_refresh_token(data: dict) -> str:
 
 
 def decode_token(token: str) -> dict | None:
-    """Décode et valide un JWT. Retourne None si invalide."""
+    """Decodes and validates a JWT. Return None if invalid."""
     try:
         return jwt.decode(
             token,
@@ -101,20 +101,20 @@ def decode_token(token: str) -> dict | None:
 
 
 def generate_totp_secret() -> str:
-    """Génère un secret TOTP unique pour un utilisateur."""
+    """Generates a unique TOTP secret for a user."""
     return pyotp.random_base32()
 
 
 def get_totp_uri(secret: str, email: str) -> str:
-    """Construit l'URI TOTP pour les apps authenticator (Google Auth, Authy...)."""
+    """Constructs the TOTP URI for authenticator apps (Google Auth, Authy...)."""
     totp = pyotp.TOTP(secret)
     return totp.provisioning_uri(name=email, issuer_name="BreachRadar")
 
 
 def generate_totp_qrcode_base64(secret: str, email: str) -> str:
     """
-    Génère un QR code encodé en base64 pour l'enrôlement MFA.
-    Retourne une chaîne "data:image/png;base64,..." directement utilisable en HTML.
+    Generates a base64 encoded QR code for MFA enrollment.
+    Returns a string "data:image/png;base64,..." directly usable in HTML.
     """
     uri = get_totp_uri(secret, email)
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
@@ -131,8 +131,8 @@ def generate_totp_qrcode_base64(secret: str, email: str) -> str:
 
 def verify_totp(secret: str, code: str) -> bool:
     """
-    Vérifie un code TOTP avec une fenêtre de tolérance de ±1 intervalle (±30s).
-    Protège contre les décalages d'horloge mineurs.
+    Verifies a TOTP code with a tolerance window of ±1 interval (±30s).
+    Protects against minor clock skews.
     """
     totp = pyotp.TOTP(secret)
     return totp.verify(code, valid_window=1)
@@ -142,31 +142,31 @@ def verify_totp(secret: str, code: str) -> bool:
 
 
 def generate_backup_codes(count: int = 10) -> list[str]:
-    """Génère une liste de codes de secours aléatoires."""
+    """Generates a list of random backup codes."""
     import secrets
     import string
 
     codes = []
     for _ in range(count):
-        # Format: 12 caractères alphanumériques (ex: ABCD-EFGH-IJKL)
+        # Format: 12 alphanumeric characters (ex: ABCD-EFGH-IJKL)
         code = "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(12))
         codes.append(code)
     return codes
 
 
-# ─── Chiffrement Fernet (Secrets en base) ────────────────────────────────────
+# ─── Fernet encryption (Secrets in base) ────────────────────────────────────
 
 
 def _get_fernet() -> Fernet:
     """
-    Initialise le client Fernet avec la clé des settings.
-    Si settings.encryption_key n'est pas configuré, on dérive une clé déterministe
-    depuis jwt_secret_key (utile pour le dev/test).
+    Initializes the Fernet client with the settings key.
+    If settings.encryption_key is not configured, a deterministic key is derived
+    from jwt_secret_key (useful for dev/test).
     """
     if settings.encryption_key:
         return Fernet(settings.encryption_key.encode())
 
-    # Dérivation déterministe simple
+    # Simple deterministic derivation
     import base64
     import hashlib
 
@@ -175,13 +175,13 @@ def _get_fernet() -> Fernet:
 
 
 def encrypt_secret(value: str) -> str:
-    """Chiffre une chaîne de caractères (clé API, password SMTP)."""
+    """Encrypts a character string (API key, SMTP password)."""
     f = _get_fernet()
     return f.encrypt(value.encode()).decode()
 
 
 def decrypt_secret(token: str | None) -> str:
-    """Déchiffre un token Fernet."""
+    """Decrypts a Fernet token."""
     if token is None:
         return ""
     f = _get_fernet()

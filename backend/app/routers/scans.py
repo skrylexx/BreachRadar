@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Scans
+BreachRadar WebUI — Scans Router
 ====================================
-Endpoints : liste, détail, stats, déclenchement manuel, export rapport.
+Endpoints: list, details, stats, manual trigger, report export.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -31,7 +31,7 @@ async def list_scans(
     page_size: int = Query(25, ge=1, le=100),
     severity: ScanSeverity | None = None,
 ) -> PaginatedResponse[ScanResultRead]:
-    """Liste les résultats de scan (Viewer + Admin)."""
+    """Lists scan results (Viewer + Admin)."""
     offset = (page - 1) * page_size
 
     # Count total
@@ -65,8 +65,8 @@ async def get_scan_stats(
     period: str = Query("7d", pattern="^(7d|1m|6m|12m)$"),
 ) -> ScanStats:
     """
-    Statistiques agrégées pour les graphiques du dashboard.
-    Retourne des points de données pour le graphique à bâtonnets.
+    Aggregated statistics for dashboard charts.
+    Returns data points for the bar chart.
     """
     period_days = {"7d": 7, "1m": 30, "6m": 180, "12m": 365}[period]
     since = datetime.now(UTC) - timedelta(days=period_days)
@@ -79,7 +79,7 @@ async def get_scan_stats(
     )
     scans = result.scalars().all()
 
-    # Grouper par jour
+    # Group by day
     from collections import defaultdict
 
     daily: dict = defaultdict(lambda: {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0})
@@ -106,7 +106,7 @@ async def get_scan(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
 ) -> ScanResultRead:
-    """Détail d'un scan."""
+    """Details of a scan."""
     import uuid
 
     result = await db.execute(select(ScanResult).where(ScanResult.id == uuid.UUID(scan_id)))
@@ -122,11 +122,11 @@ async def trigger_scan(
     request: Request,
     body: ScanTriggerRequest,
     background_tasks: BackgroundTasks,
-    current_user: AdminUser,  # Admin uniquement
+    current_user: AdminUser,  # Admin only
     db: AsyncSession = Depends(get_db),
 ) -> ScanTriggerResponse:
     """
-    Déclenche un scan manuel (Admin uniquement).
+    Triggers a manual scan (Admin only).
     """
     started_at = datetime.now(UTC)
     scan = ScanResult(
@@ -139,7 +139,7 @@ async def trigger_scan(
     await db.commit()
     await db.refresh(scan)
 
-    # Déclencher le scan en arrière-plan
+    # Trigger the scan in the background
     from app.engine.logic import ScanManager
 
     scan_manager = ScanManager()

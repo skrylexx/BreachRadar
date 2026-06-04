@@ -2,7 +2,7 @@
 
 /**
  * Sidebar — BreachRadar WebUI
- * Adaptative : Fixe sur Desktop, Overlay (tiroir) sur Mobile.
+ * Adaptive: Fixed on Desktop, Overlay (drawer) on Mobile.
  */
 
 import Image from "next/image";
@@ -168,7 +168,7 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Navigation principale */}
+      {/* Main navigation */}
       <nav className="flex-1 flex flex-col gap-1 px-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
         {NAV_ITEMS.map((item) => (
           <NavIcon key={item.href} item={item} isActive={isActive(item)} isExpanded={isHovered || isOpen} onClick={isOpen ? close : undefined} />

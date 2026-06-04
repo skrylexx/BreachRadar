@@ -1,7 +1,7 @@
 /**
- * i18n — Internationalisation BreachRadar WebUI
- * Langues supportées : English (défaut), Français
- * Implémentation : dictionnaire statique (next-intl à intégrer phase suivante)
+ * i18n — BreachRadar WebUI Internationalization
+ * Supported languages: English (default), French
+ * Implementation: static dictionary (next-intl to be integrated in next phase)
  */
 
 export type Locale = "en" | "fr";

@@ -1,7 +1,7 @@
 """
 tests/test_clients/test_ransomlook.py
 
-Tests unitaires pour RansomLook Client.
+Unit tests for RansomLook Client.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ from app.models.ransom import RansomStatus
 class TestRansomLookClient:
     @pytest.fixture
     def client(self) -> RansomLookClient:
-        # RansomLookClient prend ses paramètres depuis les settings globaux.
-        # En test, on mocke les attributs après coup pour éviter de dépendre d'env vars réelles.
+        # RansomLookClient takes its parameters from the global settings.
+        # In testing, we mock the attributes afterwards to avoid depending on real env vars.
         with patch("app.clients.ransomlook.settings") as mock_settings:
             mock_settings.ransomlook_mode = "local"
             mock_settings.ransomlook_local_url = "http://localhost:8888"
@@ -55,7 +55,7 @@ class TestRansomLookClient:
                 "discovered": "2025-01-01",
             }
         ]
-        # Le même résultat trouvé avec le terme supplémentaire
+        # The same result found with the additional term
         mock_response_extra = [
             {
                 "group_name": "lockbit3",
@@ -66,12 +66,12 @@ class TestRansomLookClient:
         ]
 
         with patch.object(client, "_get", new_callable=AsyncMock) as mock_get:
-            # Va être appelé pour 'test.com' puis pour 'extra_term'
+            # Will be called for 'test.com' then for 'extra_term'
             mock_get.side_effect = [mock_response_domain, mock_response_extra]
 
             findings = await client.check_domain("test.com")
 
-            # Devrait être dédupliqué
+            # Should be deduplicated
             assert len(findings) == 1
             assert findings[0].group_name == "lockbit3"
             assert findings[0].status == RansomStatus.PUBLISHED

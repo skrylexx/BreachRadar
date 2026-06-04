@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Initialisation de la base de données
+BreachRadar WebUI — Database initialization
 =========================================================
-Crée l'administrateur initial au premier démarrage si aucun utilisateur n'existe.
+Creates the initial administrator on first startup if no user exists.
 """
 
 import asyncio
@@ -21,16 +21,16 @@ logger = logging.getLogger(__name__)
 
 async def initialize_database() -> None:
     """
-    Initialise la DB au démarrage :
-    - Synchronise le schéma (avec verrou Redis pour éviter les race conditions entre workers).
-    - Crée l'admin initial si aucun utilisateur n'existe.
+    Initializes the DB at startup:
+    - Synchronizes the schema (with Redis lock to avoid race conditions between workers).
+    - Creates initial admin if no user exists.
     """
     lock_key = "breachradar:db_init_lock"
     max_retries = 10
     retry_count = 0
 
     while retry_count < max_retries:
-        # Tenter de prendre le verrou pendant 60 secondes
+        # Attempt to take the lock for 60 seconds
         is_locked = await redis_client.set(lock_key, "1", nx=True, ex=60)
 
         if is_locked:
@@ -44,14 +44,14 @@ async def initialize_database() -> None:
         logger.warning("Could not acquire DB init lock after several attempts. Proceeding with caution.")
 
     try:
-        # 1. Synchronisation du schéma
+        # 1. Schema synchronization
         async with engine.begin() as conn:
-            # On utilise run_sync pour appeler create_all qui est synchrone dans SQLAlchemy
+            # We use run_sync to call create_all which is synchronous in SQLAlchemy
             await conn.run_sync(Base.metadata.create_all)
 
-            # --- Migration manuelle pour les colonnes manquantes (Upgrade) ---
-            # SQLAlchemy create_all ne rajoute pas de colonnes sur des tables existantes.
-            # On force l'ajout des colonnes critiques si elles manquent.
+            # --- Manual migration for missing columns (Upgrade) ---
+            # SQLAlchemy create_all does not add columns to existing tables.
+            # We force the addition of critical columns if they are missing.
             from sqlalchemy import text
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1 NOT NULL"))
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN DEFAULT FALSE NOT NULL"))
@@ -61,14 +61,14 @@ async def initialize_database() -> None:
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_password_change TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL"))
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_length INTEGER DEFAULT 0 NOT NULL"))
 
-        # 2. Création admin initial
+        # 2. Initial admin creation
         async with AsyncSessionLocal() as session:
-            # Vérifier si l'admin existe déjà (par email)
+            # Check if the admin already exists (by email)
             result = await session.execute(select(User).where(User.email == settings.initial_admin_email))
             existing_admin = result.scalar_one_or_none()
 
             if existing_admin is None:
-                # Vérifier si un autre utilisateur existe quand même
+                # Check if another user still exists
                 res_any = await session.execute(select(User).limit(1))
                 if res_any.scalar_one_or_none() is None:
                     logger.info(f"Creating initial admin account: {settings.initial_admin_email}")
@@ -88,7 +88,7 @@ async def initialize_database() -> None:
             else:
                 logger.debug("Database already has the initial admin.")
 
-            # 3. Synchroniser la configuration de Mock
+            # 3. Synchronize Mock configuration
             res_mock = await session.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
             mock_setting = res_mock.scalar_one_or_none()
             if mock_setting is None:
@@ -100,13 +100,13 @@ async def initialize_database() -> None:
                 await session.commit()
 
     except Exception as e:
-        # Si l'erreur est liée à un objet déjà existant, on l'ignore (race condition résolue par PG)
+        # If the error is linked to an already existing object, we ignore it (race condition resolved by PG)
         if "already exists" in str(e).lower():
             logger.debug(f"DB Object already exists, skipping: {e}")
         else:
             logger.error(f"Error during database initialization: {e}")
             raise
     finally:
-        # Libérer le verrou (seulement si on l'avait pris)
+        # Release the lock (only if it was taken)
         if retry_count < max_retries:
             await redis_client.delete(lock_key)

@@ -1,17 +1,17 @@
 """
 breachradar/models/ransom.py
 
-Modèles Pydantic spécifiques à RansomLook.
+RansomLook specific Pydantic templates.
 
-NOTE DE SÉCURITÉ IMPORTANTE :
-Les données RansomLook sont PUBLIQUES par nature — elles sont publiées
-délibérément par les groupes ransomware sur leurs portails d'extorsion.
-Ces données ne nécessitent PAS de sanitisation (contrairement aux données
-email/password des autres sources).
+IMPORTANT SAFETY NOTE:
+RansomLook data is PUBLIC in nature — it is published
+deliberately by ransomware groups on their extortion portals.
+This data does NOT require sanitization (unlike data
+email/password from other sources).
 
-Cependant, l'URL .onion du portail ransomware n'est PAS incluse dans les
-rapports finaux (stockée mais masquée), pour éviter de faciliter l'accès
-direct à ces portails.
+However, the ransomware portal's .onion URL is NOT included in the
+final reports (stored but hidden), to avoid easy access
+directly to these portals.
 """
 
 from __future__ import annotations
@@ -24,26 +24,26 @@ from pydantic import BaseModel, Field
 
 class RansomStatus(StrEnum):
     """
-    Statut de la publication de la victime sur le portail ransomware.
-    Basé sur les métadonnées publiques disponibles via RansomLook.
+    Status of the victim's publication on the ransomware portal.
+    Based on public metadata available via RansomLook.
     """
 
-    LISTED = "LISTED"  # Victime listée, données pas encore publiées
-    PUBLISHED = "PUBLISHED"  # Données publiées / téléchargeables
-    REMOVED = "REMOVED"  # Publication supprimée (rançon payée ?)
+    LISTED = "LISTED"  # Victim listed, data not yet published
+    PUBLISHED = "PUBLISHED"  # Published/downloadable data
+    REMOVED = "REMOVED"  # Post deleted (ransom paid?)
     UNKNOWN = "UNKNOWN"
 
 
 class RansomFinding(BaseModel):
     """
-    Résultat d'une correspondance RansomLook.
+    Result of a RansomLook match.
 
-    ⚠️  ALERTE DE NIVEAU MAXIMAL : un RansomFinding indique qu'une
-    exfiltration massive est probable ou en cours. La sévérité est
-    TOUJOURS CRITICAL — aucune négociation possible sur ce niveau.
+    ⚠️ MAXIMUM LEVEL ALERT: a RansomFinding indicates that a
+    Massive exfiltration is likely or underway. The severity is
+    ALWAYS CRITICAL — no negotiation possible on this level.
 
-    Ces données sont publiques (publiées par le groupe ransomware lui-même)
-    et ne nécessitent pas de sanitisation.
+    This data is public (published by the ransomware group itself)
+    and do not require sanitation.
     """
 
     source: str = Field(default="ransomlook")
@@ -71,11 +71,11 @@ class RansomFinding(BaseModel):
     )
     status: RansomStatus = Field(default=RansomStatus.UNKNOWN)
 
-    # L'URL .onion est stockée mais JAMAIS incluse dans les rapports finaux
+    # The .onion URL is stored but NEVER included in final reports
     portal_url: str | None = Field(
         default=None,
         description="URL .onion — stockée mais masquée dans les rapports",
-        exclude=False,  # Incluse dans le modèle mais filtrée dans engine.py
+        exclude=False,  # Included in the model but filtered in engine.py
     )
 
     search_term_matched: str = Field(description="Terme de recherche qui a déclenché ce matching")
@@ -99,8 +99,8 @@ class RansomFinding(BaseModel):
 
 class RansomStats(BaseModel):
     """
-    Statistiques de l'instance RansomLook locale.
-    Retournées par GET /api/v1/stats.
+    Statistics of the local RansomLook instance.
+    Returned by GET /api/v1/stats.
     """
 
     groups_tracked: int = Field(default=0, description="Nombre de groupes ransomware suivis")

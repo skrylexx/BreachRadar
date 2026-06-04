@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * UsersClient — Page de gestion des utilisateurs (Admin)
+ * UsersClient — User Management Page (Admin)
  *
- * Fonctionnalités :
- *   - Tableau paginé (email, rôle, MFA, dernière connexion, expiration MDP)
- *   - Modal création utilisateur (email + mdp + rôle)
- *   - Actions : désactiver, reset password par email, reset MFA
- *   - Indicateur rotation MDP (alerte si expiré)
+ * Features:
+ *   - Paginated table (email, role, MFA, last login, password expiration)
+ *   - User creation modal (email + password + role)
+ *   - Actions: disable, reset password via email, reset MFA
+ *   - Password rotation indicator (alert if expired)
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -73,7 +73,7 @@ function isExpired(iso: string | null): boolean {
   return new Date(iso) < new Date();
 }
 
-// ─── Toast mini ─────────────────────────────────────────────────────────────
+// ─── Mini Toast ─────────────────────────────────────────────────────────────
 
 function useToast() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -372,7 +372,7 @@ export function UsersClient() {
     });
   };
 
-  // ─── Colonnes ─────────────────────────────────────────────────────────────
+  // ─── Columns ─────────────────────────────────────────────────────────────
 
   const columns: DataTableColumn<User>[] = [
     {

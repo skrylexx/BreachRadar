@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * SmtpClient — Configuration SMTP (Admin)
+ * SmtpClient — SMTP Configuration (Admin)
  *
- * Fonctionnalités :
- *   - Formulaire SMTP : host, port, TLS/SSL toggle, user, password (masqué), from, reply-to
- *   - Bouton "Envoyer un mail de test" → feedback toast
- *   - Indicateur de statut de la configuration
+ * Features:
+ *   - SMTP Form: host, port, TLS/SSL toggle, user, password (hidden), from, reply-to
+ *   - "Send test email" button → feedback toast
+ *   - Configuration status indicator
  */
 
 import { useState, useCallback } from "react";

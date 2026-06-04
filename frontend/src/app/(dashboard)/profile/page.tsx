@@ -79,7 +79,7 @@ export default function ProfilePage() {
     fetchUser();
   }, []);
 
-  // Détection du paramètre setup_mfa pour lancement automatique
+  // Detect setup_mfa parameter for automatic launch
   const searchParams = useSearchParams();
   useEffect(() => {
     if (searchParams.get("setup_mfa") === "true" && user && !user.mfa_enabled) {
@@ -131,7 +131,7 @@ export default function ProfilePage() {
     try {
       const updatedUser = await authApi.mfaConfirm(mfaCode);
       setUser(updatedUser);
-      setMfaStep("backup"); // Passer à l'étape des backup codes
+      setMfaStep("backup"); // Proceed to the backup codes step
       setMfaCode("");
     } catch (err: any) {
       alert(t("error_load"));
@@ -179,7 +179,7 @@ export default function ProfilePage() {
       <PageHeader title={t("title")} icon={User} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Colonne gauche : Infos générales */}
+        {/* Left Column: General Info */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6 bg-card/30">
             <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
@@ -265,7 +265,7 @@ export default function ProfilePage() {
           </Card>
         </div>
 
-        {/* Colonne droite : Status MFA / Sessions */}
+        {/* Right Column: MFA Status / Sessions */}
         <div className="space-y-6">
           <Card className="p-6 bg-card/30">
             <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
@@ -334,7 +334,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ─── Dialog Changement de Mot de Passe ──────────────────────────────── */}
+      {/* ─── Password Change Dialog ──────────────────────────────── */}
       <Dialog open={pwdDialogOpen} onOpenChange={setPwdDialogOpen}>
         <DialogContent className="card-soc border-border/60 max-w-md">
           <DialogHeader>
@@ -390,10 +390,10 @@ export default function ProfilePage() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Dialog Activation MFA ─────────────────────────────────────────── */}
+      {/* ─── MFA Activation Dialog ─────────────────────────────────────────── */}
       <Dialog open={mfaDialogOpen} onOpenChange={(open) => {
         if (!open && mfaStep === "backup") {
-          // Si on ferme alors qu'on est aux backup codes, on reset tout
+          // If closed while on backup codes, reset everything
           setMfaStep("setup");
         }
         setMfaDialogOpen(open);
@@ -492,7 +492,7 @@ export default function ProfilePage() {
           )}
         </DialogContent>
       </Dialog>
-      {/* ─── Dialog Désactivation MFA ────────────────────────────────────────── */}
+      {/* ─── MFA Deactivation Dialog ────────────────────────────────────────── */}
       <Dialog open={mfaDisableDialogOpen} onOpenChange={setMfaDisableDialogOpen}>
         <DialogContent className="card-soc border-border/60 max-w-md">
           <DialogHeader>

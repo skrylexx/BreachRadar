@@ -17,7 +17,7 @@ from app.models.settings import SystemSettings
 
 
 async def _get_mock_data_enabled(db: AsyncSession) -> bool:
-    """Vérifie si l'affichage des données de démonstration est activé."""
+    """Checks if displaying demo data is enabled."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
@@ -32,7 +32,7 @@ async def get_cve_alerts(
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ) -> PaginatedResponse[CVEAlertSchema]:
-    """Retourne la liste agrégée des CVE récentes."""
+    """Returns the aggregated list of recent CVEs."""
     stmt = select(CVEAlert).order_by(desc(CVEAlert.published_at))
 
     if severity:
@@ -40,7 +40,7 @@ async def get_cve_alerts(
     if category:
         stmt = stmt.where(CVEAlert.category.in_(category))
 
-    # Count total
+    # Total count
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = (await db.execute(count_stmt)).scalar() or 0
 
@@ -87,7 +87,7 @@ async def get_cve_trend(
     db: AsyncSession = Depends(get_db),
     period: str = Query("7d", pattern="^(7d|1m|6m|12m)$"),
 ) -> list[dict]:
-    """Données pour le graphique d'évolution des CVE."""
+    """Data for the CVE evolution graph."""
     # ... (unchanged aggregate logic if it existed, but let's just check mock)
     # Since aggregate logic was mock-like before, let's keep it but make it conditional on mock mode too if no real data
     # For now, let's assume we want real data or mock data.

@@ -1,7 +1,7 @@
 """
 breachradar/clients/intelx.py
 
-Client de recherche Intelligence X (IntelX).
+Intelligence X (IntelX) Research Client.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class IntelXClient(BaseLeakClient):
     """
-    Client pour l'API Intelligence X.
+    Client for the Intelligence X API.
     """
 
     name = "intelx"
@@ -46,7 +46,7 @@ class IntelXClient(BaseLeakClient):
         client = self._build_http_client(headers=headers)
 
         try:
-            # 1. Initier la recherche
+            # 1. Initiate the search
             payload = {
                 "term": term,
                 "maxresults": 20,
@@ -64,7 +64,7 @@ class IntelXClient(BaseLeakClient):
             if not search_id:
                 return []
 
-            # 2. Poller les résultats (On attend 2 secondes pour laisser le temps au backend IntelX)
+            # 2. Poll the results (We wait 2 seconds to give the IntelX backend time)
             await asyncio.sleep(2.0)
 
             result_resp = await self._safe_request(
@@ -103,9 +103,9 @@ class IntelXClient(BaseLeakClient):
                 source=self.name,
                 email=term if "@" in term else f"unknown@{term}",
                 breach_name=f"{bucket} - {name}",
-                breach_date=None,  # On pourrait parser date_str si besoin
+                breach_date=None,  # We could parse date_str if necessary
                 data_classes=["IntelX Record"],
-                has_password=False,  # Impossible à affirmer sans lire le contenu brut via l'ID
+                has_password=False,  # Impossible to assert without reading raw content via ID
                 has_hash=False,
                 has_api_key=False,
                 severity=Severity.MEDIUM,

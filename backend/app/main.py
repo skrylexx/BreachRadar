@@ -1,7 +1,7 @@
 """
 BreachRadar WebUI — FastAPI Application Entry Point
 ====================================================
-Point d'entrée principal. Configure le middleware, les routes et le cycle de vie.
+Main entry point. Configures middleware, routes, and lifecycle.
 """
 
 import asyncio
@@ -38,33 +38,33 @@ from app.routers import (
 from app.routers import settings as settings_router
 from app.routers.dashboard import router as dashboard_router
 
-# ─── Rate Limiter global ─────────────────────────────────────────────────────
+# ─── Global Rate Limiter ──────────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 
-# ─── Cycle de vie (startup / shutdown) ───────────────────────────────────────
+# ─── Lifecycle (startup / shutdown) ───────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Initialisation et nettoyage des ressources."""
+    """Resource initialization and cleanup."""
     # Startup
-    # Initialiser la base de données (Schéma + Admin)
+    # Initialize the database (Schema + Admin)
     await initialize_database()
 
-    # Démarrage du planificateur (Scheduler) en arrière-plan
+    # Start the background Scheduler
     scheduler = None
     if getattr(settings, "schedule_enabled", False):
         import logging
         logger = logging.getLogger("breachradar.scheduler")
 
-        # Lock Redis pour s'assurer qu'un seul worker lance le scheduler
+        # Redis Lock to ensure only one worker starts the scheduler
         scheduler_lock_key = "breachradar:scheduler_lock"
         is_scheduler_leader = await redis_client.set(scheduler_lock_key, "1", nx=True, ex=60)
 
         if is_scheduler_leader:
-            logger.info("Démarrage du ScanScheduler (Instance Leader)...")
+            logger.info("Starting ScanScheduler (Leader Instance)...")
 
             async def _scan_callback():
-                """Callback déclenché par le scheduler pour un scan complet."""
+                """Callback triggered by the scheduler for a full scan."""
                 from datetime import datetime
 
                 from app.core.database import AsyncSessionLocal
@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 from app.models.scan import ScanResult, ScanStatus
 
                 async with AsyncSessionLocal() as db:
-                    # 1. Créer l'entrée ScanResult en DB
+                    # 1. Create the ScanResult entry in DB
                     scan = ScanResult(
                         target_domain=settings.target_domain,
                         status=ScanStatus.RUNNING,
@@ -83,23 +83,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     await db.commit()
                     await db.refresh(scan)
 
-                    # 2. Lancer le scan
+                    # 2. Start the scan
                     scan_manager = ScanManager()
                     await scan_manager.run_full_scan(scan.id)
 
             async def _watch_callback():
-                """Callback déclenché par le scheduler pour la veille numérique (CVE + RSS + GitHub)."""
+                """Callback triggered by the scheduler for digital monitoring (CVE + RSS + GitHub)."""
                 from app.core.database import AsyncSessionLocal
                 from app.engine.cve_monitor import CVEMonitor
                 from app.engine.intelligence_monitor import IntelligenceMonitor
 
-                # Catégories par défaut à surveiller pour les CVE
+                # Default categories to monitor for CVEs
                 default_categories = ["nvd_windows", "nvd_linux", "osv_pypi", "osv_npm", "osv_go"]
 
                 async with AsyncSessionLocal() as db:
-                    # 1. Veille CVE (NVD, OSV...)
+                    # 1. CVE Monitoring (NVD, OSV...)
                     cve_monitor = CVEMonitor(db)
-                    # 2. Veille Numérique (RSS, GitHub...)
+                    # 2. Digital Monitoring (RSS, GitHub...)
                     intel_monitor = IntelligenceMonitor(db)
 
                     try:
@@ -111,7 +111,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         import logging
 
                         logger = logging.getLogger("breachradar.scheduler")
-                        logger.error(f"Erreur lors de la veille programmée : {e}")
+                        logger.error(f"Error during scheduled monitoring: {e}")
                     finally:
                         await cve_monitor.close()
                         await intel_monitor.close()
@@ -119,7 +119,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
             scheduler.start()
 
-            # Tâche de fond pour maintenir le lock du scheduler
+            # Background task to maintain the scheduler lock
             async def _maintain_scheduler_lock():
                 while True:
                     await asyncio.sleep(30)
@@ -127,7 +127,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
             asyncio.create_task(_maintain_scheduler_lock())
         else:
-            logger.debug("ScanScheduler déjà actif sur une autre instance.")
+            logger.debug("ScanScheduler already active on another instance.")
 
     yield
 
@@ -138,10 +138,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await engine.dispose()
 
 
-# ─── Application FastAPI ──────────────────────────────────────────────────────
+# ─── FastAPI Application ──────────────────────────────────────────────────────
 app = FastAPI(
     title="BreachRadar WebUI API",
-    description="API backend de la WebUI BreachRadar — Gouvernance SOC",
+    description="Backend API of the BreachRadar WebUI — SOC Governance",
     version="1.0.0",
     docs_url="/docs" if settings.environment != "production" else None,
     redoc_url="/redoc" if settings.environment != "production" else None,
@@ -150,18 +150,18 @@ app = FastAPI(
 
 # ─── Middleware ───────────────────────────────────────────────────────────────
 
-# Trusted Host — protection contre les Host header attacks
+# Trusted Host — protection against Host header attacks
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=settings.allowed_hosts if settings.environment == "production" else ["*"],
 )
 
-# CORS — autoriser uniquement les origines configurées
-# NOTE: Ajouté APRÈS TrustedHost pour être exécuté AVANT (LIFO)
+# CORS — allow only configured origins
+# NOTE: Added AFTER TrustedHost to be executed BEFORE (LIFO)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_credentials=True,  # Requis pour HttpOnly Cookies
+    allow_credentials=True,  # Required for HttpOnly Cookies
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["*"],
@@ -175,10 +175,10 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # ty
 app.add_middleware(SlowAPIMiddleware)
 
 
-# ─── Gestionnaire d'erreurs global ───────────────────────────────────────────
+# ─── Global Error Handler ─────────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Évite les fuites de stack traces en production."""
+    """Prevents stack trace leaks in production."""
     if settings.environment == "production":
         return JSONResponse(
             status_code=500,
@@ -187,7 +187,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     raise exc
 
 
-# ─── Routeurs ────────────────────────────────────────────────────────────────
+# ─── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])

@@ -1,5 +1,5 @@
 """
-BreachRadar WebUI — Schémas Finding (Pydantic)
+BreachRadar WebUI — Finding Schemas (Pydantic)
 ==============================================
 """
 
@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from app.models.finding import Severity
 
-# ─── Nouvelles Trouvailles (Veille Numérique) ───────────────────────────────
+# ─── New Findings (Digital Watch) ───────────────────────────────
 
 
 class CyberFindingRead(BaseModel):
@@ -37,11 +37,11 @@ class CyberFindingList(BaseModel):
     page_size: int
 
 
-# ─── Anciennes Trouvailles (Dashboard / Scans) ──────────────────────────────
+# ─── Old Findings (Dashboard / Scans) ──────────────────────────────
 
 
 class FindingRead(BaseModel):
-    """Résumé d'une trouvaille pour le tableau du dashboard."""
+    """Summary of a finding for the dashboard table."""
 
     id: str
     severity: str

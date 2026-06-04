@@ -1,14 +1,14 @@
 """
 tests/test_ransom_tracker.py
 
-Tests unitaires du RansomwareTracker.
+Unit tests for the RansomwareTracker.
 
-Couverture :
-- Alerte immédiate déclenchée si domaine trouvé
-- Retour vide si instance RansomLook inaccessible
-- Déduplication multi-termes
-- Gestion gracieuse d'une instance non disponible
-- Alerte non bloquante même si le notifier échoue
+Coverage:
+- Immediate alert triggered if domain found
+- Empty return if RansomLook instance is inaccessible
+- Multi-term deduplication
+- Graceful management of an unavailable instance
+- Non-blocking alert even if the notifier fails
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from app.models.ransom import RansomFinding, RansomStats, RansomStatus
 
 
 class TestRansomwareTrackerRun:
-    """Tests de la méthode principale RansomwareTracker.run()."""
+    """Tests for the main RansomwareTracker.run() method."""
 
     @pytest.mark.asyncio
     async def test_domain_found_triggers_immediate_alert(
@@ -32,7 +32,7 @@ class TestRansomwareTrackerRun:
         mock_ransom_stats_healthy: RansomStats,
         mock_notifier: MagicMock,
     ) -> None:
-        """Si domaine trouvé : alerte notifier déclenchée IMMÉDIATEMENT."""
+        """If domain found: notifier alert triggered IMMEDIATELY."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)
         client.check_domain = AsyncMock(return_value=[mock_ransom_finding])
@@ -40,9 +40,9 @@ class TestRansomwareTrackerRun:
         tracker = RansomwareTracker(client=client, notifier=mock_notifier)
         findings = await tracker.run("mondomaine.fr")
 
-        # L'alerte doit avoir été envoyée
+        # The alert must have been sent
         mock_notifier.send_ransom_alert.assert_called_once_with(mock_ransom_finding)
-        # Les findings sont retournés
+        # The findings are returned
         assert len(findings) == 1
         assert findings[0].group_name == "lockbit3"
 
@@ -52,7 +52,7 @@ class TestRansomwareTrackerRun:
         mock_ransom_stats_healthy: RansomStats,
         mock_notifier: MagicMock,
     ) -> None:
-        """Si domaine non trouvé : liste vide + pas d'alerte."""
+        """If domain not found: empty list + no alert."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)
         client.check_domain = AsyncMock(return_value=[])
@@ -69,10 +69,10 @@ class TestRansomwareTrackerRun:
         mock_ransom_stats_unhealthy: RansomStats,
         mock_notifier: MagicMock,
     ) -> None:
-        """Instance inaccessible → retour vide sans erreur ni crash."""
+        """Inaccessible instance → empty return without error or crash."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_unhealthy)
-        # check_domain NE doit pas être appelé si l'instance est inaccessible
+        # check_domain MUST NOT be called if the instance is inaccessible
         client.check_domain = AsyncMock(return_value=[])
 
         tracker = RansomwareTracker(client=client, notifier=mock_notifier)
@@ -88,7 +88,7 @@ class TestRansomwareTrackerRun:
         mock_ransom_stats_healthy: RansomStats,
         mock_notifier: MagicMock,
     ) -> None:
-        """Plusieurs findings → une alerte par finding."""
+        """Several findings → one alert per finding."""
         finding1 = RansomFinding(
             group_name="lockbit3",
             group_display_name="LockBit 3.0",
@@ -122,15 +122,15 @@ class TestRansomwareTrackerRun:
         mock_ransom_finding: RansomFinding,
         mock_ransom_stats_healthy: RansomStats,
     ) -> None:
-        """Pas de notifier configuré → warning loggué mais pas de crash."""
+        """No configured notifier → warning logged but no crash."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)
         client.check_domain = AsyncMock(return_value=[mock_ransom_finding])
 
-        # Aucun notifier passé
+        # No notifier passed
         tracker = RansomwareTracker(client=client, notifier=None)
 
-        # Ne doit pas lever d'exception
+        # Must not raise an exception
         findings = await tracker.run("mondomaine.fr")
         assert len(findings) == 1
 
@@ -140,7 +140,7 @@ class TestRansomwareTrackerRun:
         mock_ransom_finding: RansomFinding,
         mock_ransom_stats_healthy: RansomStats,
     ) -> None:
-        """Échec du notifier → les findings sont quand même retournés."""
+        """Notifier failure → the findings are returned anyway."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)
         client.check_domain = AsyncMock(return_value=[mock_ransom_finding])
@@ -150,17 +150,17 @@ class TestRansomwareTrackerRun:
 
         tracker = RansomwareTracker(client=client, notifier=notifier)
 
-        # Ne doit pas lever d'exception même si le notifier échoue
+        # Must not raise an exception même si le notifier échoue
         findings = await tracker.run("mondomaine.fr")
         assert len(findings) == 1
 
 
 class TestRansomwareTrackerContext:
-    """Tests de la méthode get_context()."""
+    """Tests for the get_context() method."""
 
     @pytest.mark.asyncio
     async def test_get_context_returns_stats(self, mock_ransom_stats_healthy: RansomStats) -> None:
-        """get_context() retourne les stats de l'instance."""
+        """get_context() returns the instance stats."""
         client = MagicMock()
         client.check_health = AsyncMock(return_value=mock_ransom_stats_healthy)
 

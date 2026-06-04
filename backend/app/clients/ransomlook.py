@@ -1,23 +1,23 @@
 """
 breachradar/clients/ransomlook.py
 
-Client HTTP pour l'instance RansomLook (locale ou SaaS).
+HTTP client for the RansomLook instance (local or SaaS).
 
-- En mode "local", on interroge l'instance Docker (HTTP interne, pas d'API key)
-- En mode "saas", on interroge https://www.ransomlook.io/api avec un header
+- In "local" mode, we query the Docker instance (internal HTTP, no API key)
+- In "saas" mode, we query https://www.ransomlook.io/api with a header
   Authorization: <API_KEY>
 
-Particularités de ce client :
-- Pas de rate limit strict (requêtes locales ou SaaS raisonnables)
-- Recherche multi-termes avec déduplication
-- Alerte CRITIQUE immédiate à la détection (sans attendre la fin du scan)
-- Les données sont PUBLIQUES (publiées par les groupes ransomware)
-  → Pas de sanitisation nécessaire
+Special features of this client:
+- No strict rate limit (reasonable local or SaaS requests)
+- Multi-term search with deduplication
+- Immediate CRITICAL alert upon detection (without waiting for the end of the scan)
+- Data is PUBLIC (published by ransomware groups)
+  → No sanitization necessary
 
-API utilisée :
-    GET /api/v1/stats            → Santé de l'instance
-    GET /api/v1/victim?name=X    → Recherche par nom de victime/domaine
-    GET /api/v1/recent?days=N    → Victimes récentes (contexte)
+API used:
+    GET /api/v1/stats → Instance health
+    GET /api/v1/victim?name=X → Search by victim name/domain
+    GET /api/v1/recent?days=N → Recent kills (context)
 """
 
 from __future__ import annotations
@@ -36,12 +36,12 @@ from app.models.ransom import RansomFinding, RansomStats, RansomStatus
 
 logger = logging.getLogger(__name__)
 
-# Chargement du mapping des noms de groupes depuis group_names.yaml
+# Loading group name mapping from group_names.yaml
 _GROUP_NAMES_PATH = Path(__file__).parent.parent / "core" / "group_names.yaml"
 
 
 def _load_group_names() -> dict[str, str]:
-    """Charge le mapping technique → affichable depuis group_names.yaml."""
+    """Loads the technical mapping → displayable from group_names.yaml."""
     try:
         with _GROUP_NAMES_PATH.open(encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -55,20 +55,20 @@ GROUP_DISPLAY_NAMES: dict[str, str] = _load_group_names()
 
 
 class RansomLookClient(BaseLeakClient):
-    """Client pour l'API RansomLook (locale ou SaaS).
+    """Client for the RansomLook API (local or SaaS).
 
-    Ce client est DISTINCT des autres BaseLeakClient car :
-    1. Il retourne des RansomFinding (pas des LeakFinding)
-    2. Les données ne sont pas sanitisées (publiques par nature)
-    3. La sévérité est toujours CRITICAL
-    4. Il supporte la recherche multi-termes avec déduplication
+    This client is DISTINCT from other BaseLeakClients because:
+    1. It returns RansomFinding (not LeakFinding)
+    2. The data is not sanitized (public by nature)
+    3. Severity is always CRITICAL
+    4. It supports multi-term search with deduplication
 
-    check_email() retourne [] car RansomLook opère au niveau domaine/organisation,
-    pas au niveau email individuel.
+    check_email() returns [] because RansomLook operates at the domain/organization level,
+    not at the individual email level.
     """
 
     name = "ransomlook"
-    rate_limit_delay = 0.5  # Délai minimal entre requêtes
+    rate_limit_delay = 0.5  # Minimum delay between requests
 
     def __init__(
         self,
@@ -98,7 +98,7 @@ class RansomLookClient(BaseLeakClient):
         logger.info("RansomLookClient initialisé en mode %s sur %s", self.mode, self.base_url)
 
     async def _fetch_local_key(self) -> str | None:
-        """Récupère la clé API auto-générée depuis l'instance locale."""
+        """Retrieves the auto-generated API key from the local instance."""
         if self.mode != "local":
             return None
 
@@ -120,8 +120,8 @@ class RansomLookClient(BaseLeakClient):
         wait=wait_exponential(multiplier=1, min=1, max=10),
     )
     async def _get(self, path: str, params: dict | None = None) -> dict | list:
-        """Requête GET vers l'API RansomLook avec retry automatique."""
-        # Si on est en local et qu'on n'a pas encore de clé, on tente de la récupérer
+        """GET request to RansomLook API with automatic retry."""
+        # If we are local and do not yet have a key, we try to recover it
         if self.mode == "local" and not self.headers.get("Authorization"):
             await self._fetch_local_key()
 
@@ -135,7 +135,7 @@ class RansomLookClient(BaseLeakClient):
             return response.json()
 
     async def check_health(self) -> RansomStats:
-        """Vérifie que l'instance RansomLook est opérationnelle."""
+        """Verifies that the RansomLook instance is operational."""
         path = "/api/v1/stats" if self.mode == "saas" else "/api/stats"
         try:
             data = await self._get(path)
@@ -165,11 +165,11 @@ class RansomLookClient(BaseLeakClient):
             )
 
     async def check_domain(self, domain: str) -> list[RansomFinding]:
-        """Recherche le domaine ET tous les termes configurés dans les settings.
+        """Searches the domain AND all the terms configured in the settings.
 
-        Déduplique les résultats par (group_name, victim_name, published_at).
-        ⚠️  Si des résultats sont trouvés, une alerte CRITIQUE doit être
-        déclenchée par le RansomwareTracker IMMÉDIATEMENT.
+        Deduplicates results by (group_name, victim_name, published_at).
+        ⚠️ If results are found, a CRITICAL alert should be
+        triggered by the RansomwareTracker IMMEDIATELY.
         """
         findings: list[RansomFinding] = []
         seen: set[tuple[str, str, str | None]] = set()
@@ -219,11 +219,11 @@ class RansomLookClient(BaseLeakClient):
         return findings
 
     async def check_email(self, email: str) -> list[LeakFinding]:
-        """Non applicable pour RansomLook (niveau domaine/organisation)."""
+        """Not applicable for RansomLook (domain/organization level)."""
         return []
 
     async def get_recent_victims(self, days: int = 7) -> list[dict]:
-        """Retourne les victimes récentes pour enrichissement de contexte."""
+        """Returns recent victims for context enrichment."""
         path = "/api/v1/recent" if self.mode == "saas" else "/api/recent"
         try:
             # Note: Local API doesn't support 'days' param yet, it returns last 100
@@ -237,7 +237,7 @@ class RansomLookClient(BaseLeakClient):
             return []
 
     def _parse_victim_item(self, item: dict, search_term: str) -> RansomFinding | None:
-        """Parse un item de l'API RansomLook vers un RansomFinding Pydantic."""
+        """Parses an item from the RansomLook API to a Pydantic RansomFinding."""
         try:
             group_name = item.get("group_name", "unknown")
             group_display = GROUP_DISPLAY_NAMES.get(

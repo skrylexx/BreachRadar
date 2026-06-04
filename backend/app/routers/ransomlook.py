@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur RansomLook
+BreachRadar WebUI — RansomLook Router
 ======================================
-Proxies et endpoints pour les alertes Ransomware.
+Proxies and endpoints for Ransomware alerts.
 """
 
 import contextlib
@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 async def get_fresh_ransom_client(db: AsyncSession) -> RansomLookClient:
-    """Initialise un client RansomLook avec la clé API (priorité DB > .env)."""
+    """Initializes a RansomLook client with the API key (priority DB > .env)."""
     api_key = None
     if settings.ransomlook_mode == "saas" and not settings.ransomlook_saas_api_key:
         result = await db.execute(select(APIKey).where(APIKey.service_name == "ransomlook_saas"))
@@ -51,7 +51,7 @@ class RansomwareAlertRead(BaseModel):
 
 @router.get("/status")
 async def get_ransomlook_status(current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
-    """État de l'instance RansomLook."""
+    """State of the RansomLook instance."""
     client = await get_fresh_ransom_client(db)
     stats = await client.check_health()
     return stats.model_dump()
@@ -64,15 +64,15 @@ async def list_ransomware_alerts(
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
     group: str | None = None,
-    domain: str | None = Query(None),  # Ajout du filtre domaine
+    domain: str | None = Query(None),  # Adding domain filter
     status: str | None = None,
     period: str | None = None,
 ):
-    """Liste les alertes Ransomware via l'API RansomLook."""
+    """Lists Ransomware alerts via the RansomLook API."""
     client = await get_fresh_ransom_client(db)
 
     try:
-        # Si un domaine est spécifié, on fait une recherche ciblée
+        # If a domain is specified, do a targeted search
         if domain:
             findings = await client.check_domain(domain)
             filtered = [
@@ -91,7 +91,7 @@ async def list_ransomware_alerts(
                 for f in findings
             ]
         else:
-            # Sinon, on récupère les victimes récentes (vue globale)
+            # Otherwise, fetch recent victims (global view)
             days = 30
             if period == "7d":
                 days = 7
@@ -123,7 +123,7 @@ async def list_ransomware_alerts(
                     )
                 )
 
-        # Pagination manuelle
+        # Manual pagination
         total = len(filtered)
         items = filtered[offset : offset + limit]
 

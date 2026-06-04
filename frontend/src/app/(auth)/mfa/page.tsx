@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Page de vérification MFA — BreachRadar WebUI
- * Design : Identique à la page login (radar, glassmorphism)
+ * MFA verification page — BreachRadar WebUI
+ * Design: Same as login page (radar, glassmorphism)
  */
 
 import { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ import { Loader2, Shield, ArrowLeft } from "lucide-react";
 import { authApi } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
-// ─── Composant ────────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function MFAPage() {
   const router = useRouter();
   const t = useTranslations("MFA");
@@ -22,7 +22,7 @@ export default function MFAPage() {
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const [isRecovery, setIsRecovery] = useState(false);
 
-  // Vérifier la présence du challenge token au montage
+  // Check for challenge token presence on mount
   useEffect(() => {
     const token = sessionStorage.getItem("mfa_challenge");
     if (!token) {
@@ -54,10 +54,10 @@ export default function MFAPage() {
     try {
       await authApi.mfaVerify(challengeToken, data.totp_code);
       
-      // Succès : Nettoyer le challenge et rediriger
+      // Success: Clear challenge and redirect
       sessionStorage.removeItem("mfa_challenge");
       
-      // Récupérer le paramètre return_to
+      // Get the return_to parameter
       const searchParams = new URLSearchParams(window.location.search);
       const returnTo = searchParams.get("return_to") || "/";
       
@@ -73,20 +73,20 @@ export default function MFAPage() {
     reset();
   };
 
-  // Ne rien afficher si redirection en cours
+  // Show nothing if redirection is in progress
   if (!challengeToken) return null;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
       
-      {/* ─── Fond radar animé ─────────────────────────────────────────── */}
+      {/* ─── Animated radar background ─────────────────────────────────────────── */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04]">
         <RadarBackground />
       </div>
 
-      {/* ─── Card MFA ─────────────────────────────────────────────────── */}
+      {/* ─── MFA Card ─────────────────────────────────────────────────── */}
       <div className="relative z-10 w-full max-w-md px-4 animate-fade-in">
-        {/* Logo / Titre */}
+        {/* Logo / Title */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Shield className="w-8 h-8 text-radar animate-glow-pulse" />
@@ -99,7 +99,7 @@ export default function MFAPage() {
           </p>
         </div>
 
-        {/* Formulaire */}
+        {/* Form */}
         <div className="card-soc p-6 space-y-6">
           <div className="space-y-1">
             <h1 className="text-lg font-semibold text-foreground">
@@ -113,7 +113,7 @@ export default function MFAPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Code TOTP / Recovery */}
+            {/* TOTP / Recovery code */}
             <div className="space-y-2">
               <label htmlFor="totp_code" className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
                 {isRecovery ? t("input_label_recovery") : t("input_label")}
@@ -145,7 +145,7 @@ export default function MFAPage() {
               )}
             </div>
 
-            {/* Erreur API */}
+            {/* API Error */}
             {error && (
               <div className="p-3 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-shake">
                 {error}
@@ -171,7 +171,7 @@ export default function MFAPage() {
             </button>
           </form>
 
-          {/* Lien Mode de secours / Retour */}
+          {/* Recovery mode / Back link */}
           <div className="flex flex-col gap-3 text-center">
             <button
               onClick={toggleMode}
@@ -191,7 +191,7 @@ export default function MFAPage() {
           </div>
         </div>
 
-        {/* Footer légal */}
+        {/* Legal footer */}
         <p className="text-center text-xs text-muted-foreground/40 mt-6 tracking-tight">
           {t("footer_legal")}
         </p>
@@ -200,7 +200,7 @@ export default function MFAPage() {
   );
 }
 
-// ─── Fond radar SVG animé (identique au login) ────────────────────────────────
+// ─── Animated SVG radar background (same as login) ────────────────────────────────
 function RadarBackground() {
   return (
     <svg
@@ -210,7 +210,7 @@ function RadarBackground() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Cercles concentriques */}
+      {/* Concentric circles */}
       {[60, 120, 180, 240, 300].map((r) => (
         <circle
           key={r}
@@ -220,13 +220,13 @@ function RadarBackground() {
           strokeDasharray="4 8"
         />
       ))}
-      {/* Lignes de grille */}
+      {/* Grid lines */}
       <line x1="300" y1="0" x2="300" y2="600" stroke="#38bdf8" strokeWidth="0.5" />
       <line x1="0" y1="300" x2="600" y2="300" stroke="#38bdf8" strokeWidth="0.5" />
       <line x1="87" y1="87" x2="513" y2="513" stroke="#38bdf8" strokeWidth="0.5" />
       <line x1="513" y1="87" x2="87" y2="513" stroke="#38bdf8" strokeWidth="0.5" />
 
-      {/* Sweep rotatif */}
+      {/* Rotating sweep */}
       <g
         style={{
           transformOrigin: "300px 300px",
@@ -246,7 +246,7 @@ function RadarBackground() {
         />
       </g>
 
-      {/* Point centre */}
+      {/* Center point */}
       <circle cx="300" cy="300" r="4" fill="#38bdf8" />
     </svg>
   );

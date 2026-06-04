@@ -1,20 +1,20 @@
 """
 breachradar/core/sanitizer.py
 
-Couche de nettoyage des données sensibles.
+Sensitive data cleaning layer.
 
-RÈGLE FONDAMENTALE :
-Ce module est appelé IMMÉDIATEMENT après réception de toute réponse d'API
-externe. Aucune donnée sensible ne doit transiter au-delà de ce point.
+FUNDAMENTAL RULE:
+This module is called IMMEDIATELY after receiving any API response
+external. No sensitive data should pass beyond this point.
 
-Données sanitisées :
-- Mots de passe (en clair ou en format "password:value")
-- Hashs (MD5, SHA-1, SHA-256, bcrypt)
-- Clés API et tokens
-- Chaînes Base64 potentiellement sensibles
+Sanitized data:
+- Passwords (in plain text or in "password:value" format)
+- Hashes (MD5, SHA-1, SHA-256, bcrypt)
+- API keys and tokens
+- Potentially sensitive Base64 strings
 
-Exception : les données RansomLook sont publiques par nature et ne sont
-PAS passées par ce sanitizer.
+Exception: RansomLook data is public by nature and is not
+NOT passed through this sanitizer.
 """
 
 from __future__ import annotations
@@ -32,21 +32,21 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SanitizedResult:
     """
-    Résultat de la sanitisation — contient uniquement des flags booléens,
-    jamais les données sensibles elles-mêmes.
+    Sanitization result — contains only Boolean flags,
+    never the sensitive data itself.
     """
 
-    # Flags détectés
+    # Flags detected
     has_password: bool = False
     has_hash: bool = False
     has_api_key: bool = False
     has_plaintext_credential: bool = False
     has_base64_token: bool = False
 
-    # Données sûres (données sensibles remplacées par des marqueurs)
+    # Safe data (sensitive data replaced by markers)
     sanitized_data: Any = None
 
-    # Métadonnées
+    # Metadata
     patterns_matched: list[str] = field(default_factory=list)
     was_sanitized: bool = False
 
@@ -65,63 +65,63 @@ class SanitizedResult:
 
 class DataSanitizer:
     """
-    Sanitizer principal — masque toutes les données sensibles.
+    Master Sanitizer — hides all sensitive data.
 
-    Usage :
+    Usage:
         sanitizer = DataSanitizer()
         result = sanitizer.sanitize(raw_api_response)
-        # result.has_password → True si un mot de passe a été détecté
-        # result.sanitized_data → données sans les valeurs sensibles
+        # result.has_password → True if a password was detected
+        # result.sanitized_data → data without sensitive values
     """
 
-    # Patterns de détection des données sensibles
-    # Ordre important : du plus spécifique au plus général
+    # Sensitive data detection patterns
+    # Important order: from most specific to most general
     SENSITIVE_PATTERNS: list[tuple[str, str, str]] = [
-        # (nom_flag, regex_pattern, marqueur_remplacement)
-        # Mots de passe en format clé:valeur
+        # (flag_name, regex_pattern, replacement_marker)
+        # Passwords in key:value format
         (
             "has_password",
             r"(?i)(?:password[s]?|passwd|pwd|pass)\s*[:=]\s*\S+",
             "[PASSWORD MASQUÉ]",
         ),
-        # Hash bcrypt (priorité haute car spécifique)
+        # Hash bcrypt (high priority because specific)
         (
             "has_hash",
             r"\$2[ayb]\$.{56}",
             "[HASH BCRYPT MASQUÉ]",
         ),
-        # Hash SHA-256 (64 caractères hex)
+        # SHA-256 hash (64 hex characters)
         (
             "has_hash",
             r"\b[a-f0-9]{64}\b",
             "[HASH SHA-256 MASQUÉ]",
         ),
-        # Hash SHA-1 (40 caractères hex)
+        # SHA-1 hash (40 hex characters)
         (
             "has_hash",
             r"\b[a-f0-9]{40}\b",
             "[HASH SHA-1 MASQUÉ]",
         ),
-        # Hash MD5 (32 caractères hex)
+        # Hash MD5 (32 hex characters)
         (
             "has_hash",
             r"\b[a-f0-9]{32}\b",
             "[HASH MD5 MASQUÉ]",
         ),
-        # Clés API et tokens en format clé:valeur
+        # API keys and tokens in key:value format
         (
             "has_api_key",
             r"(?i)(?:api[_-]?key|token|secret|bearer|auth)\s*[:=]\s*\S+",
             "[CLÉ API MASQUÉE]",
         ),
-        # Tokens GitHub (ghp_, ghs_, ghx_, etc.)
+        # GitHub tokens (ghp_, ghs_, ghx_, etc.)
         (
             "has_api_key",
             r"\bgh[psouxr]_[A-Za-z0-9]{36,}\b",
             "[TOKEN GITHUB MASQUÉ]",
         ),
-        # Chaînes Base64 longues (potentiellement des tokens)
-        # Seuil : 40+ caractères pour éviter les faux positifs
+        # Long Base64 strings (potentially tokens)
+        # Threshold: 40+ characters to avoid false positives
         (
             "has_base64_token",
             r"\b[A-Za-z0-9+/]{40,}={0,2}\b",
@@ -130,20 +130,20 @@ class DataSanitizer:
     ]
 
     def __init__(self) -> None:
-        # Pré-compiler les regex pour les performances
+        # Pre-compile regex for performance
         self._compiled_patterns = [
             (flag, re.compile(pattern), replacement) for flag, pattern, replacement in self.SENSITIVE_PATTERNS
         ]
 
     def sanitize(self, raw: dict | list | str) -> SanitizedResult:
         """
-        Point d'entrée principal du sanitizer.
+        Main entry point for the sanitizer.
 
         Args:
-            raw: Données brutes reçues de l'API (dict, list ou str)
+            raw: Raw data received from the API (dict, list or str)
 
         Returns:
-            SanitizedResult avec les flags et les données nettoyées
+            SanitizedResult with flags and sanitized data
         """
         result = SanitizedResult()
 
@@ -169,7 +169,7 @@ class DataSanitizer:
         return result
 
     def _sanitize_dict(self, data: dict, result: SanitizedResult) -> dict:
-        """Sanitise récursivement un dictionnaire."""
+        """Recursively sanitizes a dictionary."""
         sanitized: dict[Any, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
@@ -191,18 +191,18 @@ class DataSanitizer:
 
     def _sanitize_string(self, text: str, result: SanitizedResult) -> str:
         """
-        Applique tous les patterns de sanitisation sur une chaîne.
-        Met à jour les flags du SanitizedResult en cas de match.
+        Applies all sanitization patterns on a chain.
+        Updates the SanitizedResult flags in case of a match.
         """
         sanitized = text
         for flag_name, pattern, replacement in self._compiled_patterns:
             if pattern.search(sanitized):
-                # Mettre à jour le flag correspondant
+                # Update the corresponding flag
                 setattr(result, flag_name, True)
                 if flag_name == "has_password":
                     result.has_plaintext_credential = True
                 result.patterns_matched.append(pattern.pattern[:30])
-                # Remplacer la valeur sensible
+                # Replace sensitive value
                 sanitized = pattern.sub(replacement, sanitized)
 
         return sanitized
@@ -210,33 +210,33 @@ class DataSanitizer:
     @staticmethod
     def purge_sensitive(data: str | bytes) -> None:
         """
-        Écrase une chaîne sensible en mémoire avant de la libérer.
+        Overwrites a sensitive string in memory before freeing it.
 
-        ATTENTION : En Python, les str sont immutables et interned.
-        Cette fonction fait de son mieux mais n'est pas une garantie absolue.
-        Pour une sécurité maximale, utiliser des bytearray mutables dès le début.
+        WARNING: In Python, str are immutable and interned.
+        This function does its best but is not an absolute guarantee.
+        For maximum security, use mutable bytearrays from the start.
 
         Args:
-            data: Chaîne ou bytes contenant des données sensibles
+            data: String or bytes containing sensitive data
         """
         try:
             if isinstance(data, str) and data:
-                # Tenter d'écraser le buffer interne (best effort)
+                # Try to overwrite the internal buffer (best effort)
                 ctypes.memset(id(data), 0, len(data))
         except Exception:
-            pass  # L'échec de la purge mémoire ne doit pas bloquer l'exécution
+            pass  # Failed memory purge should not block execution
         finally:
             del data
             gc.collect()
 
     def is_safe(self, text: str) -> bool:
         """
-        Vérifie rapidement si une chaîne contient des données sensibles.
+        Quickly checks if a string contains sensitive data.
 
         Args:
-            text: Texte à vérifier
+            text: Text to check
 
         Returns:
-            True si aucune donnée sensible détectée
+            True if no sensitive data detected
         """
         return all(not pattern.search(text) for _, pattern, _ in self._compiled_patterns)

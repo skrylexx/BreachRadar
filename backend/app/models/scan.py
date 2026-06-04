@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Modèle ScanResult (SQLAlchemy)
-===================================================
-Stockage des résultats de scan (sans données sensibles — RGPD).
+BreachRadar WebUI — ScanResult Model (SQLAlchemy)
+====================================================
+Storage of scan results (without sensitive data — GDPR).
 """
 
 import enum
@@ -16,7 +16,7 @@ from app.core.database import Base
 
 
 class ScanStatus(enum.StrEnum):
-    """Statut d'un scan."""
+    """Status of a scan."""
 
     RUNNING = "running"
     COMPLETED = "completed"
@@ -24,17 +24,17 @@ class ScanStatus(enum.StrEnum):
 
 
 class ScanSeverity(enum.StrEnum):
-    """Sévérité globale d'un scan (code couleur cyber standard)."""
+    """Overall severity of a scan (cyber standard color code)."""
 
-    CRITICAL = "critical"  # Rouge — RansomLook positif
+    CRITICAL = "critical"  # Red — Positive RansomLook
     HIGH = "high"  # Orange
-    MEDIUM = "medium"  # Jaune
-    LOW = "low"  # Bleu/Gris
-    NONE = "none"  # Vert — aucune trouvaille
+    MEDIUM = "medium"  # YELLOW
+    LOW = "low"  # Blue/Gray
+    NONE = "none"  # Green — no findings
 
 
 class ScanResult(Base):
-    """Résultat d'un scan BreachRadar (données agrégées, sans credentials)."""
+    """Result of a BreachRadar scan (aggregated data, without credentials)."""
 
     __tablename__ = "scan_results"
 
@@ -44,7 +44,7 @@ class ScanResult(Base):
         default=uuid.uuid4,
     )
 
-    # ─── Contexte du scan ──────────────────────────────────────────────────
+    # ─── Scan context ───────────────────────── ─────────────────────────
     target_domain: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     status: Mapped[ScanStatus] = mapped_column(
         Enum(ScanStatus),
@@ -56,22 +56,22 @@ class ScanResult(Base):
         nullable=True,
     )
 
-    # ─── Statistiques (sans données sensibles) ─────────────────────────────
+    # ─── Statistics (without sensitive data) ─────────────────────────────
     total_findings: Mapped[int] = mapped_column(Integer, default=0)
     ransomware_findings: Mapped[int] = mapped_column(Integer, default=0)
     breach_findings: Mapped[int] = mapped_column(Integer, default=0)
 
-    # ─── Résumé par source (JSON agrégé) ──────────────────────────────────
+    # ─── Summary by source (aggregated JSON) ──────────────────────────────────
     # Ex: {"hibp": 3, "leakcheck": 1, "ransomlook": 0, "github": 2}
     findings_by_source: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
-    # ─── Rapport (chemin du fichier, pas le contenu) ───────────────────────
+    # ─── Report (file path, not content) ───────────────────────
     report_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     triggered_by: Mapped[str] = mapped_column(
         String(64), default="scheduler", nullable=False
-    )  # "scheduler" | "manual:user@email.com"
+    )  # "schedule" | "manual:user@email.com"
 
-    # ─── Timestamps ────────────────────────────────────────────────────────
+    # ─── Timestamps ──────────────────────────── ────────────────────────────
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

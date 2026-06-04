@@ -1,7 +1,7 @@
 """
 breachradar/clients/dehashed.py
 
-Client Dehashed API.
+Dehashed API client.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class DehashedClient(BaseLeakClient):
     """
-    Client pour l'API Dehashed.
+    Client for the Dehashed API.
     """
 
     name = "dehashed"

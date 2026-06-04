@@ -8,9 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // ─── Couleurs BreachRadar ─────────────────────────────────────────────
+      // ─── BreachRadar Colors ────────────────────── ───────────────────────
       colors: {
-        // Fond principal — gris-noir profond (Shadcn/UI style)
+        // Main background — deep gray-black (Shadcn/UI style)
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
 
@@ -20,7 +20,7 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
 
-        // Accent BreachRadar — Bleu Cyan/Indigo
+        // Accent BreachRadar — Blue Cyan/Indigo
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -30,18 +30,18 @@ const config: Config = {
           foreground: "hsl(var(--accent-foreground))",
         },
 
-        // Status colors — code couleur cyber standard
+        // Status colors — standard cyber color code
         severity: {
-          critical: "#ef4444", // Rouge
+          critical: "#ef4444", // Red
           high:     "#f97316", // Orange
-          medium:   "#eab308", // Jaune
-          low:      "#64748b", // Bleu-gris
-          none:     "#22c55e", // Vert
+          medium:   "#eab308", // YELLOW
+          low:      "#64748b", // Blue-gray
+          none:     "#22c55e", // Green
         },
 
-        // Radar accent
+        // Accent radar
         radar: {
-          DEFAULT: "#38bdf8",  // Cyan-indigo — identité visuelle
+          DEFAULT: "#38bdf8",  // Cyan-indigo — visual identity
           dim:     "#0284c7",
           glow:    "#7dd3fc",
         },
@@ -67,44 +67,44 @@ const config: Config = {
         },
       },
 
-      // ─── Typographie ─────────────────────────────────────────────────────
+      // ─── Typography ────────────────────────── ───────────────────────────
       fontFamily: {
-        // UI : Inter
+        // UI: Inter
         sans: ["Inter", "Inter Fallback", ...fontFamily.sans],
-        // Données techniques : JetBrains Mono
+        // Technical data: JetBrains Mono
         mono: ["JetBrains Mono", "JetBrains Mono Fallback", ...fontFamily.mono],
       },
 
-      // ─── Border radius (style Shadcn/UI) ─────────────────────────────────
+      // ─── Border radius (Shadcn/UI style) ─────────────────────────────────
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
 
-      // ─── Animations ───────────────────────────────────────────────────────
+      // ─── Animations ─────────────────────────── ────────────────────────────
       keyframes: {
-        // Animation radar (rotation du sweep)
+        // Radar animation (sweep rotation)
         "radar-sweep": {
           "0%":   { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
-        // Pulsation du point de scan
+        // Scan point pulse
         "radar-ping": {
           "0%":   { transform: "scale(1)", opacity: "1" },
           "75%, 100%": { transform: "scale(3)", opacity: "0" },
         },
-        // Apparition slide-in (sidebar)
+        // Slide-in appearance (sidebar)
         "slide-in-left": {
           "0%":   { transform: "translateX(-100%)", opacity: "0" },
           "100%": { transform: "translateX(0)",     opacity: "1" },
         },
-        // Fade in générique
+        // Bland in generic
         "fade-in": {
           "0%":   { opacity: "0", transform: "translateY(4px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        // Glow pulsant pour l'accent radar
+        // Pulsating Glow for Radar Focus
         "glow-pulse": {
           "0%, 100%": { boxShadow: "0 0 8px 2px rgba(56, 189, 248, 0.15)" },
           "50%":      { boxShadow: "0 0 20px 6px rgba(56, 189, 248, 0.35)" },

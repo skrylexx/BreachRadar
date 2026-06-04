@@ -1,5 +1,5 @@
 """
-Tests unitaires pour l'agrégateur (ResultAggregator).
+Unit tests for the aggregator (ResultAggregator).
 """
 
 from datetime import UTC, date, datetime
@@ -29,7 +29,7 @@ def dummy_metadata():
 
 
 def test_deduplication(aggregator, dummy_metadata):
-    """Vérifie que les findings identiques (même email, même breach, même source) sont dédupliqués."""
+    """Verifies that identical findings (same email, same breach, same source) are deduplicated."""
     findings = [
         LeakFinding(
             source="test",
@@ -66,7 +66,7 @@ def test_deduplication(aggregator, dummy_metadata):
 
 
 def test_severity_calculation(aggregator, dummy_metadata):
-    """Vérifie le calcul de la sévérité par email et globale."""
+    """Verifies the calculation of severity per email and globally."""
     findings = [
         LeakFinding(
             source="test",
@@ -98,7 +98,7 @@ def test_severity_calculation(aggregator, dummy_metadata):
     report = aggregator.aggregate(email_findings=findings, ransom_findings=[], metadata=dummy_metadata)
 
     assert len(report.findings) == 2
-    # L'un a LOW, l'autre a HIGH (potentiellement CRITICAL si récent, mais là 2020 donc HIGH)
+    # One has LOW, the other has HIGH (potentially CRITICAL if recent, but here 2020 so HIGH)
     severities = {f.email: f.severity for f in report.findings}
     assert severities["user@example.com"] == Severity.LOW
     assert severities["admin@example.com"] == Severity.HIGH
@@ -106,7 +106,7 @@ def test_severity_calculation(aggregator, dummy_metadata):
 
 
 def test_ransomware_overrides_severity(aggregator, dummy_metadata):
-    """Vérifie qu'un RansomFinding force la sévérité globale à CRITICAL."""
+    """Verifies that a RansomFinding forces the global severity to CRITICAL."""
     ransom_findings = [
         RansomFinding(
             source="ransomlook",
@@ -126,7 +126,7 @@ def test_ransomware_overrides_severity(aggregator, dummy_metadata):
             severity="CRITICAL",
         )
     ]
-    # Même sans email findings
+    # Even without email findings
     report = aggregator.aggregate(email_findings=[], ransom_findings=ransom_findings, metadata=dummy_metadata)
 
     assert report.summary.global_severity == Severity.CRITICAL
@@ -135,7 +135,7 @@ def test_ransomware_overrides_severity(aggregator, dummy_metadata):
 
 
 def test_escalate_recent_breach(aggregator, dummy_metadata):
-    """Vérifie l'escalade de sévérité pour une fuite récente (< 6 mois)."""
+    """Verifies severity escalation for a recent leak (< 6 months)."""
     findings = [
         LeakFinding(
             source="test",

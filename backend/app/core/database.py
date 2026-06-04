@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Base de données (SQLAlchemy Async)
+BreachRadar WebUI — Database (SQLAlchemy Async)
 =======================================================
-Configuration de l'engine async PostgreSQL et session factory.
+Configuration of the PostgreSQL async engine and session factory.
 """
 
 from collections.abc import AsyncGenerator
@@ -15,13 +15,13 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
-# ─── Engine async ─────────────────────────────────────────────────────────────
+# ─── Async Engine ─────────────────────────────────────────────────────────────
 engine = create_async_engine(
     settings.database_url,
-    echo=settings.environment == "development",  # Log SQL uniquement en dev
+    echo=settings.environment == "development",  # Log SQL only in dev
     pool_size=10,
     max_overflow=20,
-    pool_pre_ping=True,  # Vérifie la connexion avant chaque requête
+    pool_pre_ping=True,  # Check the connection before each request
 )
 
 # ─── Session factory ──────────────────────────────────────────────────────────
@@ -32,16 +32,16 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-# ─── Base déclarative ─────────────────────────────────────────────────────────
+# ─── Declarative base ─────────────────────────────────────────────────────────
 class Base(DeclarativeBase):
-    """Base pour tous les modèles SQLAlchemy."""
+    """Base for all SQLAlchemy models."""
 
     pass
 
 
-# ─── Dependency FastAPI ───────────────────────────────────────────────────────
+# ─── FastAPI Dependency ───────────────────────────────────────────────────────
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Dependency injection : session DB par requête, toujours fermée proprement."""
+    """Dependency injection: DB session per request, always cleanly closed."""
     async with AsyncSessionLocal() as session:
         try:
             yield session

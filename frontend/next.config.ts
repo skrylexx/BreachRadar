@@ -6,21 +6,21 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const backendUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const nextConfig: NextConfig = {
-  // Output standalone pour Docker (optimise le bundle)
+  // Standalone output for Docker (optimizes the bundle)
   output: "standalone",
 
-  // ─── Variables d'environnement ─────────────────────────────────────────────
-  // Next.js lit UNIQUEMENT le .env du répertoire de démarrage (frontend/).
-  // TARGET_DOMAIN est défini dans le .env racine du repo et transmis au build
-  // via docker-compose build args → Dockerfile ARG → ENV → ici.
+  // ─── Environment variables ────────────────────── ───────────────────────
+  // Next.js ONLY reads the .env from the start directory (frontend/).
+  // TARGET_DOMAIN is defined in the repo root .env and passed to the build
+  // via docker-compose build args → Dockerfile ARG → ENV → here.
   env: {
-    // Variable sans préfixe — accessible UNIQUEMENT côté serveur
+    // Variable without prefix — accessible ONLY on the server side
     TARGET_DOMAIN: process.env.TARGET_DOMAIN ?? "",
-    // On force le client à utiliser des chemins relatifs pour passer par le proxy Next.js (évite CORS)
+    // We force the client to use relative paths to pass through the Next.js proxy (avoids CORS)
     NEXT_PUBLIC_API_URL: "",
   },
 
-  // Proxy API : toutes les requêtes /api/* sont redirigées vers FastAPI
+  // API Proxy: all /api/* requests are redirected to FastAPI
   async rewrites() {
     return [
       {
@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Headers de sécurité
+  // Security headers
   async headers() {
     return [
       {

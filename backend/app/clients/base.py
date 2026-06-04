@@ -1,15 +1,15 @@
 """
 breachradar/clients/base.py
 
-Classe abstraite BaseLeakClient — interface commune à tous les clients API.
+Abstract class BaseLeakClient — interface common to all API clients.
 
-Chaque source de données (HIBP, LeakCheck, Dehashed, RansomLook, etc.)
-doit hériter de cette classe et implémenter les méthodes abstraites.
+Each data source (HIBP, LeakCheck, Dehashed, RansomLook, etc.)
+must inherit from this class and implement the abstract methods.
 
-Design patterns utilisés :
-- Template Method : les méthodes abstraites définissent le contrat
-- Rate Limiter intégré : respecte les limites de chaque API
-- Tenacity retry : gestion automatique des erreurs réseau transitoires
+Design patterns used:
+- Template Method: abstract methods define the contract
+- Integrated Rate Limiter: respects the limits of each API
+- Tenacity retry: automatic management of transient network errors
 """
 
 from __future__ import annotations
@@ -30,18 +30,18 @@ logger = logging.getLogger(__name__)
 
 class BaseLeakClient(ABC):
     """
-    Interface abstraite pour tous les clients API de BreachRadar.
+    Abstract interface for all BreachRadar API clients.
 
-    Chaque client doit :
-    1. Définir `name` (identifiant technique de la source)
-    2. Définir `rate_limit_delay` (secondes entre requêtes)
-    3. Implémenter `check_email()` et `check_domain()`
+    Each customer must:
+    1. Define `name` (technical identifier of the source)
+    2. Set `rate_limit_delay` (seconds between requests)
+    3. Implement `check_email()` and `check_domain()`
 
-    Le rate limiter est automatiquement appliqué entre les appels successifs.
+    The rate limiter is automatically applied between successive calls.
     """
 
-    name: str  # Identifiant technique de la source (ex: "hibp", "leakcheck")
-    rate_limit_delay: float = 0.0  # Secondes entre requêtes (0 = pas de limite)
+    name: str  # Technical identifier of the source (e.g. "hibp", "leakcheck")
+    rate_limit_delay: float = 0.0  # Seconds between requests (0 = no limit)
 
     def __init__(self) -> None:
         self._last_request_time: float = 0.0
@@ -50,36 +50,36 @@ class BaseLeakClient(ABC):
     @abstractmethod
     async def check_email(self, email: str) -> list[Any]:
         """
-        Vérifie si une adresse email spécifique est présente dans des fuites.
+        Checks if a specific email address is present in leaks.
 
         Args:
-            email: Adresse email à vérifier
+            email: Email address to check
 
         Returns:
-            Liste de findings (vide si aucune fuite détectée)
+            List of findings (empty if no leak detected)
 
         Note:
-            Ne jamais logguer le contenu des mots de passe ou hashs reçus.
+            Never log the content of passwords or hashes received.
         """
         ...
 
     @abstractmethod
     async def check_domain(self, domain: str) -> list[Any]:
         """
-        Vérifie si un domaine est présent dans des fuites (recherche générale).
+        Checks if a domain is present in leaks (general search).
 
         Args:
-            domain: Domaine à vérifier (ex: "mondomaine.fr")
+            domain: Domain to check (ex: "mondomaine.fr")
 
         Returns:
-            Liste de findings (vide si aucune fuite détectée)
+            List of findings (empty if no leak detected)
         """
         ...
 
     async def _apply_rate_limit(self) -> None:
         """
-        Applique le délai de rate limiting entre les requêtes.
-        Doit être appelé avant chaque requête HTTP externe.
+        Applies rate limiting delay between requests.
+        Must be called before each external HTTP request.
         """
         if self.rate_limit_delay <= 0:
             return
@@ -99,8 +99,8 @@ class BaseLeakClient(ABC):
         timeout: float = 30.0,
     ) -> httpx.AsyncClient:
         """
-        Crée un client HTTP async configuré avec les headers et timeouts appropriés.
-        User-Agent identifiable et honnête (pas d'usurpation).
+        Creates an async HTTP client configured with the appropriate headers and timeouts.
+        Identifiable and honest User-Agent (no spoofing).
         """
         default_headers = {
             "User-Agent": "BreachRadar/0.1.0 (OSINT defensif - usage legitime)",
@@ -113,20 +113,20 @@ class BaseLeakClient(ABC):
             headers=default_headers,
             timeout=httpx.Timeout(timeout),
             follow_redirects=True,
-            verify=True,  # SSL strict — pas de verify=False
+            verify=True,  # Strict SSL — no verify=False
         )
 
     def _log_finding_detected(self, email: str, breach_name: str) -> None:
         """
-        Log la détection d'un finding de manière sécurisée.
-        RÈGLE : Ne jamais logguer les données sensibles (passwords, hashs).
+        Log the detection of a finding in a secure manner.
+        RULE: Never log sensitive data (passwords, hashes).
         """
         self._logger.info(f"[{self.name}] Finding détecté : email={email}, breach={breach_name}")
 
     def _log_sensitive_data_detected(self, email: str, data_type: str) -> None:
         """
-        Log la présence de données sensibles SANS les logguer elles-mêmes.
-        RÈGLE : Utiliser uniquement des flags booléens dans les logs.
+        Log the presence of sensitive data WITHOUT logging them themselves.
+        RULE: Use only Boolean flags in logs.
         """
         self._logger.debug(f"[{self.name}] Donnée sensible détectée pour {email} (type: {data_type}) — masquée")
 
@@ -143,8 +143,8 @@ class BaseLeakClient(ABC):
         **kwargs: Any,
     ) -> httpx.Response | None:
         """
-        Effectue une requête HTTP sécurisée avec retry automatique.
-        Supporte tous les types de requêtes (GET, POST, etc.) via kwargs.
+        Makes a secure HTTP request with automatic retry.
+        Supports all types of requests (GET, POST, etc.) via kwargs.
         """
         try:
             response = await client.request(method, url, **kwargs)
@@ -168,5 +168,5 @@ class BaseLeakClient(ABC):
         url: str,
         params: dict[str, Any] | None = None,
     ) -> httpx.Response | None:
-        """GET avec retry automatique."""
+        """GET with automatic retry."""
         return await self._safe_request(client, "GET", url, params=params)

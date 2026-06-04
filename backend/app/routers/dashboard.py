@@ -1,11 +1,11 @@
 """
-BreachRadar WebUI — Routeur Dashboard
-======================================
-Endpoints consommés par le frontend Server Component (page.tsx) :
-  GET /api/v1/dashboard/stats        — KPIs résumés
-  GET /api/v1/dashboard/chart        — données graphique Detection Volume
-  GET /api/v1/connectors/status      — état des connecteurs selon .env
-  GET /api/v1/findings               — dernières trouvailles (table Latest Findings)
+BreachRadar WebUI — Router Dashboard
+========================================
+Endpoints consumed by the Server Component frontend (page.tsx):
+  GET /api/v1/dashboard/stats — Summary KPIs
+  GET /api/v1/dashboard/chart — Detection Volume chart data
+  GET /api/v1/connectors/status — status of connectors according to .env
+  GET /api/v1/findings — latest findings (Latest Findings table)
 """
 
 from collections import defaultdict
@@ -26,18 +26,18 @@ from app.schemas.finding import FindingRead
 
 router = APIRouter()
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+# ───Helpers ───────────────────────────────── ─────────────────────────────────
 
 
 async def _get_mock_data_enabled(db: AsyncSession) -> bool:
-    """Vérifie si l'affichage des données de démonstration est activé."""
+    """Checks if displaying demo data is enabled."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
     return setting.value if setting else False
 
 
 async def _ransomlook_active(db: AsyncSession) -> bool:
-    """Vérifie si RansomLook est réellement joignable."""
+    """Checks if RansomLook is actually reachable."""
     from app.clients.ransomlook import RansomLookClient
     from app.models.api_key import APIKey
 
@@ -80,7 +80,7 @@ def _source_to_type(source: str) -> str:
     return mapping.get(source.lower(), "Other")
 
 
-# ─── /dashboard/stats ─────────────────────────────────────────────────────────
+# ─── /dashboard/stats ──────────────────────────── ─────────────────────────────
 
 
 @router.get("/dashboard/stats")
@@ -88,7 +88,7 @@ async def dashboard_stats(
     current_user: ViewerUser,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    """KPIs affichés dans les 4 cards du haut du dashboard."""
+    """KPIs displayed in the 4 cards at the top of the dashboard."""
     since_7d = datetime.now(UTC) - timedelta(days=7)
 
     result = await db.execute(
@@ -118,7 +118,7 @@ async def dashboard_stats(
     }
 
 
-# ─── /dashboard/chart ─────────────────────────────────────────────────────────
+# ─── /dashboard/chart ──────────────────────────── ─────────────────────────────
 
 
 @router.get("/dashboard/chart")
@@ -129,7 +129,7 @@ async def dashboard_chart(
     source: str | None = None,
 ) -> list[dict[str, Any]]:
     """
-    Données pour le graphique Detection Volume (stacked bar chart).
+    Data for the Detection Volume chart (stacked bar chart).
     """
     period_days = {"7d": 7, "1m": 30, "6m": 180, "12m": 365}[period]
     since = datetime.now(UTC) - timedelta(days=period_days)
@@ -184,14 +184,14 @@ def _get_mock_chart_data(days: int) -> list[dict[str, Any]]:
     return data
 
 
-# ─── /connectors/status ───────────────────────────────────────────────────────
+# ─── /connectors/status ─────────────────────────── ────────────────────────────
 
 
 @router.get("/connectors/status")
 async def connectors_status(current_user: ViewerUser, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
     """
-    État de TOUS les connecteurs disponibles dans l'application.
-    Ajoute un flag 'is_mock' si le connecteur n'est pas configuré mais que le mode mock est activé.
+    Status of ALL connectors available in the application.
+    Adds an 'is_mock' flag if the connector is not configured but mock mode is enabled.
     """
     ransomlook_ok = await _ransomlook_active(db)
     mock_enabled = await _get_mock_data_enabled(db)
@@ -295,7 +295,7 @@ async def connectors_status(current_user: ViewerUser, db: AsyncSession = Depends
     ]
 
 
-# ─── /findings ────────────────────────────────────────────────────────────────
+# ─── /findings ──────────────────────────────── ────────────────────────────────
 
 
 @router.get("/findings", response_model=PaginatedResponse[FindingRead])
@@ -309,10 +309,10 @@ async def list_findings(
     period: str | None = None,
 ) -> PaginatedResponse[FindingRead]:
     """
-    Dernières trouvailles pour la table Latest Findings du dashboard.
-    Génère des données mockées si configuré et pas de données réelles.
+    Latest findings for the Latest Findings table on the dashboard.
+    Generates mocked data if configured and no real data.
     """
-    # 1. Vérification données réelles
+    # 1. Verification of actual data
     count_query = (
         select(func.count(ScanResult.id))
         .where(ScanResult.status == ScanStatus.COMPLETED)
@@ -364,7 +364,7 @@ async def list_findings(
                     )
                 )
 
-    # 2. Si aucune donnée et mock activé
+    # 2. If no data and mock enabled
     if not rows and await _get_mock_data_enabled(db):
         return _get_mock_findings(source, limit, offset)
 
@@ -372,7 +372,7 @@ async def list_findings(
 
 
 def _get_mock_findings(source: str | None, limit: int, offset: int) -> PaginatedResponse[FindingRead]:
-    """Génère des données factices réalistes."""
+    """Generates realistic dummy data."""
     sources = [source] if source else ["hibp", "leakcheck", "github", "ransomlook", "urlscan"]
     mock_items = []
 
@@ -392,7 +392,7 @@ def _get_mock_findings(source: str | None, limit: int, offset: int) -> Paginated
 
     return PaginatedResponse(
         items=mock_items,
-        total=100,  # Mock total
+        total=100,  # Total mock
         page=(offset // limit) + 1,
         page_size=limit,
     )

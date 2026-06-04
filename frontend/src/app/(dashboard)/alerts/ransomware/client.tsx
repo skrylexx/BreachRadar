@@ -152,7 +152,7 @@ export function RansomwareAlertsClient({
         <TimeFilter value={period as TimePeriod} onChange={handlePeriodChange} />
       </PageHeader>
 
-      {/* ─── Bloc État Instance RansomLook (Phase 4.1) ─────────────────────── */}
+      {/* ─── RansomLook Instance State Block (Phase 4.1) ─────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="card-soc p-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-md bg-blue-500/10 flex items-center justify-center flex-shrink-0">
@@ -192,7 +192,7 @@ export function RansomwareAlertsClient({
         </div>
       </div>
 
-      {/* ─── Filtres (Phase 4.3) ──────────────────────────────────────────────── */}
+      {/* ─── Filters (Phase 4.3) ──────────────────────────────────────────────── */}
       <div className="card-soc p-4 flex items-center gap-4">
         <div className="flex-1 max-w-xs">
           <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
@@ -236,7 +236,7 @@ export function RansomwareAlertsClient({
         </div>
       </div>
 
-      {/* ─── Liste des Alertes (Phase 4.2) ────────────────────────────────────── */}
+      {/* ─── Alerts List (Phase 4.2) ────────────────────────────────────── */}
       <div className="card-soc p-0">
         <DataTable<RansomwareAlert>
           columns={columns}

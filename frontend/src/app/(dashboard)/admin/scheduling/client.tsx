@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * SchedulingClient — Configuration du scheduler de scans (Admin)
+ * SchedulingClient — Scan scheduler configuration (Admin)
  *
- * Fonctionnalités :
- *   - Toggle activation/désactivation du cron
- *   - Champ expression cron avec validation et affichage lisible
- *   - Affichage du prochain run prévu
- *   - Historique des 5 dernières exécutions planifiées
+ * Features:
+ *   - Toggle cron activation/deactivation
+ *   - Cron expression field with validation and readable display
+ *   - Display of the next scheduled run
+ *   - History of the last 5 scheduled executions
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -46,10 +46,10 @@ interface SchedulerStatus {
   }>;
 }
 
-// ─── Cron → lisible ──────────────────────────────────────────────────────────
+// ─── Cron → readable ──────────────────────────────────────────────────────────
 
 function cronToHuman(expr: string): string {
-  // Patterns courants
+  // Common patterns
   const patterns: Record<string, string> = {
     "0 * * * *": "Toutes les heures",
     "0 */6 * * *": "Toutes les 6 heures",
@@ -193,7 +193,7 @@ export function SchedulingClient() {
       </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Statut rapide */}
+        {/* Quick status */}
         <div className="card-soc p-4 flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${enabled ? "bg-green-400/10" : "bg-border/30"}`}>
             {enabled ? (
@@ -259,7 +259,7 @@ export function SchedulingClient() {
           />
         </div>
 
-        {/* Expression cron */}
+        {/* Cron expression */}
         <div className="space-y-3">
           <Label htmlFor="cron-expr" className="text-xs text-muted-foreground uppercase tracking-wider">
             Expression Cron
@@ -318,7 +318,7 @@ export function SchedulingClient() {
         </div>
       </form>
 
-      {/* Historique */}
+      {/* History */}
       {status?.history && status.history.length > 0 && (
         <div className="card-soc p-0 overflow-hidden max-w-2xl">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50">

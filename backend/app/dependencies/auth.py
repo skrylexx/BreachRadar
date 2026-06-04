@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Dépendances Auth & RBAC
-============================================
-Injection de dépendances FastAPI pour la vérification JWT et les rôles.
+BreachRadar WebUI — Auth & RBAC Dependencies
+============================================================
+FastAPI dependency injection for JWT verification and roles.
 """
 
 import logging
@@ -25,8 +25,8 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ) -> User:
     """
-    Dependency : extrait et valide le JWT depuis le cookie HttpOnly.
-    Lève 401 si le token est absent, invalide ou révoqué.
+    Dependency: extracts and validates the JWT from the HttpOnly cookie.
+    Raises 401 if the token is missing, invalid or revoked.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -37,17 +37,17 @@ async def get_current_user(
     if not access_token:
         raise credentials_exception
 
-    # Décoder le JWT
+    # Decoding the JWT
     payload = decode_token(access_token)
     if payload is None or payload.get("type") != "access":
         raise credentials_exception
 
-    # Vérifier la blacklist Redis (logout)
+    # Check the Redis blacklist (logout)
     jti = payload.get("jti")
     if jti and await is_token_blacklisted(jti):
         raise credentials_exception
 
-    # Récupérer l'utilisateur en DB
+    # Get the user in DB
     user_id_str = payload.get("sub")
     if not user_id_str:
         raise credentials_exception
@@ -63,7 +63,7 @@ async def get_current_user(
     if user is None or not user.is_active:
         raise credentials_exception
 
-    # Vérifier la version du token (révocation sessions)
+    # Check the token version (session revocation)
     token_v = payload.get("v")
     if token_v is None or token_v != user.token_version:
         raise credentials_exception
@@ -74,8 +74,8 @@ async def get_current_user(
 async def require_admin(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
-    """Dependency : réservé aux administrateurs."""
-    # Comparaison robuste avec StrEnum ou valeur brute
+    """Dependency: reserved for administrators."""
+    # Robust comparison with StrEnum or raw value
     if current_user.role != UserRole.ADMIN and str(current_user.role) != "admin":
         logger.warning(f"Access denied: User {current_user.email} has role '{current_user.role}' (type: {type(current_user.role)}) — expected '{UserRole.ADMIN}'")
         raise HTTPException(
@@ -88,12 +88,12 @@ async def require_admin(
 async def require_viewer(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
-    """Dependency : tout utilisateur authentifié (Admin OU Viewer)."""
-    # Les deux rôles ont accès en lecture
+    """Dependency: any authenticated user (Admin OR Viewer)."""
+    # Both roles have read access
     return current_user
 
 
-# ─── Types annotés pour injection propre ─────────────────────────────────────
+# ─── Annotated types for clean injection ─────────────────────────────────────
 CurrentUser = Annotated[User, Depends(get_current_user)]
 AdminUser = Annotated[User, Depends(require_admin)]
 ViewerUser = Annotated[User, Depends(require_viewer)]

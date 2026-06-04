@@ -1,7 +1,7 @@
 """
 tests/test_clients/test_hibp.py
 
-Tests unitaires pour le client HIBP.
+Unit tests for the HIBP client.
 """
 
 from __future__ import annotations

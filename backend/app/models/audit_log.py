@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Modèle AuditLog (SQLAlchemy)
-=================================================
-Traçabilité de toutes les actions admin (audit trail RGPD).
+BreachRadar WebUI — AuditLog Template (SQLAlchemy)
+===================================================
+Traceability of all admin actions (GDPR audit trail).
 """
 
 import uuid
@@ -16,11 +16,11 @@ from app.core.database import Base
 
 class AuditLog(Base):
     """
-    Journal d'audit — trace toutes les actions sensibles :
-    - Connexions / déconnexions
-    - Changements de configuration (clés API, SMTP)
-    - Gestion des utilisateurs
-    - Déclenchements de scans manuels
+    Audit log — traces all sensitive actions:
+    - Connections / disconnections
+    - Configuration changes (API keys, SMTP)
+    - User management
+    - Manual scan triggers
     """
 
     __tablename__ = "audit_logs"
@@ -31,26 +31,26 @@ class AuditLog(Base):
         default=uuid.uuid4,
     )
 
-    # ─── Qui ───────────────────────────────────────────────────────────────
+    # ─── Who ─────────────────────────────── ────────────────────────────────
     user_email: Mapped[str | None] = mapped_column(
         String(255), nullable=True, index=True
-    )  # Null pour les actions système
+    )  # Null for system actions
 
-    # ─── Quoi ──────────────────────────────────────────────────────────────
+    # ─── What ─────────────────────────────── ───────────────────────────────
     action: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     # Ex: "auth.login.success", "auth.login.failure", "user.created",
     #     "apikey.updated", "scan.triggered", "smtp.configured"
 
-    # ─── Contexte ──────────────────────────────────────────────────────────
+    # ─── Context ───────────────────────────── ─────────────────────────────
     details: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     # Ex: {"target_user": "bob@corp.com", "role_changed": "viewer→admin"}
-    # ⚠️ JAMAIS de credentials ou données sensibles dans les details
+    # ⚠️ NEVER credentials or sensitive data in details
 
-    # ─── IP / Client ───────────────────────────────────────────────────────
+    # ─── IP / Client ─────────────────────────── ────────────────────────────
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # ─── Timestamp ─────────────────────────────────────────────────────────
+    # ─── Timestamp ──────────────────────────── ─────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

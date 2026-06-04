@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * ApiKeysClient — Page de gestion des clés API connecteurs (Admin)
+ * ApiKeysClient — API keys management page for connectors (Admin)
  *
- * Fonctionnalités :
- *   - Grille de cartes par source (nom, statut is_set, date MAJ)
- *   - Dialog "Définir / Remplacer" : input password vide (jamais pré-rempli)
- *   - Dialog "Supprimer" : confirmation modale
- *   - Bouton "Tester" → health-check → toast résultat
- *   - Avertissement sécurité affiché en permanence
+ * Features:
+ *   - Grid of cards by source (name, is_set status, update date)
+ *   - "Set / Replace" dialog: empty password input (never pre-filled)
+ *   - "Delete" dialog: modal confirmation
+ *   - "Test" button → health-check → toast result
+ *   - Security warning permanently displayed
  *
- * SÉCURITÉ : Aucune valeur de clé n'est jamais affichée — uniquement is_set: bool + date
+ * SECURITY: No key values are ever displayed — only is_set: bool + date
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -41,7 +41,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-// ─── Sources catalogue (ordre d'affichage) ────────────────────────────────────
+// ─── Source catalog (display order) ────────────────────────────────────
 
 const SOURCES = [
   { id: "hibp", label: "HaveIBeenPwned", variable: "HIBP_API_KEY", tier: "free" },

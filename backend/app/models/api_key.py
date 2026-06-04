@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Modèle APIKey (SQLAlchemy)
-===============================================
-Stockage chiffré des clés API des connecteurs OSINT.
+BreachRadar WebUI — APIKey Model (SQLAlchemy)
+==============================================================
+Encrypted storage of OSINT connectors API keys.
 """
 
 import uuid
@@ -15,7 +15,7 @@ from app.core.database import Base
 
 
 class APIKey(Base):
-    """Clé API d'un connecteur (HIBP, LeakCheck, Dehashed, IntelX...)."""
+    """API key of a connector (HIBP, LeakCheck, Dehashed, IntelX...)."""
 
     __tablename__ = "api_keys"
 
@@ -25,7 +25,7 @@ class APIKey(Base):
         default=uuid.uuid4,
     )
 
-    # ─── Identité du connecteur ────────────────────────────────────────────
+    # ─── Connector identity ────────────────────── ──────────────────────
     service_name: Mapped[str] = mapped_column(
         String(64),
         nullable=False,
@@ -33,16 +33,16 @@ class APIKey(Base):
         index=True,
     )  # Ex: "hibp", "leakcheck", "dehashed", "intelx", "github"
 
-    # ─── Clé chiffrée ─────────────────────────────────────────────────────
-    # La clé est stockée chiffrée (Fernet) — jamais en clair
+    # ─── Encrypted key ────────────────────────── ───────────────────────────
+    # The key is stored encrypted (Fernet) — never in the clear
     encrypted_key: Mapped[str] = mapped_column(String(1024), nullable=False)
 
-    # ─── Statut ────────────────────────────────────────────────────────────
+    # ─── Status ────────────────────────────── ──────────────────────────────
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_tested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_test_success: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
-    # ─── Métadonnées ───────────────────────────────────────────────────────
+    # ─── Metadata ─────────────────────────── ────────────────────────────
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
