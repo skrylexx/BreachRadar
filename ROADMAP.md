@@ -51,6 +51,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 44 — 2026-06-04 (Gemini CLI)
+
+**Iteration Objective**: Fix CORS bug on login by using the ?? operator instead of || for NEXT_PUBLIC_API_URL, to allow empty string prefix for relative paths.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `frontend/src/app/(auth)/login/page.tsx` | Modification | Replaced `||` with `??` for NEXT_PUBLIC_API_URL. |
+| `frontend/src/components/layout/Header.tsx` | Modification | Replaced `||` with `??` for NEXT_PUBLIC_API_URL. |
+| `frontend/next.config.ts` | Modification | Updated `backendUrl` to prioritize `INTERNAL_API_URL` over `NEXT_PUBLIC_API_URL` for rewrites. |
+| `images/mocked_dashboard.png` | Addition | Added mocked dashboard image for product presentation. |
+| `ROADMAP.md` | Modification | Iteration 44 logging. |
+
+#### ✅ Fixes & Maintenance
+- **CORS Login Bug**: Fixed the CORS preflight issue where the client-side fetch would hit `http://localhost:8000` directly instead of using the Next.js API proxy (`/api/...`). The fallback operator was changed from `||` to `??` to respect the empty string injected by `next.config.ts`.
+- **Proxy 500 Error Fix**: Resolved an Internal Server Error (500) occurring after the CORS fix. The Next.js rewrite `destination` was previously resolving to `http://localhost:8000` inside the Docker container (which points to the Next.js container itself). It now prioritizes `INTERNAL_API_URL`, correctly resolving to `http://breachradar-api:8000` when running in Docker.
+
+---
+
 ### Iteration 43 — 2026-06-03 (Gemini CLI)
 
 **Iteration Objective**: Make Content Security Policy (CSP) dynamic and launch v0.5.0 (Open Source).
@@ -737,15 +757,14 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: Roadmap update to define the final path to v0.5.0 Open Source (all code changes from previous attempt were reset).
-**Commit**: `30a6c0b`  # SHA of the current roadmap update
+**Stopped at**: Fixed CORS login bug and updated ROADMAP.md. Ready for further backend QA or QA on the login flow.
+**Commit**: (Pending)
 **What's left**:
 - [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
 - [ ] **Feature Finalization**: 
     - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
     - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
     - Finalize Global Reporting logic and verify PDF export availability.
-- [ ] **CORS & Proxy Optimization**: Finalize the Next.js rewrite proxy configuration and backend `cors_origins` for robust cross-environment support.
 - [ ] **Internationalization (Code)**: Translate all French comments and docstrings in the source code to English to facilitate Open Source contributions.
 - [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
 - [ ] **Documentation**: Prepare deployment documentation and polish the Open Source community guides.
@@ -755,5 +774,5 @@ Phase 5 — Validation  [██████████] 100%
 - The backend must maintain strict typing standards for any new contributions.
 - PDF generation requires `weasyprint` (install via `pip install .[pdf]`).
 - The frontend client should use relative paths (`/api/...`) to leverage the Next.js proxy.
-- `NEXT_PUBLIC_API_URL` must be correctly set in the environment for server-side proxying.
+- `NEXT_PUBLIC_API_URL` is forced to `""` on the client by `next.config.ts`. Ensure to use `??` instead of `||` when providing fallbacks for fetch calls to prevent bypassing the proxy.
 

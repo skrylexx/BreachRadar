@@ -281,6 +281,20 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 ## 6. Handoff History
 
+### Handoff #17 — 2026-06-04
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : (Pending)
+- **Tasks accomplished**:
+  - **CORS Login Bug Fix**: Replaced `||` with `??` when handling `NEXT_PUBLIC_API_URL` on the client side (`login/page.tsx` and `Header.tsx`). This respects the empty string injected by `next.config.ts` and successfully uses the Next.js API proxy instead of fetching `http://localhost:8000` directly, resolving the CORS preflight errors during authentication.
+- **Next task**: Continue backend QA, specifically zeroing out `mypy` errors, or verifying the fix on the user's environment.
+- **Points of vigilance**:
+  - Remember that `NEXT_PUBLIC_API_URL` is intentionally forced to `""` on the client. Always use `??` instead of `||` when defining default values for API URLs on the frontend.
+- **Updated files**: frontend/src/app/(auth)/login/page.tsx · frontend/src/components/layout/Header.tsx · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
+
 ### Handoff #16 — 2026-06-03
 
 - **Outgoing Agent**           : Gemini CLI

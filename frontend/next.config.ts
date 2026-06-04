@@ -3,7 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const backendUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   // Output standalone pour Docker (optimise le bundle)
