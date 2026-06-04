@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * SettingsClient — Paramètres globaux de l'instance BreachRadar (Admin)
+ * SettingsClient — BreachRadar instance global settings (Admin)
  *
- * Onglets :
- *   - Général : TARGET_DOMAIN, langue par défaut, mode maintenance
- *   - Surveillance CVE : toggles par catégorie (NVD / OSV / GitHub / CVEFeed)
- *   - Notifications : alertes email CVE, seuil, destinataires
- *   - Sources Custom : flux RSS/Atom personnalisés
- *   - Avancé : polling interval, inclure CVE sans score, vider cache
+ * Tabs:
+ *   - General: TARGET_DOMAIN, default language, maintenance mode
+ *   - CVE Monitoring: toggles by category (NVD / OSV / GitHub / CVEFeed)
+ *   - Notifications: CVE email alerts, threshold, recipients
+ *   - Custom Sources: personalized RSS/Atom feeds
+ *   - Advanced: polling interval, include unscored CVEs, clear cache
  *
- * Phase 10 du TODO.md.
+ * Phase 10 of TODO.md.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -56,7 +56,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-// ─── Catégories CVE ────────────────────────────────────────────────────────────
+// ─── CVE Categories ────────────────────────────────────────────────────────────
 
 const CVE_CATEGORIES = [
   { group: "NVD", id: "nvd_windows", label: "Windows (Microsoft)" },
@@ -84,7 +84,7 @@ function useToast() {
   }, []);
   return { toast, show };
 }
-// ─── Tab Général ─────────────────────────────────────────────────────────────
+// ─── General Tab ─────────────────────────────────────────────────────────────
 
 function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [domain, setDomain] = useState("");
@@ -129,7 +129,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
         <Separator className="bg-border/30" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Langue */}
+          {/* Language */}
           <div className="space-y-2">
             <Label htmlFor="default-lang" className="text-xs text-muted-foreground uppercase tracking-wider">
               Langue par défaut
@@ -145,7 +145,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
             </Select>
           </div>
 
-          {/* Mode maintenance */}
+          {/* Maintenance mode */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 border border-border/30">
             <div>
               <Label htmlFor="maintenance-mode" className="text-sm font-medium text-foreground">
@@ -179,7 +179,7 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
   );
 }
 
-// ─── Tab Surveillance CVE ─────────────────────────────────────────────────────
+// ─── CVE Monitoring Tab ─────────────────────────────────────────────────────
 
 function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [settings, setSettings] = useState<CVESettings | null>(null);
@@ -232,7 +232,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Clé NVD */}
+      {/* NVD Key */}
       <div className="card-soc p-4 flex items-start gap-3 border-l-2 border-l-radar/40 max-w-2xl">
         <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
@@ -268,7 +268,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
         </div>
       </div>
 
-      {/* Catégories */}
+      {/* Categories */}
       <div className="card-soc p-6 space-y-8">
         <div className="flex items-center justify-between border-b border-border/30 pb-4">
           <h2 className="text-xs font-bold text-foreground uppercase tracking-widest">
@@ -321,7 +321,7 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
   );
 }
 
-// ─── Tab Notifications ────────────────────────────────────────────────────────
+// ─── Notifications Tab ────────────────────────────────────────────────────────
 
 function TabNotifications({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [enabled, setEnabled] = useState(false);
@@ -432,7 +432,7 @@ function TabNotifications({ showToast }: { showToast: (msg: string, type?: "succ
   );
 }
 
-// ─── Tab Sources Custom ───────────────────────────────────────────────────────
+// ─── Custom Sources Tab ───────────────────────────────────────────────────────
 
 function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [sources, setSources] = useState<any[]>([]);
@@ -624,7 +624,7 @@ function TabCustomSources({ showToast }: { showToast: (msg: string, type?: "succ
   );
 }
 
-// ─── Tab Avancé ──────────────────────────────────────────────────────────────
+// ─── Advanced Tab ──────────────────────────────────────────────────────────────
 
 function TabAdvanced({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [pollingInterval, setPollingInterval] = useState(60);
@@ -733,9 +733,9 @@ function TabAdvanced({ showToast }: { showToast: (msg: string, type?: "success" 
         </div>
       </form>
 
-      {/* Confirmation vider cache */}
+      {/* Clear cache confirmation */}
       <Dialog open={clearConfirm} onOpenChange={(v) => !v && setClearConfirm(false)}>
-        <DialogContent className="card-soc border-border/60 max-w-sm">
+        <DialogContent className="card-soc border-border/60 max-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
               <Trash2 className="w-4 h-4 text-red-400" />

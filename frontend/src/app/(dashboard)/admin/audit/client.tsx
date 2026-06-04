@@ -3,11 +3,11 @@
 /**
  * AuditClient — Audit Trail (Admin)
  *
- * Fonctionnalités :
- *   - Tableau paginé (date, utilisateur, action, IP)
- *   - Filtres : utilisateur, type d'action, période
- *   - Pagination côté serveur
- *   - Export CSV de l'audit trail
+ * Features:
+ *   - Paginated table (date, user, action, IP)
+ *   - Filters: user, action type, period
+ *   - Server-side pagination
+ *   - CSV export of the audit trail
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -35,7 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TimeFilter } from "@/components/ui/time-filter";
 
-// ─── Types d'actions connues ──────────────────────────────────────────────────
+// ─── Known action types ──────────────────────────────────────────────────
 
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   login: { label: "Connexion", color: "text-green-400 border-green-400/30 bg-green-400/10" },
@@ -121,7 +121,7 @@ export function AuditClient() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Filtres
+  // Filters
   const [userFilter, setUserFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [period, setPeriod] = useState("7d");
@@ -155,7 +155,7 @@ export function AuditClient() {
     fetchEntries();
   }, [fetchEntries]);
 
-  // ─── Colonnes ───────────────────────────────────────────────────────────────
+  // ─── Columns ───────────────────────────────────────────────────────────────
 
   const columns: DataTableColumn<AuditLogEntry>[] = [
     {
@@ -251,11 +251,11 @@ export function AuditClient() {
         </Button>
       </PageHeader>
 
-      {/* Filtres */}
+      {/* Filters */}
       <div className="card-soc p-4 flex flex-wrap items-center gap-3">
         <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
 
-        {/* Filtre utilisateur */}
+        {/* User filter */}
         <div className="relative flex-1 min-w-[200px]">
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -268,7 +268,7 @@ export function AuditClient() {
           />
         </div>
 
-        {/* Filtre action */}
+        {/* Action filter */}
         <Select
           value={actionFilter}
           onValueChange={(value) => setActionFilter(value ?? "all")}
@@ -288,7 +288,7 @@ export function AuditClient() {
           </SelectContent>
         </Select>
 
-        {/* Filtre période */}
+        {/* Period filter */}
         <Select value={period} onValueChange={(value) => setPeriod(value ?? "7d")}>
           <SelectTrigger
             id="audit-period-filter"
@@ -306,7 +306,7 @@ export function AuditClient() {
         </Select>
       </div>
 
-      {/* Tableau */}
+      {/* Table */}
       <div className="card-soc p-0 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <div className="flex items-center gap-2">
