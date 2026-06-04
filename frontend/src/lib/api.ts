@@ -307,7 +307,7 @@ export const reportsApi = {
     if (params?.severity) qs.set("severity", params.severity);
     return api.get<PaginatedResponse<Report>>(`/api/v1/reports?${qs}`);
   },
-  exportPdf: (id: string) => `${API_BASE}/api/v1/reports/${id}/export?format=pdf`,
+  exportPdf: (id: string, lang: string = "fr") => `${API_BASE}/api/v1/reports/${id}/export?format=pdf&lang=${lang}`,
   generate: (start: string, end: string) =>
     api.post<{ report_id: string }>("/api/v1/reports/generate", {
       start_date: start,

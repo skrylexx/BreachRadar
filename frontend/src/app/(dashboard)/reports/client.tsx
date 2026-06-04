@@ -50,11 +50,11 @@ export function ReportsClient({
   };
 
   const handleExportPDF = (id: string) => {
-    window.open(reportsApi.exportPdf(id), "_blank");
+    window.open(reportsApi.exportPdf(id, locale), "_blank");
   };
 
   const handleExportJSON = (id: string) => {
-    window.open(`${reportsApi.exportPdf(id).replace("format=pdf", "format=json")}`, "_blank");
+    window.open(`${reportsApi.exportPdf(id, locale).replace("format=pdf", "format=json")}`, "_blank");
   };
 
   const handleGenerate = async (e: React.FormEvent) => {

@@ -1,28 +1,27 @@
-# Rapport de Renseignement sur les Menaces : {{ report.report_metadata.target_domain }}
+# {{ t('report_title') }} : {{ report.report_metadata.target_domain }}
 
-**Date de génération :** {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}
-**Durée du scan :** {{ "%.2f"|format(report.report_metadata.scan_duration_seconds) }} secondes
-**Emails scannés :** {{ report.report_metadata.total_emails_checked }}
-**Sources consultées :** {{ report.report_metadata.sources_queried | join(', ') }}
+**{{ t('generated_at') }} :** {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+**{{ t('scan_duration') }} :** {{ "%.2f"|format(report.report_metadata.scan_duration_seconds) }} secondes
+**{{ t('total_analyzed') }} :** {{ report.report_metadata.total_emails_checked }}
+**Sources :** {{ report.report_metadata.sources_queried | join(', ') }}
 
 ---
 
 {% if report.ransomware_alerts.domain_listed %}
-## 🚨 ALERTE CRITIQUE : RANSOMWARE DÉTECTÉ
+## {{ t('critical_alert_title') }}
 
-**ATTENTION : Le domaine a été détecté sur un ou plusieurs portails d'extorsion de groupes ransomware.**
-**Ceci indique une exfiltration de données probable ou en cours.**
+**{{ t('critical_alert_desc') }}**
 
 {% for alert in report.ransomware_alerts.alerts %}
-### Groupe : {{ alert.group_display_name }}
-- **Date de découverte :** {{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}
-- **Statut :** {{ alert.status }}
-- **Victime (sur le portail) :** {{ alert.victim_name }}
-- **Volume revendiqué :** {{ alert.claim_size or 'Inconnu' }}
+### {{ t('threat_actor') }} : {{ alert.group_display_name }}
+- **{{ t('discovered_on') }} :** {{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}
+- **{{ t('status') }} :** {{ alert.status }}
+- **{{ t('victim_listed') }} :** {{ alert.victim_name }}
+- **{{ t('claim_size') }} :** {{ alert.claim_size or 'Inconnu' }}
 - **Description :** {{ alert.description or 'Aucune' }}
-- **URL Portail :** {{ alert.portal_url | mask_onion }}
+- **{{ t('source_onion') }} :** {{ alert.portal_url | mask_onion }}
 
-**Actions requises immédiatement :**
+**{{ t('recommended_actions') }} :**
 {% for action in alert.recommended_actions %}
 - {{ action }}
 {% endfor %}
@@ -31,21 +30,32 @@
 ---
 {% endif %}
 
-## Résumé Exécutif
+## {{ t('global_severity') }}
 
-**Sévérité Globale :** {{ report.get_global_severity_label() }}
+**{{ t('global_severity') }} :** {% set label = report.get_global_severity_label() %}
+{% if 'CRITICAL' in label %}
+    {{ t('severity_labels.CRITICAL') }}
+{% elif 'HIGH' in label %}
+    {{ t('severity_labels.HIGH') }}
+{% elif 'MEDIUM' in label %}
+    {{ t('severity_labels.MEDIUM') }}
+{% elif 'LOW' in label %}
+    {{ t('severity_labels.LOW') }}
+{% else %}
+    {{ t('severity_labels.NONE') }}
+{% endif %}
 
-- **Comptes compromis :** {{ report.summary.emails_compromised }}
-- **Comptes sains :** {{ report.summary.emails_clean }}
+- **{{ t('exposed_accounts') }} :** {{ report.summary.emails_compromised }}
+- **{{ t('secure_accounts') }} :** {{ report.summary.emails_clean }}
 
-**Répartition de la sévérité :**
+**{{ t('risk_breakdown') }} :**
 - CRITICAL : {{ report.summary.severity_breakdown.CRITICAL }}
 - HIGH : {{ report.summary.severity_breakdown.HIGH }}
 - MEDIUM : {{ report.summary.severity_breakdown.MEDIUM }}
 - LOW : {{ report.summary.severity_breakdown.LOW }}
 
 {% if report.summary.most_common_breaches %}
-**Fuites les plus fréquentes :**
+**{{ t('top_breach_sources') }} :**
 {% for breach in report.summary.most_common_breaches %}
 - {{ breach }}
 {% endfor %}
@@ -53,14 +63,14 @@
 
 ---
 
-## Résultats Détaillés
+## {{ t('detailed_analysis') }}
 
 {% if report.findings %}
 {% for email_result in report.findings %}
 ### 📧 {{ email_result.email }} ({{ email_result.get_severity_label() }})
 
 {% if email_result.recommendations %}
-**Recommandations :**
+**{{ t('recommended_actions') }} :**
 {% for rec in email_result.recommendations %}
 - {{ rec }}
 {% endfor %}
@@ -68,26 +78,26 @@
 
 **Fuites détectées ({{ email_result.breach_count }}) :**
 
-| Date | Nom de la fuite | Source | Sévérité | Données | Mots de passe/Hashs ? |
+| {{ t('date') }} | {{ t('incident') }} | {{ t('source_db') }} | Sévérité | {{ t('exposed_data') }} | Mots de passe/Hashs ? |
 |---|---|---|---|---|---|
 {% for finding in email_result.findings %}
-| {{ finding.breach_date or 'N/A' }} | {{ finding.breach_name }} | {{ finding.source }} | {{ finding.severity }} | {{ finding.data_classes | join(', ') }} | {% if finding.has_plaintext_credential %}EN CLAIR 🚨{% elif finding.has_password or finding.has_hash %}OUI ⚠️{% else %}NON{% endif %} |
+| {{ finding.breach_date or 'N/A' }} | {{ finding.breach_name }} | {{ finding.source }} | {{ finding.severity }} | {{ finding.data_classes | join(', ') }} | {% if finding.has_plaintext_credential %}{{ t('plaintext') }}{% elif finding.has_password or finding.has_hash %}{{ t('yes_warning') }}{% else %}{{ t('no') }}{% endif %} |
 {% endfor %}
 
 {% endfor %}
 {% else %}
-Aucun email compromis détecté lors de ce scan.
+{{ t('no_compromise_title') }}
 {% endif %}
 
 ---
 
-## Attestation de Conformité RGPD
+## {{ t('compliance_gdpr') }}
 
-*Ce rapport a été généré dans le respect du principe de minimisation des données (RGPD).*
+*{{ t('footer_text') }}*
 *Toutes les données sensibles brutes (mots de passe, hashs, tokens) ont été purgées en mémoire par la couche Sanitizer.*
 
-- Mots de passe en clair stockés : **NON**
-- Hashs de mots de passe stockés : **NON**
-- Tokens/Clés API stockés : **NON**
-- Données RansomLook publiques : **OUI**
-- URL .onion masquées : **OUI**
+- Mots de passe en clair stockés : **{{ t('no') }}**
+- Hashs de mots de passe stockés : **{{ t('no') }}**
+- Tokens/Clés API stockés : **{{ t('no') }}**
+- Données RansomLook publiques : **{{ t('yes_warning').split()[0] }}**
+- {{ t('compliance_onion') }} : **{{ t('yes_warning').split()[0] }}**

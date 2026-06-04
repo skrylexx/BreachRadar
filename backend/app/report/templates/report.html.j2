@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -256,29 +256,29 @@
         <header>
             <div class="header-title">
                 <h1>BreachRadar</h1>
-                <p>Threat Intelligence Report • {{ report.report_metadata.target_domain }}</p>
+                <p>{{ t('report_title') }} • {{ report.report_metadata.target_domain }}</p>
             </div>
             <div class="metadata-badge">
-                {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC') }} • Scanné en {{ "%.1f"|format(report.report_metadata.scan_duration_seconds) }}s
+                {{ t('generated_at') }} {{ report.report_metadata.generated_at.strftime('%Y-%m-%d %H:%M UTC') }} • {{ t('scan_duration') }} {{ "%.1f"|format(report.report_metadata.scan_duration_seconds) }}s
             </div>
         </header>
 
         {% if report.ransomware_alerts.domain_listed %}
         <div class="card alert-critical">
-            <h2>🚨 ALERTE CRITIQUE : EXFILTRATION RANSOMWARE</h2>
-            <p style="color: #fca5a5; font-size: 1.1rem; margin-bottom: 1.5rem;"><strong>L'organisation a été détectée sur un portail d'extorsion. Une fuite massive de données est probable ou déjà en cours.</strong></p>
+            <h2>{{ t('critical_alert_title') }}</h2>
+            <p style="color: #fca5a5; font-size: 1.1rem; margin-bottom: 1.5rem;"><strong>{{ t('critical_alert_desc') }}</strong></p>
 
             {% for alert in report.ransomware_alerts.alerts %}
             <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                <h3 style="margin-top:0; color:#fff;">Threat Actor : {{ alert.group_display_name }}</h3>
+                <h3 style="margin-top:0; color:#fff;">{{ t('threat_actor') }} : {{ alert.group_display_name }}</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; color: var(--text-secondary);">
-                    <div><strong>Victime Listée:</strong> <span style="color:#fff">{{ alert.victim_name }}</span></div>
-                    <div><strong>Découvert le:</strong> <span style="color:#fff">{{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}</span></div>
-                    <div><strong>Statut:</strong> <span class="badge badge-critical">{{ alert.status }}</span></div>
-                    <div><strong>Volume Revendiqué:</strong> <span style="color:#fff">{{ alert.claim_size or 'Inconnu' }}</span></div>
+                    <div><strong>{{ t('victim_listed') }}:</strong> <span style="color:#fff">{{ alert.victim_name }}</span></div>
+                    <div><strong>{{ t('discovered_on') }}:</strong> <span style="color:#fff">{{ alert.discovered_at.strftime('%Y-%m-%d') if alert.discovered_at else 'Inconnue' }}</span></div>
+                    <div><strong>{{ t('status') }}:</strong> <span class="badge badge-critical">{{ alert.status }}</span></div>
+                    <div><strong>{{ t('claim_size') }}:</strong> <span style="color:#fff">{{ alert.claim_size or 'Inconnu' }}</span></div>
                 </div>
                 <div style="margin-bottom: 1rem;">
-                    <strong>Source (Onion) :</strong> <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color:#fca5a5;">{{ alert.portal_url | mask_onion }}</code>
+                    <strong>{{ t('source_onion') }} :</strong> <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color:#fca5a5;">{{ alert.portal_url | mask_onion }}</code>
                 </div>
                 {% if alert.description %}
                 <p style="border-left: 3px solid #ef4444; padding-left: 1rem; font-style: italic; color: #cbd5e1;">"{{ alert.description }}"</p>
@@ -290,26 +290,39 @@
 
         <div class="dashboard-grid">
             <div class="stat-card">
-                <div class="stat-label">Sévérité Globale</div>
-                <div class="stat-value text-{{ report.get_global_severity_label().lower() }}">{{ report.get_global_severity_label() }}</div>
+                <div class="stat-label">{{ t('global_severity') }}</div>
+                <div class="stat-value text-{{ report.get_global_severity_label().split()[-1].strip('()').lower() if '(' in report.get_global_severity_label() else report.get_global_severity_label().split()[-1].lower() }}">
+                    {% set label = report.get_global_severity_label() %}
+                    {% if 'CRITICAL' in label %}
+                        {{ t('severity_labels.CRITICAL') }}
+                    {% elif 'HIGH' in label %}
+                        {{ t('severity_labels.HIGH') }}
+                    {% elif 'MEDIUM' in label %}
+                        {{ t('severity_labels.MEDIUM') }}
+                    {% elif 'LOW' in label %}
+                        {{ t('severity_labels.LOW') }}
+                    {% else %}
+                        {{ t('severity_labels.NONE') }}
+                    {% endif %}
+                </div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Comptes Exposés</div>
+                <div class="stat-label">{{ t('exposed_accounts') }}</div>
                 <div class="stat-value text-high">{{ report.summary.emails_compromised }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Comptes Sécurisés</div>
+                <div class="stat-label">{{ t('secure_accounts') }}</div>
                 <div class="stat-value text-clean">{{ report.summary.emails_clean }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Total Analysé</div>
+                <div class="stat-label">{{ t('total_analyzed') }}</div>
                 <div class="stat-value" style="color: var(--text-primary)">{{ report.report_metadata.total_emails_checked }}</div>
             </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
             <div class="card">
-                <h2>Répartition des Risques</h2>
+                <h2>{{ t('risk_breakdown') }}</h2>
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="color: var(--critical)">CRITICAL</span>
@@ -346,7 +359,7 @@
             </div>
 
             <div class="card">
-                <h2>Top Sources de Fuites</h2>
+                <h2>{{ t('top_breach_sources') }}</h2>
                 {% if report.summary.most_common_breaches %}
                 <ul class="breach-list">
                     {% for breach in report.summary.most_common_breaches %}
@@ -356,12 +369,12 @@
                     {% endfor %}
                 </ul>
                 {% else %}
-                <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Aucune fuite détectée.</p>
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">{{ t('no_breach_detected') }}</p>
                 {% endif %}
             </div>
         </div>
 
-        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; font-size: 1.5rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 1rem;">Analyse Détaillée par Identité</h2>
+        <h2 style="margin-top: 3rem; margin-bottom: 1.5rem; font-size: 1.5rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 1rem;">{{ t('detailed_analysis') }}</h2>
 
         {% if report.findings %}
             {% for email_result in report.findings %}
@@ -373,7 +386,7 @@
                 
                 {% if email_result.recommendations %}
                 <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 6px;">
-                    <strong style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Actions Recommandées :</strong>
+                    <strong style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">{{ t('recommended_actions') }} :</strong>
                     <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem; font-size: 0.9rem; color: #cbd5e1;">
                     {% for rec in email_result.recommendations %}
                         <li>{{ rec }}</li>
@@ -386,11 +399,11 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Incident</th>
-                                <th>Date</th>
-                                <th>Source DB</th>
-                                <th>Données Exposées</th>
-                                <th>Creds Sensibles</th>
+                                <th>{{ t('incident') }}</th>
+                                <th>{{ t('date') }}</th>
+                                <th>{{ t('source_db') }}</th>
+                                <th>{{ t('exposed_data') }}</th>
+                                <th>{{ t('sensitive_creds') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -402,11 +415,11 @@
                                 <td style="font-size: 0.85rem;">{{ finding.data_classes | join(', ') }}</td>
                                 <td>
                                     {% if finding.has_plaintext_credential %}
-                                        <span class="badge badge-critical">EN CLAIR 🚨</span>
+                                        <span class="badge badge-critical">{{ t('plaintext') }}</span>
                                     {% elif finding.has_password or finding.has_hash %}
-                                        <span class="badge badge-high">OUI ⚠️</span>
+                                        <span class="badge badge-high">{{ t('yes_warning') }}</span>
                                     {% else %}
-                                        <span style="color: var(--text-secondary)">Non</span>
+                                        <span style="color: var(--text-secondary)">{{ t('no') }}</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -418,25 +431,25 @@
             {% endfor %}
         {% else %}
             <div class="card" style="text-align: center; padding: 4rem 2rem;">
-                <h3 style="color: var(--low); font-size: 1.5rem; margin-bottom: 0.5rem;">Aucune compromission détectée</h3>
-                <p style="color: var(--text-secondary);">L'ensemble des identités vérifiées sont saines dans nos bases de données.</p>
+                <h3 style="color: var(--low); font-size: 1.5rem; margin-bottom: 0.5rem;">{{ t('no_compromise_title') }}</h3>
+                <p style="color: var(--text-secondary);">{{ t('no_compromise_desc') }}</p>
             </div>
         {% endif %}
 
         <footer>
-            <div>Généré par <strong>BreachRadar</strong> • Renseignement sur les Menaces OSINT</div>
+            <div>{{ t('footer_text') }}</div>
             <div class="compliance-badge">
                 <div class="compliance-item">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--low)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    Conforme RGPD
+                    {{ t('compliance_gdpr') }}
                 </div>
                 <div class="compliance-item">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--low)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    Zéro Stockage PII
+                    {{ t('compliance_zero_pii') }}
                 </div>
                 <div class="compliance-item">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--low)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    Onion Links Masqués
+                    {{ t('compliance_onion') }}
                 </div>
             </div>
         </footer>

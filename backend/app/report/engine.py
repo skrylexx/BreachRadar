@@ -19,6 +19,7 @@ from app.models.report import FinalReport
 logger = logging.getLogger(__name__)
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+LOCALES_DIR = Path(__file__).parent / "locales"
 
 
 class ReportEngine:
@@ -32,6 +33,15 @@ class ReportEngine:
 
         if not TEMPLATES_DIR.exists():
             logger.warning(f"Répertoire des templates introuvable: {TEMPLATES_DIR}")
+
+        self.locales = {}
+        if LOCALES_DIR.exists():
+            for locale_file in LOCALES_DIR.glob("*.json"):
+                try:
+                    with open(locale_file, encoding="utf-8") as f:
+                        self.locales[locale_file.stem] = json.load(f)
+                except Exception as e:
+                    logger.error(f"Failed to load locale {locale_file}: {e}")
 
         self.env = Environment(  # nosemgrep
             loader=FileSystemLoader(str(TEMPLATES_DIR)) if TEMPLATES_DIR.exists() else None,
@@ -52,20 +62,21 @@ class ReportEngine:
             return "[URL .onion MASQUÉE POUR SÉCURITÉ]"
         return url
 
-    def generate(self, report: FinalReport, formats: list[str]) -> list[Path]:
+    def generate(self, report: FinalReport, formats: list[str], lang: str = "fr") -> list[Path]:
         """
         Generates reports in requested formats.
 
         Args:
             report: Pydantic template of the final report
             formats: List of formats (ex: ["json", "markdown", "html"])
+            lang: Language for the report (ex: "fr", "en")
 
         Returns:
             List of paths to generated files
         """
         timestamp = report.report_metadata.generated_at.strftime("%Y%m%d_%H%M%S")
         domain = report.report_metadata.target_domain.replace(".", "_")
-        base_filename = f"report_{domain}_{timestamp}"
+        base_filename = f"report_{domain}_{timestamp}_{lang}"
 
         generated_files = []
 
@@ -76,13 +87,13 @@ class ReportEngine:
                     file_path = self._generate_json(report, base_filename)
                     generated_files.append(file_path)
                 elif fmt == "markdown" or fmt == "md":
-                    file_path = self._generate_template(report, f"{base_filename}.md", "report.md.j2")
+                    file_path = self._generate_template(report, f"{base_filename}.md", "report.md.j2", lang=lang)
                     generated_files.append(file_path)
                 elif fmt == "html":
-                    file_path = self._generate_template(report, f"{base_filename}.html", "report.html.j2")
+                    file_path = self._generate_template(report, f"{base_filename}.html", "report.html.j2", lang=lang)
                     generated_files.append(file_path)
                 elif fmt == "pdf":
-                    file_path = self._generate_pdf(report, f"{base_filename}.pdf")
+                    file_path = self._generate_pdf(report, f"{base_filename}.pdf", lang=lang)
                     generated_files.append(file_path)
                 else:
                     logger.warning(f"Format de rapport non supporté: {fmt}")
@@ -116,13 +127,24 @@ class ReportEngine:
 
         return file_path
 
-    def _generate_template(self, report: FinalReport, filename: str, template_name: str) -> Path:
+    def _generate_template(self, report: FinalReport, filename: str, template_name: str, lang: str = "fr") -> Path:
         """Generates a report based on a Jinja2 template."""
         if not TEMPLATES_DIR.exists():
             raise FileNotFoundError("Répertoire des templates introuvable. Impossible de générer le rapport.")
 
+        # Translation function
+        def t(key: str) -> str:
+            keys = key.split(".")
+            val = self.locales.get(lang, self.locales.get("fr", {}))
+            for k in keys:
+                if isinstance(val, dict):
+                    val = val.get(k, key)
+                else:
+                    return key
+            return str(val)
+
         template = self.env.get_template(template_name)
-        content = template.render(report=report)
+        content = template.render(report=report, t=t, lang=lang)
 
         output_path = self.output_dir / filename
         with output_path.open("w", encoding="utf-8") as f:
@@ -131,16 +153,27 @@ class ReportEngine:
         logger.info(f"Rapport généré: {output_path}")
         return output_path
 
-    def _generate_pdf(self, report: FinalReport, filename: str) -> Path:
+    def _generate_pdf(self, report: FinalReport, filename: str, lang: str = "fr") -> Path:
         """Generates a PDF report via WeasyPrint (using the HTML template)."""
         output_path = self.output_dir / filename
 
         try:
             from weasyprint import HTML
 
+            # Translation function
+            def t(key: str) -> str:
+                keys = key.split(".")
+                val = self.locales.get(lang, self.locales.get("fr", {}))
+                for k in keys:
+                    if isinstance(val, dict):
+                        val = val.get(k, key)
+                    else:
+                        return key
+                return str(val)
+
             # We make the HTML complete
             template = self.env.get_template("report.html.j2")
-            html_content = template.render(report=report)
+            html_content = template.render(report=report, t=t, lang=lang)
 
             # Using WeasyPrint to generate the PDF
             # base_url allows you to resolve local assets if necessary
@@ -153,4 +186,4 @@ class ReportEngine:
             # Fallback: we just generate the HTML
             html_filename = filename.replace(".pdf", ".html")
             logger.info(f"Génération du HTML en fallback: {html_filename}")
-            return self._generate_template(report, html_filename, "report.html.j2")
+            return self._generate_template(report, html_filename, "report.html.j2", lang=lang)

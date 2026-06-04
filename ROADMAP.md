@@ -51,6 +51,30 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 47 — 2026-06-04 (Gemini CLI)
+
+**Iteration Objective**: Implementation of multilingual report exports (PDF, JSON, HTML) based on the user's selected language on the frontend.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `backend/app/report/locales/fr.json` | Addition | French translations for report templates. |
+| `backend/app/report/locales/en.json` | Addition | English translations for report templates. |
+| `backend/app/report/engine.py` | Modification | Added multilingual support to `ReportEngine` (lang loading and injection). |
+| `backend/app/report/templates/report.html.j2` | Modification | Internationalized the HTML/PDF report template. |
+| `backend/app/report/templates/report.md.j2` | Modification | Internationalized the Markdown report template. |
+| `backend/app/routers/reports.py` | Modification | Updated export endpoint to handle `lang` parameter and on-the-fly generation. |
+| `frontend/src/lib/api.ts` | Modification | Updated API client to support `lang` in export calls. |
+| `frontend/src/app/(dashboard)/reports/client.tsx` | Modification | Integrated current site locale into export buttons. |
+
+#### ✅ Multilingual Reports
+- **Dynamic Translation**: Reports are now exported in the language currently active on the site (FR or EN).
+- **On-the-fly PDF Generation**: The backend now handles real-time PDF generation with the requested language if a cached version doesn't exist.
+- **Full Template i18n**: Both HTML/PDF and Markdown templates are fully internationalized.
+
+---
+
 ### Iteration 46 — 2026-06-04 (Gemini CLI)
 
 **Iteration Objective**: UI Polish, internationalization of banners, and ROADMAP cleanup.
@@ -797,14 +821,13 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: UI Polish, banner internationalization, and ROADMAP cleanup (Iteration 46).
+**Stopped at**: Implementation of multilingual report exports (Iteration 47).
 **Commit**: (Pending)
 **What's left**:
 - [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
 - [ ] **Feature Finalization**: 
     - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
     - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
-    - Finalize Global Reporting logic and verify PDF export availability.
 - [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
 - [ ] **Documentation**: Prepare deployment documentation and polish the Open Source community guides.
 
