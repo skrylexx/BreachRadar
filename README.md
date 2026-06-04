@@ -18,6 +18,9 @@
 **BreachRadar is a sovereign Threat Intelligence (CTI) aggregator.**
 It detects if data belonging to a domain (`@mydomain.com`) has been compromised by querying and unifying dozens of public sources and specialized APIs (Clear, Deep, and Dark Web) simultaneously.
 
+![Dashboard Preview](images/mocked_dashboard.png)
+*Preview of the dashboard with simulated data. More screenshots are coming soon to showcase all features.*
+
 🛡️ **The promise for SOC & CERT teams:**
 > Stop scattering your analysts across 5 different tools. BreachRadar centralizes breach detection, monitors Ransomware group activity in real-time, and generates **neutral and actionable reports (zero sensitive data stored)** directly in a unified web interface (WebUI). Increase reactivity and divide your qualification time by three.
 
