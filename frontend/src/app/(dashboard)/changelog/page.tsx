@@ -9,6 +9,18 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.5.0.1",
+    date: "2026-06-04",
+    type: "UI & i18n Polish",
+    description: "Mise à jour de finition axée sur la cohérence visuelle, la confidentialité utilisateur et l'internationalisation complète des bannières.",
+    changes: [
+      { type: "feat", text: "Internationalisation complète de la bannière de surveillance du domaine (FR/EN)." },
+      { type: "fix", text: "Suppression du placeholder d'email codé en dur dans le header pour une meilleure confidentialité." },
+      { type: "fix", text: "Alignement des versions système dans l'ensemble de l'interface (Sidebar v0.5.0.1)." },
+      { type: "fix", text: "Nettoyage de la Roadmap globale et suppression des tâches terminées." },
+    ],
+  },
+  {
     version: "v0.5.0",
     date: "2026-06-03",
     type: "Open Source Launch",

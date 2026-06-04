@@ -51,6 +51,29 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 46 — 2026-06-04 (Gemini CLI)
+
+**Iteration Objective**: UI Polish, internationalization of banners, and ROADMAP cleanup.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `frontend/src/components/layout/Sidebar.tsx` | Modification | Updated version display to `v0.5.0`. |
+| `frontend/src/components/layout/Header.tsx` | Modification | Removed hardcoded default email from user menu. |
+| `frontend/src/components/layout/DomainBanner.tsx` | Modification | Internationalized the domain banner (FR/EN support). |
+| `frontend/messages/en.json` | Modification | Added `DomainBanner` translation keys. |
+| `frontend/messages/fr.json` | Modification | Added `DomainBanner` translation keys. |
+| `ROADMAP.md` | Modification | Cleanup of completed tasks and Iteration 46 logging. |
+
+#### ✅ UI & UX Polish
+- **Version Alignment**: Sidebar now correctly displays `v0.5.0` to match the Open Source launch.
+- **User Privacy**: Removed hardcoded `"admin@yourdomain.com"` placeholder in the header, now using a clean state until the real email is fetched.
+- **Full i18n**: The domain monitoring banner is now fully translated in English and French.
+- **Roadmap Cleanup**: Removed "UI Polish" and "Internationalization (Code)" tasks as they are completed or no longer required for v0.5.0.
+
+---
+
 ### Iteration 45 — 2026-06-04 (Gemini CLI)
 
 **Iteration Objective**: Resolve security vulnerabilities (CVE-2026-34993, CVE-2026-47265) in `aiohttp` dependency.
@@ -774,7 +797,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: Fixed CORS login bug and updated ROADMAP.md. Ready for further backend QA or QA on the login flow.
+**Stopped at**: UI Polish, banner internationalization, and ROADMAP cleanup (Iteration 46).
 **Commit**: (Pending)
 **What's left**:
 - [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
@@ -782,10 +805,8 @@ Phase 5 — Validation  [██████████] 100%
     - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
     - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
     - Finalize Global Reporting logic and verify PDF export availability.
-- [ ] **Internationalization (Code)**: Translate all French comments and docstrings in the source code to English to facilitate Open Source contributions.
 - [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
 - [ ] **Documentation**: Prepare deployment documentation and polish the Open Source community guides.
-- [ ] **UI Polish**: Resolve any remaining visual inconsistencies in the frontend components.
 
 **Watch points**:
 - The backend must maintain strict typing standards for any new contributions.

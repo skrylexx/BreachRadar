@@ -139,7 +139,7 @@ function LanguageSelector() {
 // ─── User Menu ─────────────────────────────────────────────────────────
 function UserMenu() {
   const t = useTranslations("Common");
-  const [email, setEmail] = useState<string>("admin@yourdomain.com");
+  const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
     const fetchUser = async () => {

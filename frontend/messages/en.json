@@ -284,5 +284,10 @@
     "error_failed": "Failed to generate report.",
     "tip_json": "Download JSON",
     "tip_pdf": "Download PDF"
+  },
+  "DomainBanner": {
+    "monitored_domain": "Monitored domain:",
+    "not_configured": "(domain not configured)",
+    "define_env": "— define <env1/> or <env2/> in .env"
   }
 }

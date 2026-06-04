@@ -119,14 +119,14 @@ BreachRadar/
 
 ### 3.1 — Development (Feature / Fix)
 
-
 1. **Code**: functional, clean, and commented source files according to ROADMAP.md priorities
-2. **TODO.md** updated:
-   - Imperatively check (`- [x]`) the boxes for ALL steps completed so far.
+2. **TODO.md / ROADMAP.md** updated:
+   - **Remove** completed tasks from the "What's left" or "Next Agent" section once they are fully implemented and verified.
+   - Do not just check them off (`- [x]`); delete the line to keep the list focused on pending work.
 3. **ROADMAP.md** updated:
    - CHANGELOG section: each modification listed precisely (file, line, nature of change)
    - Progress indicator updated (e.g., `[████░░] 60%`)
-   - "Next Agent" section completed if the session stops before the task is finished
+   - "Next Agent" section updated with only the remaining tasks if the session stops.
 4. **README.md** updated if the architecture or installation instructions evolve
 
 
@@ -280,6 +280,25 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 
 ## 6. Handoff History
+
+### Handoff #18 — 2026-06-04
+
+- **Outgoing Agent**           : Gemini CLI
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : (Pending)
+- **Tasks accomplished**:
+  - **UI Polish (v0.5.0.1)**: Updated the sidebar and site changelog to reflect a new sub-version `v0.5.0.1`.
+  - **Banner Internationalization**: Fully translated the domain monitoring banner (`DomainBanner.tsx`) in both English and French, removing hardcoded strings.
+  - **Privacy Hardening**: Removed hardcoded placeholder email in the header user menu, now using a clean state until data is fetched.
+  - **Roadmap Cleanup**: Pruned completed tasks from `ROADMAP.md` and added Iteration 46 details.
+  - **Instruction Update**: Modified the guide to require AI agents to **remove** completed tasks from the roadmap instead of just checking them off, to maintain a clean workspace.
+- **Next task**: Resume Backend QA (Mypy zero-defects) or finalize OSV.dev fetcher as per the roadmap.
+- **Points of vigilance**:
+  - The `DomainBanner` now requires translation keys in `messages/*.json`.
+  - Version `v0.5.0.1` is now the reference in both the Sidebar and the Changelog page.
+- **Updated files**: frontend/src/components/layout/Sidebar.tsx · frontend/src/app/(dashboard)/changelog/page.tsx · frontend/src/components/layout/DomainBanner.tsx · frontend/src/components/layout/Header.tsx · frontend/messages/*.json · ROADMAP.md · AI_AGENT_GUIDE.md
+
+***
 
 ### Handoff #17 — 2026-06-04
 

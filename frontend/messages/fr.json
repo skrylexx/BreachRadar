@@ -284,5 +284,10 @@
     "error_failed": "Échec de la génération du rapport.",
     "tip_json": "Télécharger JSON",
     "tip_pdf": "Télécharger PDF"
+  },
+  "DomainBanner": {
+    "monitored_domain": "Domaine surveillé :",
+    "not_configured": "(domaine non configuré)",
+    "define_env": "— définir <env1/> ou <env2/> dans le .env"
   }
 }

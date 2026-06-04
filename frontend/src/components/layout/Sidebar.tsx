@@ -211,7 +211,7 @@ export function Sidebar() {
         ))}
         <div className="flex items-center justify-center py-2 h-8">
           <span className="text-[10px] font-data text-muted-foreground/30 whitespace-nowrap">
-            {(isHovered || isOpen) ? "BreachRadar Version 0.3.0" : "v0.3.0"}
+            {(isHovered || isOpen) ? "BreachRadar Version 0.5.0.1" : "v0.5.0.1"}
           </span>
         </div>
       </div>
