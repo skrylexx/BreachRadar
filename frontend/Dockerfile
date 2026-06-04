@@ -22,6 +22,9 @@ RUN mkdir -p public
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+ARG INTERNAL_API_URL=http://breachradar-api:8000
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
+
 # Domaine cible — seule variable à remplir dans le .env racine
 ARG TARGET_DOMAIN=""
 ENV TARGET_DOMAIN=$TARGET_DOMAIN
