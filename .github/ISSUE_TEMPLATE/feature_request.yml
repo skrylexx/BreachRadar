@@ -1,35 +1,36 @@
-name: Feature Request
-description: Proposer une nouvelle idée ou amélioration pour BreachRadar
+name: Feature Request / Proposition d'amélioration
+description: Propose a new idea or improvement for BreachRadar / Proposer une nouvelle idée ou amélioration pour BreachRadar
 title: "[FEAT] "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Merci de suggérer une nouvelle fonctionnalité ! 🚀
+        Thank you for suggesting a new feature! 🚀
+        Merci de suggérer une nouvelle fonctionnalité !
   - type: textarea
     id: problem
     attributes:
-      label: Quel problème essayez-vous de résoudre ?
-      description: Est-ce que cette demande est liée à un problème que vous rencontrez ou un cas d'usage non couvert ?
-      placeholder: C'est toujours très frustrant quand...
+      label: What problem are you trying to solve? / Quel problème essayez-vous de résoudre ?
+      description: Is this request related to a problem you are encountering or an uncovered use case? / Est-ce que cette demande est liée à un problème que vous rencontrez ou un cas d'usage non couvert ?
+      placeholder: It's always very frustrating when... / C'est toujours très frustrant quand...
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Solution proposée
-      description: Décrivez clairement comment vous imaginez la fonctionnalité idéale.
-      placeholder: J'aimerais qu'il y ait un bouton qui permette de...
+      label: Proposed Solution / Solution proposée
+      description: Clearly describe how you imagine the ideal feature. / Décrivez clairement comment vous imaginez la fonctionnalité idéale.
+      placeholder: I would like there to be a button that allows to... / J'aimerais qu'il y ait un bouton qui permette de...
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives considérées
-      description: Avez-vous pensé à d'autres manières de faire ?
+      label: Considered Alternatives / Alternatives considérées
+      description: Have you thought of other ways to do it? / Avez-vous pensé à d'autres manières de faire ?
   - type: textarea
     id: context
     attributes:
-      label: Contexte supplémentaire
-      description: Ajoutez ici tout contexte, lien vers une API tierce, ou maquette.
+      label: Additional Context / Contexte supplémentaire
+      description: Add any context, link to a third-party API, or mockup here. / Ajoutez ici tout contexte, lien vers une API tierce, ou maquette.

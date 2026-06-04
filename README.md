@@ -21,14 +21,42 @@ It detects if data belonging to a domain (`@mydomain.com`) has been compromised 
 🛡️ **The promise for SOC & CERT teams:**
 > Stop scattering your analysts across 5 different tools. BreachRadar centralizes breach detection, monitors Ransomware group activity in real-time, and generates **neutral and actionable reports (zero sensitive data stored)** directly in a unified web interface (WebUI). Increase reactivity and divide your qualification time by three.
 
-**Two complementary detection dimensions:**
+---
 
-| Dimension | Description | Aggregated Sources |
-|---|---|---|
-| **Backward-looking** | Past data leaks and compromised passwords | HIBP, LeakCheck, Dehashed, IntelX... |
-| **Forward-looking** | Ransomware Early Warning — domain listed before publication | **RansomLook** (Active Dark Web monitoring) |
+## Quick Start (Docker)
 
-> ⚠️ **RansomLook** is the only source capable of detecting a massive *ongoing* compromise before the data is published. Typical reaction window: 5 to 30 days.
+Launch BreachRadar in seconds using Docker:
+
+```bash
+git clone https://github.com/skrylexx/breachradar.git
+cd breachradar
+cp .env.example .env
+# Edit .env with your settings
+docker compose up -d
+```
+*Access the interface at [http://localhost:3000](http://localhost:3000).*
+
+For a detailed walkthrough, see [QUICKSTART.md](QUICKSTART.md).
+
+---
+
+## 🚀 Production Deployment
+
+Moving to production? We've got you covered. Check out our **[Deployment Guide](DEPLOYMENT.md)** for:
+- Reverse proxy configuration (Nginx + SSL).
+- Persistence and backup strategies.
+- Server hardening and security best practices.
+
+---
+
+## 🤝 Community & Contributing
+
+We love contributions! Whether you're fixing a bug, suggesting a feature, or adding a new OSINT connector, your help is welcome.
+
+- 🛠️ **[Contribution Guide](CONTRIBUTING.md)**: Learn about our coding standards and PR process.
+- 🛡️ **[Add a Connector](guides/ADD_CONNECTOR.md)**: A step-by-step guide to extending BreachRadar.
+- ⚖️ **[Code of Conduct](CODE_OF_CONDUCT.md)**: Our commitment to a welcoming environment.
+- 🗺️ **[Roadmap](ROADMAP.md)**: See what we're working on next.
 
 ---
 
