@@ -51,7 +51,7 @@ class ScanManager:
             try:
                 keys[k.service_name] = decrypt_secret(k.encrypted_key)
             except Exception as e:
-                logger.error(f"Erreur déchiffrement clé {k.service_name}: {e}")
+                logger.error(f"Error decrypting key {k.service_name}: {e}")
                 continue
         return keys
 
@@ -63,7 +63,7 @@ class ScanManager:
         from app.core.database import AsyncSessionLocal
 
         domain = target_domain or settings.target_domain
-        logger.info(f"Démarrage du scan complet pour le domaine : {domain} (ID: {scan_id})")
+        logger.info(f"Starting full scan for domain: {domain} (ID: {scan_id})")
 
         async with AsyncSessionLocal() as db:
             try:
@@ -123,8 +123,8 @@ class ScanManager:
                             source=f.group_display_name,
                             external_id=external_id,
                             finding_type="ransomware",
-                            title=f"Victime détectée : {f.victim_name}",
-                            description=f.description or f"Publication détectée sur le portail de {f.group_display_name}",
+                            title=f"Victim detected: {f.victim_name}",
+                            description=f.description or f"Publication detected on {f.group_display_name} portal",
                             url=f.portal_url,
                             severity=Severity.CRITICAL,
                             extra_metadata={
@@ -166,10 +166,10 @@ class ScanManager:
                 )
                 await db.commit()
 
-                logger.info(f"Scan {scan_id} terminé avec succès. Sévérité: {scan_severity}")
+                logger.info(f"Scan {scan_id} completed successfully. Severity: {scan_severity}")
 
             except Exception as e:
-                logger.error(f"Échec critique du scan {scan_id} : {e}", exc_info=True)
+                logger.error(f"Critical scan failure {scan_id}: {e}", exc_info=True)
                 await db.execute(
                     update(ScanResult)
                     .where(ScanResult.id == scan_id)
