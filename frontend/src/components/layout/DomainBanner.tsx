@@ -1,13 +1,15 @@
 "use client";
 
 import { Globe } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DomainBannerProps {
-  /** Domaine surveillé, lu côté serveur et passé en prop. */
+  /** Monitored domain, passed from server side. */
   domain?: string;
 }
 
 export function DomainBanner({ domain }: DomainBannerProps) {
+  const t = useTranslations("DomainBanner");
   const isConfigured = Boolean(domain && domain.trim().length > 0);
 
   return (
@@ -21,17 +23,16 @@ export function DomainBanner({ domain }: DomainBannerProps) {
       aria-live="polite"
     >
       <Globe className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.5} />
-      <span className="text-muted-foreground">Domaine surveillé&nbsp;:</span>
+      <span className="text-muted-foreground">{t("monitored_domain")}</span>
       <span className="font-semibold tracking-wide">
-        {isConfigured ? domain : "(domaine non configuré)"}
+        {isConfigured ? domain : t("not_configured")}
       </span>
       {!isConfigured && (
         <span className="ml-2 text-yellow-400/70">
-          — définir{" "}
-          <code className="bg-yellow-500/10 px-1 rounded">TARGET_DOMAIN</code>
-          {" "}ou{" "}
-          <code className="bg-yellow-500/10 px-1 rounded">NEXT_PUBLIC_TARGET_DOMAIN</code>
-          {" "}dans le .env
+          {t.rich("define_env", {
+            env1: (chunks) => <code className="bg-yellow-500/10 px-1 rounded">TARGET_DOMAIN</code>,
+            env2: (chunks) => <code className="bg-yellow-500/10 px-1 rounded">NEXT_PUBLIC_TARGET_DOMAIN</code>,
+          })}
         </span>
       )}
     </div>
