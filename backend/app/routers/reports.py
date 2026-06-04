@@ -97,6 +97,7 @@ async def export_report(
     report_id: str,
     current_user: ViewerUser,
     format: str = Query("pdf", pattern="^(pdf|json|html)$"),
+    lang: str = Query("fr", pattern="^(fr|en)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """Exports an existing report in the requested format."""
@@ -120,26 +121,21 @@ async def export_report(
         if json_path.exists():
             return FileResponse(json_path, media_type="application/json", filename=json_path.name)
     elif format == "html":
-        html_path = base_path.with_suffix(".html")
+        html_path = base_path.with_suffix(f".{lang}.html")
         if html_path.exists():
             return FileResponse(html_path, media_type="text/html", filename=html_path.name)
 
-    # If PDF is requested, check if it already exists or generate it
-    pdf_path = base_path.with_suffix(".pdf")
+    # For PDF, we always regenerate or check for the lang-specific version
+    pdf_path = base_path.with_suffix(f".{lang}.pdf")
     if pdf_path.exists():
         return FileResponse(pdf_path, media_type="application/pdf", filename=pdf_path.name)
 
     # On-the-fly generation if necessary
-    # Note: The full FinalReport is needed to re-generate.
-    # For now, assume the scan has already generated the base files.
-    # We will read the JSON to reconstruct the FinalReport and call _generate_pdf.
-
     json_file = base_path.with_suffix(".json")
     if not json_file.exists():
         raise HTTPException(status_code=404, detail="Original report data (JSON) missing")
 
     import json
-
     from app.models.report import FinalReport
 
     with open(json_file, encoding="utf-8") as f:
@@ -147,9 +143,15 @@ async def export_report(
         report = FinalReport.model_validate(report_data)
 
     engine = ReportEngine(output_dir=settings.report_output_dir)
-    pdf_file = engine._generate_pdf(report, pdf_path.name)
+    
+    if format == "pdf":
+        pdf_file = engine._generate_pdf(report, pdf_path.name, lang=lang)
+        return FileResponse(pdf_file, media_type="application/pdf", filename=pdf_file.name)
+    elif format == "html":
+        html_file = engine._generate_template(report, html_path.name, "report.html.j2", lang=lang)
+        return FileResponse(html_file, media_type="text/html", filename=html_file.name)
 
-    return FileResponse(pdf_file, media_type="application/pdf", filename=pdf_file.name)
+    return HTTPException(status_code=400, detail="Unsupported format for on-the-fly generation")
 
 
 @router.post("/generate")
