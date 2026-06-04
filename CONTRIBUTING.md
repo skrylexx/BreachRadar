@@ -55,7 +55,7 @@ type(scope): short description in English
 
 1. **Fork** the repository and clone it locally.
 2. Create a branch (`feat/your-feature`).
-3. Write your code respecting the architecture (see `ARCHITECTURE.md` and `AI_AGENT_GUIDE.md`).
+3. Write your code respecting the architecture (see [ARCHITECTURE.md](ARCHITECTURE.md) and [AI_AGENT_GUIDE.md](AI_AGENT_GUIDE.md)).
 4. **Test your code** locally. Do not break existing tests.
    - Backend: `uv run pytest tests/` and `uv run ruff check .`
    - Frontend: `npm run lint` and `npm run build`
@@ -64,7 +64,17 @@ type(scope): short description in English
 
 ---
 
-## 4. Golden Rules and Security (Vital)
+## 4. Specialized Guides
+
+To help you contribute more effectively, we have prepared dedicated guides:
+
+- 🛡️ **[How to Add a New OSINT Connector](guides/ADD_CONNECTOR.md)**: A step-by-step tutorial for adding new data sources.
+- 🚀 **[Deployment Guide](DEPLOYMENT.md)**: How to deploy BreachRadar in a production environment.
+- ⚖️ **[Code of Conduct](CODE_OF_CONDUCT.md)**: Our pledge for a welcoming community.
+
+---
+
+## 5. Golden Rules and Security (Vital)
 
 BreachRadar is a Cyber tool. **Security is non-negotiable.**
 
