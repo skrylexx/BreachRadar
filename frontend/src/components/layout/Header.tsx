@@ -2,8 +2,8 @@
 
 /**
  * Header — BreachRadar WebUI
- * Contenu : titre de la page courante, dark mode switch (toujours dark),
- *           indicateur de langue (EN/FR), menu utilisateur.
+ * Content: current page title, dark mode switch (always dark),
+ *          language indicator (EN/FR), user menu.
  */
 
 import { Bell, Globe, LogOut, Menu, Settings, User, X } from "lucide-react";
@@ -51,7 +51,7 @@ export function Header() {
       className="h-14 flex-shrink-0 flex items-center justify-between
                  px-4 sm:px-6 border-b border-border/50 bg-card/50 backdrop-blur-sm z-40 relative"
     >
-      {/* Titre de la page + Menu Mobile */}
+      {/* Page title + Mobile Menu */}
       <div className="flex items-center gap-3">
         <button
           onClick={toggle}
@@ -64,36 +64,36 @@ export function Header() {
         <h2 className="text-sm font-semibold text-foreground truncate max-w-[120px] sm:max-w-none">
           {title}
         </h2>
-        {/* Breadcrumb minimaliste */}
+        {/* Minimalist Breadcrumb */}
         <span className="text-xs text-muted-foreground/50 font-data hidden md:block">
           breachradar / {title.toLowerCase()}
         </span>
       </div>
 
-      {/* Actions droite */}
+      {/* Right actions */}
       <div className="flex items-center gap-1 sm:gap-2">
 
-        {/* Sélecteur de langue */}
+        {/* Language selector */}
         <LanguageSelector />
 
         {/* Notifications */}
         <NotificationDropdown />
 
-        {/* Menu utilisateur */}
+        {/* User menu */}
         <UserMenu />
       </div>
     </header>
   );
 }
 
-// ─── Sélecteur de langue ─────────────────────────────────────────────────────
+// ─── Language Selector ─────────────────────────────────────────────────────
 function LanguageSelector() {
   const router = useRouter();
   const locale = useLocale();
 
   const changeLanguage = (newLocale: string) => {
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
-    // Une actualisation complète est plus fiable pour mettre à jour les Server Components
+    // A full refresh is more reliable to update Server Components
     window.location.reload();
   };
 
@@ -109,7 +109,7 @@ function LanguageSelector() {
         <span className="text-[10px] font-medium uppercase">{locale}</span>
       </button>
 
-      {/* Dropdown langues */}
+      {/* Language dropdown */}
       <div className="absolute right-0 top-full mt-1
                       bg-popover border border-border rounded-md shadow-lg
                       opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto
@@ -136,7 +136,7 @@ function LanguageSelector() {
   );
 }
 
-// ─── Menu utilisateur ─────────────────────────────────────────────────────────
+// ─── User Menu ─────────────────────────────────────────────────────────
 function UserMenu() {
   const t = useTranslations("Common");
   const [email, setEmail] = useState<string>("admin@yourdomain.com");
@@ -180,7 +180,7 @@ function UserMenu() {
         </div>
       </button>
 
-      {/* Bridge invisible pour garder le hover actif entre le bouton et le menu */}
+      {/* Invisible bridge to keep hover active between button and menu */}
       <div className="absolute top-full right-0 h-2 w-full pointer-events-auto" />
 
       {/* Dropdown */}
