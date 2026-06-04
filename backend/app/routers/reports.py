@@ -136,6 +136,7 @@ async def export_report(
         raise HTTPException(status_code=404, detail="Original report data (JSON) missing")
 
     import json
+
     from app.models.report import FinalReport
 
     with open(json_file, encoding="utf-8") as f:
@@ -143,11 +144,12 @@ async def export_report(
         report = FinalReport.model_validate(report_data)
 
     engine = ReportEngine(output_dir=settings.report_output_dir)
-    
+
     if format == "pdf":
         pdf_file = engine._generate_pdf(report, pdf_path.name, lang=lang)
         return FileResponse(pdf_file, media_type="application/pdf", filename=pdf_file.name)
-    elif format == "html":
+
+    if format == "html":
         html_file = engine._generate_template(report, html_path.name, "report.html.j2", lang=lang)
         return FileResponse(html_file, media_type="text/html", filename=html_file.name)
 
