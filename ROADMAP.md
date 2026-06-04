@@ -1,6 +1,6 @@
 # ROADMAP — BreachRadar
 
-> Structured logbook — updated at every AI or human iteration.
+> Structured logbook — updated at every iteration.
 > **Handoff protocol**: Read this file + README.md + CYBER_SECURITY_CHECKLIST.md before any contribution.
 
 ---
@@ -51,7 +51,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
-### Iteration 47 — 2026-06-04 (Gemini CLI)
+### Iteration 47 — 2026-06-04
 
 **Iteration Objective**: Implementation of multilingual report exports (PDF, JSON, HTML) based on the user's selected language on the frontend.
 
@@ -75,7 +75,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 46 — 2026-06-04 (Gemini CLI)
+### Iteration 46 — 2026-06-04
 
 **Iteration Objective**: UI Polish, internationalization of banners, and ROADMAP cleanup.
 
@@ -98,7 +98,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 45 — 2026-06-04 (Gemini CLI)
+### Iteration 45 — 2026-06-04
 
 **Iteration Objective**: Resolve security vulnerabilities (CVE-2026-34993, CVE-2026-47265) in `aiohttp` dependency.
 
@@ -115,7 +115,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 44 — 2026-06-04 (Gemini CLI)
+### Iteration 44 — 2026-06-04
 
 **Iteration Objective**: Fix CORS bug on login by using the ?? operator instead of || for NEXT_PUBLIC_API_URL, to allow empty string prefix for relative paths.
 
@@ -135,7 +135,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 43 — 2026-06-03 (Gemini CLI)
+### Iteration 43 — 2026-06-03
 
 **Iteration Objective**: Make Content Security Policy (CSP) dynamic and launch v0.5.0 (Open Source).
 
@@ -155,7 +155,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 42 — 2026-06-03 (Gemini CLI)
+### Iteration 42 — 2026-06-03
 
 **Iteration Objective**: Fix of Docker API startup error (missing database columns) and environment clarification.
 
@@ -173,7 +173,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 41 — 2026-06-03 (Gemini CLI)
+### Iteration 41 — 2026-06-03
 
 **Iteration Objective**: v0.4.1 Update (RBAC Hardening) and CI/CD pipeline audit.
 
@@ -190,7 +190,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 40 — 2026-06-03 (Gemini CLI)
+### Iteration 40 — 2026-06-03
 
 **Iteration Objective**: Finalization of Ransomware persistence, RBAC reinforcement, and v0.4.0 update.
 
@@ -212,7 +212,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 39 — 2026-06-01 (Gemini CLI)
+### Iteration 39 — 2026-06-01
 
 **Iteration Objective**: Resolution of Docker image resolution error, fix of "Black Screen" (CSP), reliability improvement of Backend startup (Race Condition), and fix of the logout flow.
 
@@ -237,7 +237,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 38 — 2026-06-01 (Gemini CLI)
+### Iteration 38 — 2026-06-01
 
 **Iteration Objective**: Creation of a Gemini CI/CD skill, reinforcement of the quality pipeline, and achieving "Zero Defects" (Tests & Typing).
 
@@ -262,7 +262,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 37 — 2026-06-01 (Gemini CLI)
+### Iteration 37 — 2026-06-01
 
 **Iteration Objective**: Implementation of a GitHub Actions CI/CD pipeline for security and quality test automation.
 
@@ -282,7 +282,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 36 — 2026-06-01 (Gemini CLI)
+### Iteration 36 — 2026-06-01
 
 **Iteration Objective**: Full implementation of internationalization (FR/EN) on the frontend.
 
@@ -308,7 +308,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 35 — 2026-06-01 (Gemini CLI)
+### Iteration 35 — 2026-06-01
 
 **Iteration Objective**: Full execution of the security audit and application hardening (Phases 1 to 4).
 
@@ -333,7 +333,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 34 — 2026-06-01 (Gemini CLI)
+### Iteration 34 — 2026-06-01
 
 **Iteration Objective**: Initialization of the full security roadmap and test strategy preparation.
 
@@ -353,7 +353,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 33 — 2026-05-23 (Gemini CLI)
+### Iteration 33 — 2026-05-23
 
 **Iteration Objective**: Full audit of versions and dependency security (SCA).
 
@@ -373,7 +373,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 32 — 2026-05-23 (Gemini CLI)
+### Iteration 32 — 2026-05-23
 
 **Iteration Objective**: Implementation of the Digital Intelligence & Cyber Monitoring engine.
 
@@ -396,7 +396,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 31 — 2026-05-23 (Gemini CLI)
+### Iteration 31 — 2026-05-23
 
 **Iteration Objective**: Stack maintenance and MFA flow redesign (UX + Resilience).
 
@@ -419,7 +419,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 30 — 2026-05-22 (Gemini CLI)
+### Iteration 30 — 2026-05-22
 
 **Iteration Objective**: Security Hardening of the MFA implementation.
 
@@ -446,7 +446,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 29 — 2026-05-22 (Gemini CLI)
+### Iteration 29 — 2026-05-22
 
 **Iteration Objective**: Implementation of User Self-Service MFA.
 
@@ -467,7 +467,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 28 — 2026-05-22 (Gemini CLI)
+### Iteration 28 — 2026-05-22
 
 **Iteration Objective**: Implementation of Admin steering of MFA.
 
@@ -491,7 +491,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 27 — 2026-05-22 (Gemini CLI)
+### Iteration 27 — 2026-05-22
 
 **Iteration Objective**: Full implementation of the MFA verification flow (Login -> Challenge -> Verify).
 
@@ -520,7 +520,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 26 — 2026-05-21 (Gemini CLI)
+### Iteration 26 — 2026-05-21
 
 **Iteration Objective**: Detailed planning and preparation for MFA improvements.
 
@@ -542,7 +542,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 25 — 2026-05-21 (Gemini CLI)
+### Iteration 25 — 2026-05-21
 
 **Iteration Objective**: Restoration and population of data for the local RansomLook connector.
 
@@ -566,7 +566,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 24 — 2026-05-19 (Gemini CLI)
+### Iteration 24 — 2026-05-19
 
 **Iteration Objective**: Verification and reliability improvement of the RansomLook connection.
 
@@ -593,7 +593,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 23 — 2026-05-18 (Gemini CLI)
+### Iteration 23 — 2026-05-18
 
 **Iteration Objective**: Documentation of the project's global architecture.
 
@@ -613,7 +613,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 22 — 2026-05-18 (Gemini CLI)
+### Iteration 22 — 2026-05-18
 
 **Iteration Objective**: Technical documentation generation and local launch guide.
 
@@ -638,7 +638,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 21 — 2026-05-17 (Gemini CLI)
+### Iteration 21 — 2026-05-17
 
 **Iteration Objective**: Automated security audit and rendering vulnerability fixes.
 
@@ -662,9 +662,9 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 20 — 2026-05-17 (Gemini CLI)
+### Iteration 20 — 2026-05-17
 
-### Iteration 17 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 17 — 2026-05-15
 
 **Iteration Objective**: Stabilization of Docker build and fix of UI regressions (missing components, typing errors).
 
@@ -693,7 +693,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 16 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 16 — 2026-05-15
 
 **Iteration Objective**: Final completion of Backend: Global reports, Profile Security, and Custom Sources.
 
@@ -720,7 +720,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 15 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 15 — 2026-05-15
 
 **Iteration Objective**: Finalization of PDF report generation and MFA authentication flows.
 
@@ -747,7 +747,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 14 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 14 — 2026-05-15
 
 **Iteration Objective**: Implementation of a global Mock Data system and finalization of backend foundations.
 
@@ -776,7 +776,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 13 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 13 — 2026-05-15
 
 **Iteration Objective**: Implementation of Backend foundations: SQLAlchemy models, Fernet encryption, and settings routers.
 
@@ -807,7 +807,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ---
 
-### Iteration 12 — 2026-05-15 (Gemini 2.0 Flash — Antigravity)
+### Iteration 12 — 2026-05-15
 
 **Iteration Objective**: Implementation of missing pages (CVE, Profile, Changelog) and finalization of instance parameters. Creation of the Backend roadmap.
 
@@ -836,4 +836,5 @@ Phase 5 — Validation  [██████████] 100%
 - PDF generation requires `weasyprint` (install via `pip install .[pdf]`).
 - The frontend client should use relative paths (`/api/...`) to leverage the Next.js proxy.
 - `NEXT_PUBLIC_API_URL` is forced to `""` on the client by `next.config.ts`. Ensure to use `??` instead of `||` when providing fallbacks for fetch calls to prevent bypassing the proxy.
+
 

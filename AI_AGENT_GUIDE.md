@@ -174,12 +174,18 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 
 ```markdown
-### [YYYY-MM-DD] — <Short action title>
-- **Modified file(s)**: `path/to/file.py` (lines X-Y)
-- **Nature**: [Addition | Modification | Deletion | Refactoring | Fix | Security]
-- **Reason**: Concise explanation of why
-- **Impact**: Affected modules or behaviors
-- **Commit**: `<SHA>` (if applicable)
+### Iteration N — YYYY-MM-DD
+**Iteration Objective**: Concise description of the goal.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `path/to/file.py` | [Nature] | Short description |
+
+#### ✅ [Title]
+- Detail 1
+- Detail 2
 ```
 
 
@@ -215,7 +221,7 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 - Use **explicit comments** in the code: `# TODO(agent): ...`, `# NOTE: ...`, `# SECURITY: ...`
 - Never leave incomplete code without a comment signaling the state: `# WIP: partial implementation — see ROADMAP.md`
-- Always specify in ROADMAP.md which agent worked on which section
+- In ROADMAP.md, only include the iteration number and the date (e.g., ### Iteration X — YYYY-MM-DD). Never mention the agent's name (Gemini, Claude, etc.) in the headers.
 
 
 ### 4.5 — Shell / RTK Policy
