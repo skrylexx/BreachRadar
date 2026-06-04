@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Schémas Auth (Pydantic)
+BreachRadar WebUI — Auth Schemas (Pydantic)
 ===========================================
-Validation des données d'entrée/sortie pour l'authentification.
+Validation of input/output data for authentication.
 """
 
 import uuid
@@ -11,22 +11,22 @@ from pydantic import BaseModel, EmailStr, field_validator
 
 
 class LoginRequest(BaseModel):
-    """Corps de la requête de connexion."""
+    """Login request body."""
 
     email: EmailStr
     password: str
 
 
 class MFAVerifyRequest(BaseModel):
-    """Vérification du code TOTP après la connexion password."""
+    """TOTP code verification after password login."""
 
-    challenge_token: str  # Token temporaire Redis (valide 5 min)
-    totp_code: str  # Code 6 chiffres ou code de secours 12 caractères
+    challenge_token: str  # Temporary Redis token (valid 5 min)
+    totp_code: str  # 6-digit code or 12-character backup code
 
     @field_validator("totp_code")
     @classmethod
     def validate_totp_code(cls, v: str) -> str:
-        # Autorise TOTP (6 chiffres) OU Backup Code (12 chars alphanum)
+        # Allows TOTP (6 digits) OR Backup Code (12 chars alphanum)
         if len(v) == 6 and v.isdigit():
             return v
         if len(v) == 12 and v.isalnum():
@@ -35,15 +35,15 @@ class MFAVerifyRequest(BaseModel):
 
 
 class MFASetupResponse(BaseModel):
-    """Réponse lors de l'activation du MFA : QR code + secret de backup + codes de secours."""
+    """Response when activating MFA: QR code + backup secret + backup codes."""
 
     qrcode_base64: str  # "data:image/png;base64,..."
-    manual_entry_key: str  # Clé manuelle pour les apps sans caméra
-    backup_codes: list[str]  # 10 codes à usage unique
+    manual_entry_key: str  # Manual key for apps without camera
+    backup_codes: list[str]  # 10 single-use codes
 
 
 class PasswordChangeRequest(BaseModel):
-    """Changement de mot de passe."""
+    """Password change."""
 
     current_password: str
     new_password: str
@@ -58,21 +58,21 @@ class PasswordChangeRequest(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
-    """Demande de reset par email."""
+    """Email reset request."""
 
     email: EmailStr
 
 
 class TokenResponse(BaseModel):
-    """Réponse après connexion réussie (tokens dans cookies HttpOnly)."""
+    """Response after successful login (tokens in HttpOnly cookies)."""
 
     message: str = "Login successful"
     requires_mfa: bool = False
-    mfa_challenge_token: str | None = None  # Seulement si MFA requis
+    mfa_challenge_token: str | None = None  # Only if MFA required
 
 
 class UserInfo(BaseModel):
-    """Informations de l'utilisateur connecté (exposées au frontend)."""
+    """Information of the logged-in user (exposed to the frontend)."""
 
     id: uuid.UUID
     email: str

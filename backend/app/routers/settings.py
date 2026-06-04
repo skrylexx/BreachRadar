@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Settings (Admin uniquement)
+BreachRadar WebUI — Routeur Settings (Admin only)
 ========================================================
-Gestion des paramètres système et des sources custom.
+Management of system settings and custom sources.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -17,7 +17,7 @@ from app.models.settings import SystemSettings
 
 router = APIRouter()
 
-# ─── Schémas ──────────────────────────────────────────────────────────────────
+# ─── Schemas ──────────────────────────────────────────────────────────────────
 
 
 class SystemSettingUpdate(BaseModel):
@@ -48,7 +48,7 @@ class CustomSourceRead(BaseModel):
 
 @router.get("/general")
 async def get_general_settings(current_user: AdminUser, db: AsyncSession = Depends(get_db)) -> dict:
-    """Récupère tous les paramètres système."""
+    """Retrieves all system settings."""
     result = await db.execute(select(SystemSettings))
     settings = result.scalars().all()
     return {s.key: s.value for s in settings}
@@ -61,7 +61,7 @@ async def update_general_setting(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ):
-    """Met à jour un paramètre système."""
+    """Updates a system setting."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == body.key))
     setting = result.scalar_one_or_none()
 
@@ -87,7 +87,7 @@ async def update_general_setting(
 
 @router.get("/custom-sources", response_model=list[CustomSourceRead])
 async def list_custom_sources(current_user: ViewerUser, db: AsyncSession = Depends(get_db)):
-    """Liste toutes les sources RSS custom."""
+    """Lists all custom RSS sources."""
     result = await db.execute(select(CustomFeedSource))
     return result.scalars().all()
 
@@ -99,7 +99,7 @@ async def create_custom_source(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ):
-    """Ajoute une nouvelle source RSS."""
+    """Adds a new RSS source."""
     source = CustomFeedSource(name=body.name, url=body.url, category=body.category, enabled=body.enabled)
     db.add(source)
     await db.flush()
@@ -120,7 +120,7 @@ async def test_custom_source(
     body: dict,
     current_user: AdminUser,
 ):
-    """Teste un flux RSS et renvoie un aperçu des 3 derniers items."""
+    """Tests an RSS feed and returns a preview of the last 3 items."""
     import feedparser
     import httpx
 
@@ -162,7 +162,7 @@ async def test_custom_source(
 async def delete_custom_source(
     request: Request, source_id: str, current_user: AdminUser, db: AsyncSession = Depends(get_db)
 ):
-    """Supprime une source RSS."""
+    """Deletes an RSS source."""
     result = await db.execute(select(CustomFeedSource).where(CustomFeedSource.id == source_id))
     source = result.scalar_one_or_none()
     if not source:

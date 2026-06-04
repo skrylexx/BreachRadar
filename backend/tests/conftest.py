@@ -1,7 +1,7 @@
 """
 tests/conftest.py
 
-Fixtures pytest partagées pour tous les tests BreachRadar.
+Shared pytest fixtures for all BreachRadar tests.
 """
 
 from __future__ import annotations
@@ -35,30 +35,30 @@ from app.models.ransom import RansomFinding, RansomStats, RansomStatus
 patch("app.core.database.engine").start()
 patch("app.core.init_db.initialize_database", new_callable=AsyncMock).start()
 
-# Répertoire des fixtures JSON
+# JSON fixtures directory
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
-# ─── Fixtures RansomLook ──────────────────────────────────────────────────────
+# ─── RansomLook Fixtures ──────────────────────────────────────────────────────
 
 
 @pytest.fixture
 def ransom_victim_found_json() -> list[dict]:
-    """Réponse API RansomLook simulée — domaine trouvé."""
+    """Simulated RansomLook API response — domain found."""
     with (FIXTURES_DIR / "ransomlook" / "victim_found.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture
 def ransom_victim_not_found_json() -> list[dict]:
-    """Réponse API RansomLook simulée — domaine non trouvé."""
+    """Simulated RansomLook API response — domain not found."""
     with (FIXTURES_DIR / "ransomlook" / "victim_not_found.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture
 def mock_ransom_finding() -> RansomFinding:
-    """RansomFinding de test complet."""
+    """Complete test RansomFinding."""
     return RansomFinding(
         group_name="lockbit3",
         group_display_name="LockBit 3.0",
@@ -78,7 +78,7 @@ def mock_ransom_finding() -> RansomFinding:
 
 @pytest.fixture
 def mock_ransom_stats_healthy() -> RansomStats:
-    """Statistiques RansomLook — instance saine."""
+    """RansomLook statistics — healthy instance."""
     return RansomStats(
         groups_tracked=124,
         total_posts=16340,
@@ -90,7 +90,7 @@ def mock_ransom_stats_healthy() -> RansomStats:
 
 @pytest.fixture
 def mock_ransom_stats_unhealthy() -> RansomStats:
-    """Statistiques RansomLook — instance inaccessible."""
+    """RansomLook statistics — inaccessible instance."""
     return RansomStats(
         groups_tracked=0,
         total_posts=0,
@@ -100,12 +100,12 @@ def mock_ransom_stats_unhealthy() -> RansomStats:
     )
 
 
-# ─── Fixtures LeakFinding ─────────────────────────────────────────────────────
+# ─── LeakFinding Fixtures ─────────────────────────────────────────────────────
 
 
 @pytest.fixture
 def mock_finding_critical() -> LeakFinding:
-    """LeakFinding de sévérité CRITICAL (credential en clair)."""
+    """LeakFinding of CRITICAL severity (plaintext credential)."""
     return LeakFinding(
         source="hibp",
         email="alice@mondomaine.fr",
@@ -123,7 +123,7 @@ def mock_finding_critical() -> LeakFinding:
 
 @pytest.fixture
 def mock_finding_high() -> LeakFinding:
-    """LeakFinding de sévérité HIGH (hash de mot de passe)."""
+    """LeakFinding of HIGH severity (password hash)."""
     return LeakFinding(
         source="hibp",
         email="bob@mondomaine.fr",
@@ -141,7 +141,7 @@ def mock_finding_high() -> LeakFinding:
 
 @pytest.fixture
 def mock_finding_low() -> LeakFinding:
-    """LeakFinding de sévérité LOW (données non-sensibles)."""
+    """LeakFinding of LOW severity (non-sensitive data)."""
     return LeakFinding(
         source="hibp",
         email="charlie@mondomaine.fr",
@@ -157,12 +157,12 @@ def mock_finding_low() -> LeakFinding:
     )
 
 
-# ─── Fixtures Mock Clients ────────────────────────────────────────────────────
+# ─── Mock Clients Fixtures ────────────────────────────────────────────────────
 
 
 @pytest.fixture
 def mock_notifier() -> MagicMock:
-    """NotificationEngine mocké."""
+    """Mocked NotificationEngine."""
     notifier = MagicMock()
     notifier.send_ransom_alert = AsyncMock(return_value=None)
     notifier.send_email = AsyncMock(return_value=None)
@@ -175,6 +175,6 @@ from app.main import app
 
 @pytest.fixture(autouse=True)
 def manage_overrides():
-    """Gère le nettoyage des overrides entre les tests."""
+    """Manages the cleanup of overrides between tests."""
     yield
     app.dependency_overrides.clear()

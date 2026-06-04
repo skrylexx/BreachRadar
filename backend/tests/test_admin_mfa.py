@@ -1,7 +1,7 @@
 """
 backend/tests/test_admin_mfa.py
 
-Tests fonctionnels pour la gestion Admin du MFA.
+Functional tests for Admin management of MFA.
 """
 
 import os
@@ -56,7 +56,7 @@ async def override_require_admin():
 
 @pytest.fixture(autouse=True)
 def mock_redis_helpers():
-    """Mock automatique des helpers Redis."""
+    """Automatic mock of Redis helpers."""
     with (
         patch("app.routers.auth.increment_mfa_failures", new_callable=AsyncMock) as m1,
         patch("app.routers.auth.get_mfa_failures", new_callable=AsyncMock) as m2,
@@ -68,7 +68,7 @@ def mock_redis_helpers():
 
 @pytest.mark.asyncio
 async def test_admin_reset_mfa_success(async_client):
-    """Teste le reset MFA par un admin."""
+    """Tests MFA reset by an admin."""
     app.dependency_overrides[require_admin] = override_require_admin
 
     target_user_id = uuid.uuid4()
@@ -99,7 +99,7 @@ async def test_admin_reset_mfa_success(async_client):
 
 @pytest.mark.asyncio
 async def test_admin_require_mfa_success(async_client):
-    """Teste l'obligation MFA par un admin."""
+    """Tests MFA requirement by an admin."""
     app.dependency_overrides[require_admin] = override_require_admin
 
     target_user_id = uuid.uuid4()
@@ -129,7 +129,7 @@ async def test_admin_require_mfa_success(async_client):
 
 @pytest.mark.asyncio
 async def test_login_with_mfa_required(async_client):
-    """Teste que mfa_required=True force le passage par le flux MFA au login."""
+    """Tests that mfa_required=True forces going through the MFA flow on login."""
     user = User(
         id=uuid.uuid4(),
         email="required@example.com",

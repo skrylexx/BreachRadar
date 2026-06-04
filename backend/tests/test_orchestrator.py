@@ -1,5 +1,5 @@
 """
-Tests unitaires pour l'Orchestrateur (ScanOrchestrator).
+Unit tests for the Orchestrator (ScanOrchestrator).
 """
 
 from unittest.mock import AsyncMock, MagicMock
@@ -20,7 +20,7 @@ def mock_settings():
 @pytest.fixture
 def mock_registry():
     registry = MagicMock(spec=SourceRegistry)
-    # On simule un dictionnaire de sources
+    # We simulate a dictionary of sources
     registry.sources = {}
     return registry
 
@@ -29,7 +29,7 @@ def mock_registry():
 async def test_scan_emails(mock_settings, mock_registry):
     orchestrator = ScanOrchestrator(settings=mock_settings, registry=mock_registry)
 
-    # Remplacer le client par un mock
+    # Replace the client with a mock
     mock_client = AsyncMock()
     mock_client.name = "mock_client"
     mock_client.check_email.return_value = [
@@ -83,7 +83,7 @@ async def test_scan_client_error_handling(mock_settings, mock_registry):
 
     orchestrator.clients = [mock_client]
 
-    # L'erreur doit être attrapée et ne pas faire crasher l'orchestrateur
+    # The error must be caught and not crash the orchestrator
     findings = await orchestrator.scan_emails(["test@example.com"])
 
     assert len(findings) == 0

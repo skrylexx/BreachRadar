@@ -1,5 +1,5 @@
 """
-BreachRadar WebUI — Schémas User (Pydantic)
+BreachRadar WebUI — User Schemas (Pydantic)
 ==========================================
 """
 
@@ -12,7 +12,7 @@ from app.models.user import UserRole
 
 
 class UserCreate(BaseModel):
-    """Création d'un utilisateur (admin uniquement)."""
+    """Creation of a user (admin only)."""
 
     email: EmailStr
     password: str
@@ -20,7 +20,7 @@ class UserCreate(BaseModel):
 
 
 class UserRead(BaseModel):
-    """Données utilisateur exposées via l'API."""
+    """User data exposed via the API."""
 
     id: uuid.UUID
     email: str
@@ -35,14 +35,14 @@ class UserRead(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    """Mise à jour partielle d'un utilisateur."""
+    """Partial update of a user."""
 
     role: UserRole | None = None
     is_active: bool | None = None
 
 
 class UserList(BaseModel):
-    """Liste paginée des utilisateurs."""
+    """Paginated list of users."""
 
     items: list[UserRead]
     total: int

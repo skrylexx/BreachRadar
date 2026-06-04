@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Users (Admin uniquement)
+BreachRadar WebUI — Routeur Users (Admin only)
 =====================================================
-CRUD utilisateurs : création, liste, désactivation, changement de rôle.
+User CRUD: creation, listing, deactivation, role change.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -25,7 +25,7 @@ async def list_users(
     page: int = 1,
     page_size: int = 20,
 ) -> UserList:
-    """Liste tous les utilisateurs (admin uniquement)."""
+    """Lists all users (admin only)."""
     offset = (page - 1) * page_size
 
     result = await db.execute(select(User).offset(offset).limit(page_size))
@@ -49,13 +49,13 @@ async def create_user(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> UserRead:
-    """Crée un nouvel utilisateur."""
-    # Vérifier que l'email n'existe pas déjà
+    """Creates a new user."""
+    # Check that the email does not already exist
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    # Valider le mot de passe selon le rôle
+    # Validate the password according to the role
     is_admin = body.role == UserRole.ADMIN
     is_valid, error = validate_password_strength(body.password, is_admin=is_admin)
     if not is_valid:
@@ -91,7 +91,7 @@ async def update_user(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> UserRead:
-    """Met à jour le rôle ou le statut d'un utilisateur."""
+    """Updates the role or status of a user."""
     import uuid
 
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
@@ -127,7 +127,7 @@ async def delete_user(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Supprime un utilisateur (soft delete — désactivation)."""
+    """Deletes a user (soft delete — deactivation)."""
     import uuid
 
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
@@ -156,7 +156,7 @@ async def reset_mfa(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Désactive le MFA pour un utilisateur (Admin uniquement)."""
+    """Désactive le MFA pour un utilisateur (Admin only)."""
     import uuid
 
     target_id = uuid.UUID(user_id)
@@ -193,7 +193,7 @@ async def require_mfa(
     current_user: AdminUser,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Force l'activation du MFA pour un utilisateur (Admin uniquement)."""
+    """Force l'activation du MFA pour un utilisateur (Admin only)."""
     import uuid
 
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))

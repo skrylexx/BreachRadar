@@ -1,5 +1,5 @@
 """
-BreachRadar WebUI — Schémas Scan (Pydantic)
+BreachRadar WebUI — Scan Schemas (Pydantic)
 ==========================================
 """
 
@@ -13,7 +13,7 @@ from app.models.scan import ScanSeverity, ScanStatus
 
 
 class ScanResultRead(BaseModel):
-    """Résultat de scan exposé via l'API."""
+    """Scan result exposed via the API."""
 
     id: uuid.UUID
     target_domain: str
@@ -31,32 +31,32 @@ class ScanResultRead(BaseModel):
 
 
 class ScanStats(BaseModel):
-    """Statistiques agrégées pour les graphiques du dashboard."""
+    """Aggregated statistics for dashboard charts."""
 
-    # Données pour le graphique à bâtonnets (7j, 1 mois, 6 mois, 12 mois)
+    # Data for the bar chart (7d, 1 month, 6 months, 12 months)
     period: str  # "7d" | "1m" | "6m" | "12m"
     data_points: list[dict]  # [{"date": "2026-01-15", "total": 12, "critical": 2, ...}]
-    summary: dict  # Totaux sur la période
+    summary: dict  # Totals over the period
 
     model_config = {"from_attributes": True}
 
 
 class ScanTriggerRequest(BaseModel):
-    """Déclenchement manuel d'un scan (admin uniquement)."""
+    """Manual trigger of a scan (admin only)."""
 
-    target_domain: str | None = None  # Si None, utilise le domaine configuré
+    target_domain: str | None = None  # If None, uses the configured domain
 
     @field_validator("target_domain")
     @classmethod
     def validate_domain(cls, v: str | None) -> str | None:
         if v is None:
             return v
-        # Validation simple de domaine pour éviter SSRF et injections
-        # Doit contenir au moins un point, pas d'espaces, pas de caractères spéciaux louches
+        # Simple domain validation to prevent SSRF and injections
+        # Must contain at least one dot, no spaces, no suspicious special characters
         if not re.match(r"^[a-zA-Z0-9][-a-zA-Z0-9.]+\.[a-zA-Z]{2,}$", v):
             raise ValueError("Invalid target domain format")
         if v:
-            # Interdire localhost et IPs locales pour prévenir SSRF
+            # Forbid localhost and local IPs to prevent SSRF
             blacklist = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # nosec B104
             if v.lower() in blacklist:
                 raise ValueError("Target domain cannot be a local address")
@@ -64,7 +64,7 @@ class ScanTriggerRequest(BaseModel):
 
 
 class ScanTriggerResponse(BaseModel):
-    """Réponse au déclenchement d'un scan."""
+    """Response to triggering a scan."""
 
     scan_id: uuid.UUID
     message: str = "Scan triggered successfully"

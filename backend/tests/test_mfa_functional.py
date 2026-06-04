@@ -1,7 +1,7 @@
 """
 backend/tests/test_mfa_functional.py
 
-Tests fonctionnels du flux MFA :
+Functional tests for MFA flow:
 1. Login -> Challenge
 2. Verify -> Success (Cookies)
 3. Verify -> Failure (Wrong code)
@@ -51,7 +51,7 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(autouse=True)
 def reset_db_mock():
-    """Réinitialise le mock de la base de données entre chaque test."""
+    """Resets the database mock between each test."""
     global_mock_db.reset_mock()
     global_mock_db.execute = AsyncMock()
     global_mock_db.commit = AsyncMock()
@@ -90,19 +90,19 @@ def mock_user():
 
 @pytest.fixture(autouse=True)
 def mock_redis_helpers():
-    """Mock automatique des helpers Redis pour éviter ConnectionError."""
+    """Automatic mock of Redis helpers to avoid ConnectionError."""
     with (
         patch("app.routers.auth.increment_mfa_failures", new_callable=AsyncMock) as m1,
         patch("app.routers.auth.get_mfa_failures", new_callable=AsyncMock) as m2,
         patch("app.routers.auth.reset_mfa_failures", new_callable=AsyncMock) as m3,
     ):
-        m2.return_value = 0  # Pas d'échec par défaut
+        m2.return_value = 0  # No failures by default
         yield (m1, m2, m3)
 
 
 @pytest.mark.asyncio
 async def test_mfa_login_and_verify_success(async_client, mock_user):
-    """Teste le flux complet MFA réussi."""
+    """Tests the complete successful MFA flow."""
 
     # Mocking the select(User) result
     mock_result = MagicMock()
@@ -146,7 +146,7 @@ async def test_mfa_login_and_verify_success(async_client, mock_user):
 
 @pytest.mark.asyncio
 async def test_mfa_verify_invalid_code(async_client, mock_user):
-    """Teste l'échec de vérification MFA avec un mauvais code."""
+    """Tests MFA verification failure with a wrong code."""
 
     # Mocking the select(User) result
     mock_result = MagicMock()
@@ -169,7 +169,7 @@ async def test_mfa_verify_invalid_code(async_client, mock_user):
 
 @pytest.mark.asyncio
 async def test_mfa_verify_expired_challenge(async_client):
-    """Teste l'échec de vérification MFA avec un challenge expiré."""
+    """Tests MFA verification failure with an expired challenge."""
 
     with patch("app.routers.auth.verify_mfa_challenge", new_callable=AsyncMock) as mock_verify:
         mock_verify.return_value = None  # Expired or invalid
@@ -184,7 +184,7 @@ async def test_mfa_verify_expired_challenge(async_client):
 
 @pytest.mark.asyncio
 async def test_mfa_disable_success(async_client, mock_user):
-    """Teste la désactivation réussie du MFA par l'utilisateur."""
+    """Tests the successful deactivation of MFA by the user."""
     # Mocking CurrentUser dependency
     from app.dependencies.auth import get_current_user
 
@@ -205,7 +205,7 @@ async def test_mfa_disable_success(async_client, mock_user):
 
 @pytest.mark.asyncio
 async def test_mfa_disable_invalid_code(async_client, mock_user):
-    """Teste l'échec de désactivation du MFA avec un mauvais code."""
+    """Tests MFA deactivation failure with a wrong code."""
     from app.dependencies.auth import get_current_user
 
     app.dependency_overrides[get_current_user] = lambda: mock_user
@@ -216,14 +216,14 @@ async def test_mfa_disable_invalid_code(async_client, mock_user):
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid TOTP code"
-    assert mock_user.mfa_enabled is True  # Toujours actif
+    assert mock_user.mfa_enabled is True  # Always active
     del app.dependency_overrides[get_current_user]
 
 
 @pytest.mark.asyncio
 async def test_mfa_verify_backup_code_success(async_client, mock_user):
-    """Teste la connexion réussie via un code de secours."""
-    # Préparer un code de secours haché
+    """Tests successful login via a backup code."""
+    # Prepare a hashed backup code
     backup_code = "1234567890AB"
     mock_user.mfa_backup_codes = [hash_password(backup_code)]
 
@@ -236,15 +236,15 @@ async def test_mfa_verify_backup_code_success(async_client, mock_user):
 
         verify_data = {
             "challenge_token": "backup_test_token",
-            "totp_code": backup_code,  # Saisie du backup code au lieu du TOTP
+            "totp_code": backup_code,  # Entry of the backup code instead of TOTP
         }
 
         response = await async_client.post("/api/v1/auth/mfa/verify", json=verify_data)
 
         assert response.status_code == 200
         assert response.json()["message"] == "Login successful"
-        # Le code doit être consommé
+        # The code must be consumed
         assert len(mock_user.mfa_backup_codes) == 0
 
 
-# Utilitaires pour mocker SQLAlchemy
+# Utilities for mocking SQLAlchemy

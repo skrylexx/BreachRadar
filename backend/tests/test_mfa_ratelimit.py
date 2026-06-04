@@ -1,7 +1,7 @@
 """
 backend/tests/test_mfa_ratelimit.py
 
-Test isolé pour le rate limiting MFA.
+Isolated test for MFA rate limiting.
 """
 
 import os
@@ -61,7 +61,7 @@ async def async_client():
 
 @pytest.mark.asyncio
 async def test_mfa_verify_rate_limiting(async_client):
-    """Teste le rate limiting sur l'endpoint de vérification MFA."""
+    """Tests rate limiting on the MFA verification endpoint."""
     # Re-enable rate limiting just for this test
     app.state.limiter.enabled = True
 
@@ -77,13 +77,13 @@ async def test_mfa_verify_rate_limiting(async_client):
 
             verify_data = {"challenge_token": "limit_test_token", "totp_code": "123456"}
 
-            # Le limiteur est à 10/minute dans le code
+            # The limiter is at 10/minute in the code
             for _i in range(10):
                 response = await async_client.post("/api/v1/auth/mfa/verify", json=verify_data)
                 if response.status_code == 429:
                     break
 
-            # 11ème appel
+            # 11th call
             response = await async_client.post("/api/v1/auth/mfa/verify", json=verify_data)
             assert response.status_code == 429
             assert "Rate limit exceeded" in response.text
