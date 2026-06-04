@@ -1,8 +1,8 @@
 """
 breachradar/clients/telegram_monitor.py
 
-Client de monitoring Telegram (Telethon).
-Permet de rechercher des mentions du domaine ou des emails dans des canaux/groupes spécifiques.
+Telegram monitoring client (Telethon).
+Allows you to search for mentions of the domain or emails in specific channels/groups.
 """
 
 from __future__ import annotations
@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 class TelegramMonitorClient(BaseLeakClient):
     """
-    Client de recherche sur Telegram via Telethon.
-    Nécessite une configuration API ID/Hash et génère un fichier .session.
+    Search client on Telegram via Telethon.
+    Requires ID/Hash API configuration and generates a .session file.
     """
 
     name = "telegram"
-    rate_limit_delay = 3.0  # Telegram est très strict sur le rate limiting
+    rate_limit_delay = 3.0  # Telegram is very strict on rate limiting
 
     def __init__(self, api_id: int, api_hash: str, sanitizer: DataSanitizer | None = None) -> None:
         super().__init__()
@@ -34,7 +34,7 @@ class TelegramMonitorClient(BaseLeakClient):
         self.sanitizer = sanitizer or DataSanitizer()
         self.session_path = Path("breachradar_tg.session")
 
-        # Telethon importé localement pour éviter une dépendance dure si non installé
+        # Telethon imported locally to avoid hard dependency if not installed
         try:
             from telethon import TelegramClient as TelethonClient
 
@@ -67,9 +67,9 @@ class TelegramMonitorClient(BaseLeakClient):
 
     async def _search_global(self, query: str) -> list[LeakFinding]:
         """
-        Recherche globale sur Telegram pour le terme donné.
-        Attention : la recherche globale via Telethon n'est pas toujours exhaustive
-        et dépend des canaux publics indexés par Telegram.
+        Global search on Telegram for the given term.
+        Please note: the global search via Telethon is not always exhaustive
+        and depends on public channels indexed by Telegram.
         """
         await self._apply_rate_limit()
 
@@ -79,14 +79,14 @@ class TelegramMonitorClient(BaseLeakClient):
 
         findings: list[LeakFinding] = []
         try:
-            # Recherche globale de messages contenant le query.
-            # Note: L'API Telegram limite fortement la recherche globale par mot-clé pour les utilisateurs.
-            # En réalité, on chercherait plutôt dans des canaux "suivis" (monitoring).
-            # Ceci est une implémentation simplifiée.
+            # Global search for messages containing the query.
+            # Note: The Telegram API heavily limits global keyword search for users.
+            # In reality, we would rather look in “monitoring” channels.
+            # This is a simplified implementation.
 
-            # Pour l'instant, nous retournons une liste vide si on ne peut pas interagir
-            # efficacement sans risquer un ban (FloodWait).
-            # Dans une version avancée, on itérerait sur des canaux OSINT connus.
+            # For now, we return an empty list if we cannot interact
+            # effectively without risking a ban (FloodWait).
+            # In an advanced version, we would iterate over known OSINT channels.
             logger.info(f"[{self.name}] La recherche Telegram nécessitera une liste de canaux cible (Phase 3 avancée).")
 
         except Exception as e:

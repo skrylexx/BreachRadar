@@ -1,8 +1,8 @@
 """
-BreachRadar WebUI — Moteur de Veille Numérique (Intelligence Monitor)
-=====================================================================
-Collecte, normalise et stocke les renseignements cyber depuis des sources variées.
-Supporte RSS/Atom, GitHub, Pastebin et Telegram.
+BreachRadar WebUI — Digital Intelligence Monitor
+==============================================================================
+Collects, standardizes and stores cyber intelligence from various sources.
+Supports RSS/Atom, GitHub, Pastebin and Telegram.
 """
 
 import asyncio
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class IntelligenceMonitor:
     """
-    Moteur de veille piloté par la configuration et la base de données.
+    Monitoring engine driven by configuration and database.
     """
 
     def __init__(self, db: AsyncSession):
@@ -43,24 +43,24 @@ class IntelligenceMonitor:
         )
 
     async def run_all(self):
-        """Lance toutes les collectes actives."""
+        """Launches all active collections."""
         logger.info("Démarrage de la veille numérique globale.")
 
         tasks = []
 
-        # 1. Polling des flux RSS (Statiques + DB)
+        # 1. Polling of RSS feeds (Static + DB)
         if self.registry.is_available("rss"):
             tasks.append(self._poll_rss_feeds())
 
-        # 2. Polling GitHub (Monitors statiques)
+        # 2. GitHub Polling (Static Monitors)
         if self.registry.is_available("github"):
             tasks.append(self._poll_github_monitors())
 
-        # 3. Polling Pastebin (Si configuré)
+        # 3. Polling Pastebin (If configured)
         if self.registry.is_available("pastebin"):
             tasks.append(self._poll_pastebin())
 
-        # 4. Polling Telegram (Si configuré)
+        # 4. Polling Telegram (If configured)
         if self.registry.is_available("telegram"):
             tasks.append(self._poll_telegram())
 
@@ -70,19 +70,19 @@ class IntelligenceMonitor:
 
         logger.info("Veille numérique globale terminée.")
 
-    # ─── RSS / Atom ──────────────────────────────────────────────────────────
+    # ─── RSS / Atom ───────────────────────────── ─────────────────────────────
 
     async def _poll_rss_feeds(self):
-        """Récupère les items depuis les flux RSS configurés."""
-        # A. Flux statiques depuis sources.yaml
+        """Retrieves items from configured RSS feeds."""
+        # A. Static feeds from sources.yaml
         rss_status = self.registry.sources.get("rss")
         static_feeds = rss_status.config.get("feeds", []) if rss_status else []
 
-        # B. Flux dynamiques depuis la DB
+        # B. Dynamic flows from the DB
         result = await self.db.execute(select(CustomFeedSource).where(CustomFeedSource.enabled))
         db_feeds = result.scalars().all()
 
-        # Fusionner pour le traitement
+        # Merge for processing
         all_feeds = []
         for f in static_feeds:
             all_feeds.append(
@@ -108,7 +108,7 @@ class IntelligenceMonitor:
             await self._process_single_rss(feed_cfg)
 
     async def _process_single_rss(self, cfg: dict[str, Any]):
-        """Parse et stocke les items d'un flux unique."""
+        """Parses and stores items from a single stream."""
         url = cfg["url"]
         try:
             response = await self.client.get(url)
@@ -119,7 +119,7 @@ class IntelligenceMonitor:
             feed = feedparser.parse(response.text)
             new_items_count = 0
 
-            # Mots-clés de filtrage pour pertinence
+            # Filter keywords for relevance
             keywords = [settings.target_domain.lower()]
             domain_name = settings.target_domain.split(".")[0]
             if len(domain_name) > 3:
@@ -128,24 +128,24 @@ class IntelligenceMonitor:
             for entry in feed.entries:
                 content = (entry.get("title", "") + " " + entry.get("summary", "")).lower()
 
-                # Filtrage : On garde si mention du domaine OU si la source est une source d'alerte critique (CERT/CISA)
+                # Filtering: We keep if mention of the domain OR if the source is a critical alert source (CERT/CISA)
                 is_relevant = any(k in content for k in keywords) or cfg["category"] == "Alerts"
 
                 if not is_relevant:
                     continue
 
-                # Générer un ID unique basé sur l'URL de l'item ou le lien
+                # Generate a unique ID based on the item URL or link
                 link = entry.get("link", url)
                 external_id = hashlib.sha256(link.encode()).hexdigest()
 
-                # Normalisation de la date
+                # Date standardization
                 pub_date = None
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    # published_parsed est un struct_time (9 éléments)
+                    # published_parsed is a struct_time (9 elements)
                     p = entry.published_parsed
                     pub_date = datetime(p[0], p[1], p[2], p[3], p[4], p[5], tzinfo=UTC)
 
-                # Calcul automatique de la sévérité
+                # Automatic severity calculation
                 severity = self._analyze_severity(content)
 
                 finding = CyberFinding(
@@ -166,7 +166,7 @@ class IntelligenceMonitor:
                 if await self._upsert_finding(finding):
                     new_items_count += 1
 
-            # Mettre à jour les stats si c'est une source DB
+            # Update stats if it's a DB source
             if cfg["source_type"] == "db" and "model" in cfg:
                 cfg["model"].last_polled_at = datetime.now(UTC)
                 cfg["model"].last_item_count = new_items_count
@@ -176,10 +176,10 @@ class IntelligenceMonitor:
         except Exception as e:
             logger.error(f"Erreur lors du traitement RSS {url}: {e}")
 
-    # ─── GitHub Monitors ─────────────────────────────────────────────────────
+    # ─── GitHub Monitors ────────────────────────── ───────────────────────────
 
     async def _poll_github_monitors(self):
-        """Exécute les recherches GitHub configurées."""
+        """Runs configured GitHub searches."""
         github_status = self.registry.sources.get("github")
         monitors = github_status.config.get("monitors", []) if github_status else []
 
@@ -189,7 +189,7 @@ class IntelligenceMonitor:
                 await self._github_search(mon.get("name"), query)
 
     async def _github_search(self, monitor_name: str, query: str):
-        """Effectue une recherche via l'API GitHub et normalise les résultats."""
+        """Performs a search via the GitHub API and normalizes the results."""
         api_url = "https://api.github.com/search/code"
         headers = {}
         if settings.github_token:
@@ -225,12 +225,12 @@ class IntelligenceMonitor:
         except Exception as e:
             logger.error(f"Erreur GitHub Search [{query}]: {e}")
 
-    # ─── Pastebin Scraping ───────────────────────────────────────────────────
+    # ─── Pastebin Scraping ───────────────────────── ──────────────────────────
 
     async def _poll_pastebin(self):
         """
-        Scraping Pastebin pour détecter des mentions du domaine.
-        Note: Requiert généralement un compte Pro et une IP whitelisted.
+        Scraping Pastebin to detect mentions of the domain.
+        Note: Usually requires a Pro account and a whitelisted IP.
         """
         api_url = "https://scrape.pastebin.com/api_scraping.php"
         params = {"limit": 50}
@@ -238,28 +238,28 @@ class IntelligenceMonitor:
         try:
             response = await self.client.get(api_url, params=params)
             if response.status_code == 200:
-                # Logique simplifiée : on trace juste l'activité pour la démo
-                # Dans une vraie implém, on fetcherait chaque scrape_url pour Regex matching
+                # Simplified logic: we just trace the activity for the demo
+                # In a real implementation, we would fetch each scrape_url for Regex matching
                 pass
             elif response.status_code == 403:
                 logger.warning("Pastebin: IP non autorisée pour le scraping.")
         except Exception as e:
             logger.error(f"Erreur Pastebin: {e}")
 
-    # ─── Telegram Monitor ────────────────────────────────────────────────────
+    # ─── Telegram Monitor ────────────────────────── ──────────────────────────
 
     async def _poll_telegram(self):
         """
-        Surveillance des canaux Telegram publics.
-        Note: Nécessite Telethon ou une gateway.
+        Monitoring public Telegram channels.
+        Note: Requires Telethon or a gateway.
         """
-        # Stub structurel
+        # Structural stub
         logger.debug("Telegram polling (stub) - En attente de configuration API_ID.")
 
-    # ─── Logic ───────────────────────────────────────────────────────────────
+    # ───Logic ─────────────────────────────── ────────────────────────────────
 
     def _analyze_severity(self, text: str) -> Severity:
-        """Analyse heuristique simple pour déterminer la sévérité."""
+        """Simple heuristic analysis to determine severity."""
         text = text.lower()
         domain_mention = settings.target_domain.lower() in text
 
@@ -292,7 +292,7 @@ class IntelligenceMonitor:
         return Severity.LOW
 
     async def _upsert_finding(self, finding: CyberFinding) -> bool:
-        """Ajoute si n'existe pas déjà et alerte si critique."""
+        """Add if does not already exist and alert if critical."""
         stmt = select(CyberFinding).where(CyberFinding.external_id == finding.external_id)
         result = await self.db.execute(stmt)
         if result.scalar_one_or_none():
@@ -300,7 +300,7 @@ class IntelligenceMonitor:
 
         self.db.add(finding)
 
-        # Alerte immédiate si critique
+        # Immediate alert if critical
         if finding.severity == Severity.CRITICAL:
             try:
                 await self.notifier.send_intel_alert(finding)

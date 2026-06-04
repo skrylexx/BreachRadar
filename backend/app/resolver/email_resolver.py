@@ -1,9 +1,9 @@
 """
 breachradar/resolver/email_resolver.py
 
-Résolveur d'adresses email.
-Pour la Phase 1, on utilise une liste statique ou des adresses communes.
-L'intégration avec des outils comme Hunter.io ou theHarvester est prévue pour la Phase 2.
+Email address resolver.
+For Phase 1, we use a static list or common addresses.
+Integration with tools like Hunter.io or theHarvester is planned for Phase 2.
 """
 
 from __future__ import annotations
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 class EmailResolver:
     """
-    Résout les adresses email associées à un domaine.
-    Utilise Hunter.io (si API configurée), theHarvester (si installé) et une liste locale/commune.
+    Resolves email addresses associated with a domain.
+    Uses Hunter.io (if API configured), theHarvester (if installed), and a local/common list.
     """
 
     def __init__(self, domain: str) -> None:
@@ -33,20 +33,20 @@ class EmailResolver:
 
     async def resolve(self) -> list[str]:
         """
-        Retourne une liste d'adresses email à scanner pour le domaine.
-        Combinaison de:
-        - Préfixes communs
+        Returns a list of email addresses to scan for the domain.
+        Combination of:
+        - Common prefixes
         - emails.txt
-        - Hunter.io (si clé configurée)
+        - Hunter.io (if key configured)
         - theHarvester (via subprocess)
         """
         emails: set[str] = set()
 
-        # 1. Adresses communes
+        # 1. Common addresses
         for prefix in self.common_prefixes:
             emails.add(f"{prefix}@{self.domain}")
 
-        # 2. Fichier local
+        # 2. Local file
         emails_file = Path("emails.txt")
         if emails_file.exists():
             try:
@@ -98,7 +98,7 @@ class EmailResolver:
         logger.info(f"[Resolver] Lancement de theHarvester pour {self.domain}")
         found: list[str] = []
         try:
-            # On exécute de manière asynchrone pour ne pas bloquer
+            # We execute asynchronously so as not to block
             process = await asyncio.create_subprocess_exec(
                 "theHarvester",
                 "-d",
@@ -113,7 +113,7 @@ class EmailResolver:
             stdout, stderr = await process.communicate()
             if process.returncode == 0:
                 output = stdout.decode("utf-8", errors="ignore")
-                # rudimentaire parsing d'emails dans l'output theHarvester
+                # rudimentary email parsing in theHarvester output
                 in_emails_section = False
                 for line in output.splitlines():
                     line = line.strip()

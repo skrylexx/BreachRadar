@@ -1,12 +1,12 @@
 """
 breachradar/models/finding.py
 
-Modèles Pydantic et SQLAlchemy pour les résultats de scan et de veille.
+Pydantic and SQLAlchemy models for scan and monitoring results.
 
-RÈGLE DE SÉCURITÉ FONDAMENTALE :
-Ce modèle ne contient AUCUN champ pour les données sensibles brutes
-(passwords, hashs, tokens, clés API). La sérialisation JSON ne peut donc
-pas les exposer accidentellement. Seuls des flags booléens sont stockés.
+FUNDAMENTAL SAFETY RULE:
+This template contains NO fields for raw sensitive data
+(passwords, hashes, tokens, API keys). JSON serialization cannot therefore
+do not accidentally expose them. Only Boolean flags are stored.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from app.core.database import Base
 
 
 class Severity(enum.StrEnum):
-    """Niveau de sévérité d'un finding ou d'un rapport."""
+    """Severity level of a finding or report."""
 
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -45,7 +45,7 @@ class Severity(enum.StrEnum):
 
 class CyberFinding(Base):
     """
-    Modèle générique pour les trouvailles de la veille numérique (RSS, Paste, GitHub, etc.).
+    Generic model for digital monitoring findings (RSS, Paste, GitHub, etc.).
     """
 
     __tablename__ = "cyber_findings"
@@ -56,26 +56,26 @@ class CyberFinding(Base):
         default=uuid.uuid4,
     )
 
-    # ─── Identité & Source ──────────────────────────────────────────────────
+    # ─── Identity & Source ───────────────────────── ─────────────────────────
     source: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     external_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     finding_type: Mapped[str] = mapped_column(String(50), nullable=False)  # "rss", "paste", "github", "leak"
 
-    # ─── Contenu ───────────────────────────────────────────────────────────
+    # ─── Content ───────────────────────────── ──────────────────────────────
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     url: Mapped[str] = mapped_column(String(1024), nullable=True)
     severity: Mapped[Severity] = mapped_column(Enum(Severity), default=Severity.LOW, nullable=False)
 
-    # ─── Méta-données flexibles ─────────────────────────────────────────────
-    # Permet de stocker CVE_ID, Tags, Mots-clés détectés, etc.
+    # ─── Flexible metadata ────────────────────── ───────────────────────
+    # Allows you to store CVE_ID, Tags, Detected Keywords, etc.
     extra_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
-    # ─── État ──────────────────────────────────────────────────────────────
+    # ─── Status ─────────────────────────────── ───────────────────────────────
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_notified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    # ─── Timestamps ────────────────────────────────────────────────────────
+    # ─── Timestamps ──────────────────────────── ────────────────────────────
     discovered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )
@@ -84,12 +84,12 @@ class CyberFinding(Base):
 
 class LeakFinding(BaseModel):
     """
-    Résultat d'une détection de fuite pour un email donné.
+    Result of a leak detection for a given email.
 
-    IMPORTANT — Pas de données sensibles :
-    Ce modèle ne stocke JAMAIS de mot de passe, hash, token ou clé API.
-    Seuls des indicateurs booléens sont conservés (has_password, has_hash, etc.)
-    pour permettre le calcul de sévérité sans exposer les données.
+    IMPORTANT — No sensitive data:
+    This model NEVER stores a password, hash, token or API key.
+    Only Boolean flags are kept (has_password, has_hash, etc.)
+    to allow severity calculation without exposing the data.
     """
 
     source: str = Field(description="Nom de la source (hibp, leakcheck, dehashed...)")
@@ -101,7 +101,7 @@ class LeakFinding(BaseModel):
         description="Types de données exposées (pas les données elles-mêmes)",
     )
 
-    # Indicateurs booléens — JAMAIS les données elles-mêmes
+    # Boolean flags — NEVER the data itself
     has_password: bool = Field(
         default=False,
         description="Un mot de passe était présent dans cette fuite",
@@ -136,7 +136,7 @@ class LeakFinding(BaseModel):
     @field_validator("email")
     @classmethod
     def validate_email_format(cls, v: str) -> str:
-        """Validation basique du format email."""
+        """Basic validation of the email format."""
         if "@" not in v or "." not in v.split("@")[-1]:
             raise ValueError(f"Format email invalide : {v}")
         return v.lower()
@@ -144,8 +144,8 @@ class LeakFinding(BaseModel):
 
 class EmailFindingResult(BaseModel):
     """
-    Résultat agrégé pour une adresse email donnée.
-    Combine tous les findings de toutes les sources pour cet email.
+    Aggregated result for a given email address.
+    Combines all findings from all sources for this email.
     """
 
     email: str
@@ -166,7 +166,7 @@ class EmailFindingResult(BaseModel):
         return len(self.findings) > 0
 
     def get_severity_label(self) -> str:
-        """Retourne un label emoji pour l'affichage console."""
+        """Returns an emoji label for console display."""
         labels = {
             Severity.CRITICAL: "🔴 CRITICAL",
             Severity.HIGH: "🟠 HIGH",

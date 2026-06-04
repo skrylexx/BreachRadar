@@ -1,8 +1,8 @@
 """
 BreachRadar WebUI — Configuration (Pydantic Settings)
 ======================================================
-Toutes les variables d'environnement validées et typées.
-Fusionne la config de la WebUI et l'ancienne config du CLI.
+All environment variables validated and typed.
+Merges the WebUI config and the old CLI config.
 """
 
 import os
@@ -14,7 +14,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configuration principale de l'API WebUI et du moteur BreachRadar."""
+    """Main configuration of WebUI API and BreachRadar engine."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     environment: str = "development"  # "development" | "production"
     app_name: str = "BreachRadar WebUI"
 
-    # ─── Base de données ─────────────────────────────────────────────────────
+    # ─── Database ────────────────────────────────────────────────────────────
     database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/breachradar")
     redis_url: str = Field(default="redis://localhost:6379/0")
     jwt_secret_key: str = Field(default="dev_secret_key_at_least_32_characters_long")
@@ -35,20 +35,20 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 15
     jwt_refresh_token_expire_days: int = 7
 
-    # ─── Chiffrement (Clés API, SMTP) ────────────────────────────────────────
+    # ─── Encryption (API keys, SMTP) ─────────────────────────────────────────
     encryption_key: str = Field(
         default="knkoNM10_D0QLRM8PHihA23w0k50EQnUGwtmqRmbLyY=",
         description="Clé Fernet pour le chiffrement des secrets en base (doit être 32 bytes base64)",
     )
 
-    # ─── Admin initial ────────────────────────────────────────────────────────
+    # ─── Initial Admin ────────────────────────────────────────────────────────
     initial_admin_email: EmailStr = Field(default="admin@example.com")
     initial_admin_password: str = Field(default="InitialAdminPassword123!")
 
-    # ─── CORS & Sécurité ─────────────────────────────────────────────────────
+    # ─── CORS & Security ─────────────────────────────────────────────────────
     cors_origins: list[str] = ["http://localhost:3000"]
     allowed_hosts: list[str] = ["localhost", "127.0.0.1", "breachradar-ui", "test"]
-    # ─── Politique mot de passe ───────────────────────────────────────────────
+    # ─── Password policy ──────────────────────────────────────────────────────
     password_min_length_admin: int = 16
     password_min_length_viewer: int = 12
     password_rotation_days: int = 180
@@ -58,20 +58,20 @@ class Settings(BaseSettings):
     rate_limit_login: str = "10/minute"
     rate_limit_scan_trigger: str = "5/minute"
 
-    # ─── Moteur BreachRadar : Domaine cible ──────────────────────────────────
+    # ─── BreachRadar Engine: Target Domain ───────────────────────────────────
     target_domain: str = Field(
         default="example.com",
         description="Domaine à surveiller — doit vous appartenir",
     )
 
-    # ─── Moteur BreachRadar : Clés API — Sources gratuites ───────────────────
+    # ─── BreachRadar Engine: API Keys — Free Sources ─────────────────────────
     hibp_api_key: str = Field(default="", description="HaveIBeenPwned API key")
     github_token: str = Field(default="", description="GitHub Personal Access Token")
     gitlab_token: str = Field(default="", description="GitLab Personal Access Token")
     urlscan_api_key: str = Field(default="", description="URLScan.io API key")
     otx_api_key: str = Field(default="", description="AlienVault OTX API key")
 
-    # ─── Moteur BreachRadar : Clés API — Sources payantes ────────────────────
+    # ─── BreachRadar Engine: API Keys — Paid Sources ─────────────────────────
     leakcheck_api_key: str = Field(default="", description="LeakCheck.io API key")
     dehashed_email: str = Field(default="", description="Email du compte Dehashed")
     dehashed_api_key: str = Field(default="", description="Dehashed API key")
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
             return 0
         return int(v) if v is not None else 0
 
-    # ─── Mode Démonstration (Mock) ───────────────────────────────────────────
+    # ─── Demonstration Mode (Mock) ───────────────────────────────────────────
     mock_mode: bool = Field(
         default=False,
         description="Active les données fictives au démarrage (pour les démonstrations)",
@@ -132,7 +132,7 @@ class Settings(BaseSettings):
     smtp_from_email: str = ""
     smtp_tls: bool = True
 
-    # ─── Rapports ────────────────────────────────────────────────────────────
+    # ─── Reports ─────────────────────────────────────────────────────────────
     report_output_dir: str = Field(default="./reports")
     report_format: str | list[str] = Field(
         default_factory=lambda: ["markdown", "json"],
@@ -164,7 +164,7 @@ class Settings(BaseSettings):
         description="Délai entre requêtes HIBP en millisecondes (respecter le rate limit)",
     )
 
-    # ─── Veille CVE (NVD API 2.0) ────────────────────────────────────────────
+    # ─── CVE monitoring (NVD API 2.0) ────────────────────────────────────────
     cve_nvd_api_key: str = Field(
         default="",
         description=(
@@ -185,7 +185,7 @@ class Settings(BaseSettings):
     @field_validator("initial_admin_email", mode="before")
     @classmethod
     def fallback_initial_admin_email(cls, v: str | None) -> str:
-        """Permet d'utiliser UI_ADMIN_EMAIL si INITIAL_ADMIN_EMAIL n'est pas défini."""
+        """Allows to use UI_ADMIN_EMAIL if INITIAL_ADMIN_EMAIL is not set."""
         if v:
             return v
         env_val = os.getenv("UI_ADMIN_EMAIL")
@@ -196,7 +196,7 @@ class Settings(BaseSettings):
     @field_validator("initial_admin_password", mode="before")
     @classmethod
     def fallback_initial_admin_password(cls, v: str | None) -> str:
-        """Permet d'utiliser UI_ADMIN_PASSWORD si INITIAL_ADMIN_PASSWORD n'est pas défini."""
+        """Allows to use UI_ADMIN_PASSWORD if INITIAL_ADMIN_PASSWORD is not set."""
         if v:
             return v
         env_val = os.getenv("UI_ADMIN_PASSWORD")
@@ -259,7 +259,7 @@ class Settings(BaseSettings):
             raise ValueError(f"LOG_LEVEL invalide : {v}. Valeurs acceptées : {valid}")
         return v
 
-    # ─── Propriétés calculées ────────────────────────────────────────────────
+    # ─── Calculated properties ───────────────────────────────────────────────
     @property
     def all_ransomlook_terms(self) -> list[str]:
         terms = set(self.ransomlook_search_terms)
@@ -319,7 +319,7 @@ class Settings(BaseSettings):
 
     @property
     def nvd_configured(self) -> bool:
-        """True si une clé NVD est présente (rate-limit étendu : 50 req/30s)."""
+        """True if an NVD key is present (extended rate-limit: 50 req/30s)."""
         return bool(self.cve_nvd_api_key)
 
     def get_configured_sources(self) -> list[str]:
@@ -349,7 +349,7 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """Singleton des settings (caché après le premier appel)."""
+    """Settings singleton (cached after the first call)."""
     return Settings()  # type: ignore[call-arg]
 
 

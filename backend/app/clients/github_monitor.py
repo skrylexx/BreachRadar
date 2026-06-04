@@ -1,14 +1,14 @@
 """
 breachradar/clients/github_monitor.py
 
-Client GitHub Monitor.
+GitHub Monitor client.
 
-Recherche de credentials hardcodés ou de mentions du domaine/email
-dans les dépôts publics GitHub.
+Search for hardcoded credentials or domain/email mentions
+in the public GitHub repositories.
 
-Particularités:
-- Rate limit de 60 req/h sans token, 5000 req/h avec token
-- Recherche de code via l'API GitHub Search
+Special features:
+- Rate limit of 60 req/h without token, 5000 req/h with token
+- Search code via GitHub Search API
 """
 
 from __future__ import annotations
@@ -25,17 +25,17 @@ logger = logging.getLogger(__name__)
 
 class GitHubClient(BaseLeakClient):
     """
-    Client pour GitHub Search API.
+    Client for GitHub Search API.
     """
 
     name = "github"
-    rate_limit_delay = 2.0  # 2 secondes par défaut pour respecter le secondary rate limit de l'API search
+    rate_limit_delay = 2.0  # 2 seconds by default to respect the secondary rate limit of the search API
 
     def __init__(self, token: str = "", sanitizer: DataSanitizer | None = None) -> None:
         """
         Args:
-            token: Personal Access Token GitHub (optionnel)
-            sanitizer: DataSanitizer (optionnel, mais recommandé)
+            token: Personal Access Token GitHub (optional)
+            sanitizer: DataSanitizer (optional, but recommended)
         """
         super().__init__()
         self.token = token
@@ -52,17 +52,17 @@ class GitHubClient(BaseLeakClient):
 
     async def check_email(self, email: str) -> list[LeakFinding]:
         """
-        Vérifie si une adresse email est mentionnée dans des fichiers de code
-        sur GitHub, potentiellement à côté de mots de passe.
+        Checks if an email address is mentioned in code files
+        on GitHub, potentially next to passwords.
         """
-        # Limiter aux 10 premiers résultats pour éviter trop de faux positifs et préserver le rate limit
+        # Limit to the first 10 results to avoid too many false positives and preserve the rate limit
         return await self._search_code(query=f'"{email}"', context=email)
 
     async def check_domain(self, domain: str) -> list[LeakFinding]:
         """
-        Vérifie si le domaine est mentionné avec des mots-clés sensibles.
+        Checks if the domain is mentioned with sensitive keywords.
         """
-        # Recherche ciblée sur des secrets potentiels (limité par la syntaxe de recherche GitHub)
+        # Targeted search for potential secrets (limited by GitHub search syntax)
         query = f'"{domain}" AND (password OR secret OR token OR credentials)'
         return await self._search_code(query=query, context=domain)
 
@@ -94,9 +94,9 @@ class GitHubClient(BaseLeakClient):
             item.get("path", "Unknown File")
             item.get("html_url", "")
 
-            # Dans l'idéal, il faudrait récupérer le contenu du fichier pour vérifier
-            # s'il contient réellement un secret. Pour ne pas épuiser le rate limit,
-            # on signale la présence du domaine/email dans un contexte suspect.
+            # Ideally, the contents of the file should be retrieved to verify
+            # if it actually contains a secret. To avoid exhausting the rate limit,
+            # the presence of the domain/email is reported in a suspicious context.
 
             finding = LeakFinding(
                 source=self.name,
@@ -104,7 +104,7 @@ class GitHubClient(BaseLeakClient):
                 breach_name=f"GitHub Public Repo ({repo_name})",
                 breach_date=datetime.now(UTC).date(),
                 data_classes=["Source Code", "Potential Credentials"],
-                severity=Severity.MEDIUM,  # Sévérité moyenne car ce sont des faux positifs potentiels
+                severity=Severity.MEDIUM,  # Medium severity because they are potential false positives
                 verified=False,
             )
             findings.append(finding)

@@ -1,7 +1,7 @@
 """
 breachradar/clients/leakcheck.py
 
-Client LeakCheck.io API v2.
+LeakCheck.io API client v2.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class LeakCheckClient(BaseLeakClient):
     """
-    Client pour l'API LeakCheck.io.
+    Client for the LeakCheck.io API.
     """
 
     name = "leakcheck"
@@ -92,7 +92,7 @@ class LeakCheckClient(BaseLeakClient):
 
         for item in results:
             email_field = item.get("line", "")
-            # Extrait l'email si format "email:password"
+            # Extract the email if format "email:password"
             email = email_field.split(":")[0] if ":" in email_field else email_field
             if "@" not in email:
                 email = f"unknown@{domain}"
@@ -112,10 +112,10 @@ class LeakCheckClient(BaseLeakClient):
                 breach_sources = [safe_item.get("source", "Unknown LeakCheck Breach")]
             breach_name = ", ".join(breach_sources)
 
-            # LeakCheck peut retourner un mot de passe en clair dans `line`
+            # LeakCheck can return a plaintext password in `line`
             has_password = "password" in safe_item or ":" in safe_item.get("line", "")
 
-            # Sévérité
+            # Severity
             severity = Severity.HIGH if has_password else Severity.MEDIUM
 
             return LeakFinding(

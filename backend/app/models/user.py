@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Modèle User (SQLAlchemy)
-=============================================
-Gestion des utilisateurs avec RBAC et politique de mot de passe.
+BreachRadar WebUI — User Model (SQLAlchemy)
+=============================================================
+User management with RBAC and password policy.
 """
 
 import enum
@@ -16,18 +16,18 @@ from app.core.database import Base
 
 
 class UserRole(enum.StrEnum):
-    """Rôles RBAC disponibles."""
+    """RBAC roles available."""
 
-    ADMIN = "admin"  # Gestion clés API, utilisateurs, SMTP — peut déclencher les scans
-    VIEWER = "viewer"  # Lecture et export des rapports uniquement
+    ADMIN = "admin"  # API key management, users, SMTP — can trigger scans
+    VIEWER = "viewer"  # Read and export reports only
 
 
 class User(Base):
-    """Modèle utilisateur principal."""
+    """Primary user model."""
 
     __tablename__ = "users"
 
-    # ─── Identité ──────────────────────────────────────────────────────────
+    # ─── Identity ───────────────────────────── ─────────────────────────────
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -41,33 +41,33 @@ class User(Base):
     )
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    # ─── RBAC ──────────────────────────────────────────────────────────────
+    # ─── RBAC ─────────────────────────────── ───────────────────────────────
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole),
         nullable=False,
         default=UserRole.VIEWER,
     )
 
-    # ─── Statut ────────────────────────────────────────────────────────────
+    # ─── Status ────────────────────────────── ──────────────────────────────
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     token_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
-    # ─── MFA (TOTP) ────────────────────────────────────────────────────────
+    # ─── MFA (TOTP) ──────────────────────────── ────────────────────────────
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     mfa_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mfa_backup_codes: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
-    # ─── Gestion des mots de passe ─────────────────────────────────────────
+    # ─── Password management ──────────────────── ─────────────────────
     last_password_change: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         nullable=False,
     )
-    # Longueur du dernier MDP pour calculer l'exemption de rotation
+    # Length of last MDP to calculate rotation exemption
     password_length: Mapped[int] = mapped_column(default=0, nullable=False)
 
-    # ─── Métadonnées ───────────────────────────────────────────────────────
+    # ─── Metadata ─────────────────────────── ────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

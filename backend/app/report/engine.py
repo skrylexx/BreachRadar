@@ -1,9 +1,9 @@
 """
 breachradar/report/engine.py
 
-Moteur de génération de rapports.
-Utilise Jinja2 pour générer des rapports Markdown et HTML, et Pydantic pour le JSON.
-RÈGLE : Les URL .onion (portal_url) doivent être masquées dans le rapport Markdown/HTML.
+Reporting engine.
+Uses Jinja2 to generate Markdown and HTML reports, and Pydantic for JSON.
+RULE: .onion URLs (portal_url) must be hidden in the Markdown/HTML report.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 class ReportEngine:
     """
-    Générateur de rapports (JSON, Markdown, HTML).
+    Report generator (JSON, Markdown, HTML).
     """
 
     def __init__(self, output_dir: str | Path = "./reports") -> None:
@@ -40,12 +40,12 @@ class ReportEngine:
             autoescape=select_autoescape(["html", "xml"]),
         )
 
-        # Filtre personnalisé pour masquer les URL .onion
+        # Custom filter to hide .onion URLs
         self.env.filters["mask_onion"] = self._mask_onion_url
 
     @staticmethod
     def _mask_onion_url(url: str | None) -> str:
-        """Masque l'URL .onion pour ne pas faciliter l'accès aux portails ransomware."""
+        """Hides the .onion URL to prevent easy access to ransomware portals."""
         if not url:
             return "N/A"
         if ".onion" in url:
@@ -54,14 +54,14 @@ class ReportEngine:
 
     def generate(self, report: FinalReport, formats: list[str]) -> list[Path]:
         """
-        Génère les rapports dans les formats demandés.
+        Generates reports in requested formats.
 
         Args:
-            report: Modèle Pydantic du rapport final
-            formats: Liste des formats (ex: ["json", "markdown", "html"])
+            report: Pydantic template of the final report
+            formats: List of formats (ex: ["json", "markdown", "html"])
 
         Returns:
-            Liste des chemins vers les fichiers générés
+            List of paths to generated files
         """
         timestamp = report.report_metadata.generated_at.strftime("%Y%m%d_%H%M%S")
         domain = report.report_metadata.target_domain.replace(".", "_")
@@ -93,19 +93,19 @@ class ReportEngine:
         return generated_files
 
     def _generate_json(self, report: FinalReport, base_filename: str) -> Path:
-        """Génère le rapport au format JSON."""
+        """Generates the report in JSON format."""
         file_path = self.output_dir / f"{base_filename}.json"
 
-        # Sérialisation avec Pydantic
+        # Serialization with Pydantic
         report_json = report.model_dump_json(indent=2)
 
-        # Pour le JSON, on peut choisir de purger le portal_url aussi ou on le garde pour usage API?
-        # Le modèle FinalReport n'exclut pas portal_url. Pour être strict, on peut le masquer manuellement ici.
-        # Mais le test 'test_ransom_finding_portal_url_stored_but_visible' dit :
-        # "L'URL .onion est stockée dans RansomFinding.portal_url mais le ReportEngine DOIT la masquer lors de la génération du rapport."
+        # For JSON, we can choose to purge the portal_url too or do we keep it for API use?
+        # The FinalReport template does not exclude portal_url. To be strict, we can hide it manually here.
+        # But the test 'test_ransom_finding_portal_url_stored_but_visible' says:
+        # "The .onion URL is stored in RansomFinding.portal_url but the ReportEngine MUST hide it when generating the report."
 
         data = json.loads(report_json)
-        # Masquage récursif des portal_url
+        # Recursive masking of portal_url
         if "ransomware_alerts" in data and "alerts" in data["ransomware_alerts"]:
             for alert in data["ransomware_alerts"]["alerts"]:
                 if alert.get("portal_url") and ".onion" in alert["portal_url"]:
@@ -117,7 +117,7 @@ class ReportEngine:
         return file_path
 
     def _generate_template(self, report: FinalReport, filename: str, template_name: str) -> Path:
-        """Génère un rapport basé sur un template Jinja2."""
+        """Generates a report based on a Jinja2 template."""
         if not TEMPLATES_DIR.exists():
             raise FileNotFoundError("Répertoire des templates introuvable. Impossible de générer le rapport.")
 
@@ -132,25 +132,25 @@ class ReportEngine:
         return output_path
 
     def _generate_pdf(self, report: FinalReport, filename: str) -> Path:
-        """Génère un rapport PDF via WeasyPrint (en utilisant le template HTML)."""
+        """Generates a PDF report via WeasyPrint (using the HTML template)."""
         output_path = self.output_dir / filename
 
         try:
             from weasyprint import HTML
 
-            # On rend le HTML complet
+            # We make the HTML complete
             template = self.env.get_template("report.html.j2")
             html_content = template.render(report=report)
 
-            # Utilisation de WeasyPrint pour générer le PDF
-            # base_url permet de résoudre les assets locaux si besoin
+            # Using WeasyPrint to generate the PDF
+            # base_url allows you to resolve local assets if necessary
             HTML(string=html_content).write_pdf(output_path)
             logger.info(f"Rapport PDF généré: {output_path}")
             return output_path
 
         except (ImportError, Exception) as e:
             logger.error(f"Échec de génération PDF: {e}")
-            # Fallback: on génère juste le HTML
+            # Fallback: we just generate the HTML
             html_filename = filename.replace(".pdf", ".html")
             logger.info(f"Génération du HTML en fallback: {html_filename}")
             return self._generate_template(report, html_filename, "report.html.j2")

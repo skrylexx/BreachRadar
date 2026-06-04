@@ -1,8 +1,8 @@
 """
 breachradar/notifications/engine.py
 
-Moteur de notifications (Email, Webhook).
-Gère l'envoi des alertes critiques (Ransomware) de manière asynchrone.
+Notification engine (Email, Webhook).
+Manages the sending of critical alerts (Ransomware) asynchronously.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ TEMPLATES_DIR = Path(__file__).parent.parent / "report" / "templates"
 
 class NotificationEngine:
     """
-    Gère l'envoi d'alertes via les canaux configurés.
+    Manages sending alerts through configured channels.
     """
 
     def __init__(self, settings: Settings) -> None:
@@ -38,13 +38,13 @@ class NotificationEngine:
 
     async def send_ransom_alert(self, finding: RansomFinding) -> None:
         """
-        Envoie une alerte ransomware sur tous les canaux configurés.
+        Sends a ransomware alert to all configured channels.
         """
         if not self.settings.ransomlook_alert_configured:
             logger.warning("Aucun canal d'alerte configuré pour les alertes RansomLook.")
             return
 
-        # Rendre le template de notification
+        # Render the notification template
         try:
             template = self.env.get_template("notification.txt.j2")
             message = template.render(domain=self.settings.target_domain, alert=finding)
@@ -52,19 +52,19 @@ class NotificationEngine:
             logger.error(f"Erreur de rendu du template d'alerte: {e}")
             message = f"ALERTE CRITIQUE: Le domaine a été détecté sur le portail de {finding.group_display_name}."
 
-        # Envoi via Webhook
+        # Sending via Webhook
         if self.settings.ransomlook_alert_webhook:
             await self.send_webhook(self.settings.ransomlook_alert_webhook, message)
 
-        # Envoi via Email (Stub pour l'instant - implémentation SMTP à faire)
+        # Sending via Email (Stub for now - SMTP implementation to be done)
         if self.settings.ransomlook_alert_email:
             await self.send_email(self.settings.ransomlook_alert_email, "ALERTE CRITIQUE RANSOMWARE", message)
 
     async def send_intel_alert(self, finding: CyberFinding) -> None:
         """
-        Envoie une alerte de veille cyber critique.
+        Sends a critical cyber alert.
         """
-        if not self.settings.ransomlook_alert_configured:  # On réutilise les mêmes canaux pour l'instant
+        if not self.settings.ransomlook_alert_configured:  # We are reusing the same channels for now
             return
 
         message = (
@@ -87,8 +87,8 @@ class NotificationEngine:
             )
 
     async def send_webhook(self, url: str, message: str) -> None:
-        """Envoie une notification via Webhook (Discord, Slack, etc.)."""
-        payload = {"text": message, "content": message}  # format compatible Slack et Discord
+        """Sends a notification via Webhook (Discord, Slack, etc.)."""
+        payload = {"text": message, "content": message}  # Slack and Discord compatible format
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -99,7 +99,7 @@ class NotificationEngine:
             logger.error(f"Échec de l'envoi du webhook: {e}")
 
     async def send_email(self, to_address: str, subject: str, message: str) -> None:
-        """Envoi d'email SMTP de manière asynchrone."""
+        """Sending SMTP email asynchronously."""
         if not self.settings.smtp_host or not self.settings.smtp_user:
             logger.warning("Configuration SMTP manquante, impossible d'envoyer l'email.")
             return

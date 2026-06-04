@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Routeur Auth
-=================================
-Endpoints : /auth/login, /auth/logout, /auth/refresh,
+BreachRadar WebUI — Auth Router
+==================================
+Endpoints: /auth/login, /auth/logout, /auth/refresh,
             /auth/me, /auth/mfa/setup, /auth/mfa/verify,
             /auth/password/change
 """
@@ -60,13 +60,13 @@ from app.schemas.auth import (
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
 
-# ─── Constantes Cookie ────────────────────────────────────────────────────────
+# ─── Cookie Constants ──────────────────────────── ────────────────────────────
 COOKIE_SECURE = settings.environment == "production"
 COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
 
 
 def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: str, token_version: int) -> None:
-    """Pose les cookies HttpOnly JWT (access + refresh)."""
+    """Sets HttpOnly JWT cookies (access + refresh)."""
     jti = secrets.token_urlsafe(16)
     access_token = create_access_token(
         {"sub": str(user_id), "email": email, "role": role, "jti": jti, "v": token_version}
@@ -88,7 +88,7 @@ def _set_auth_cookies(response: Response, user_id: uuid.UUID, email: str, role: 
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         max_age=settings.jwt_refresh_token_expire_days * 86400,
-        path="/api/v1/auth/refresh",  # Restreindre le refresh au seul endpoint dédié
+        path="/api/v1/auth/refresh",  # Restrict the refresh to the dedicated endpoint only
     )
 
 
@@ -99,7 +99,7 @@ async def _log_action(
     user_email: str | None = None,
     details: dict | None = None,
 ) -> None:
-    """Écrit une entrée dans l'audit log."""
+    """Writes an entry to the audit log."""
     log = AuditLog(
         user_email=user_email,
         action=action,
@@ -111,7 +111,7 @@ async def _log_action(
     await db.flush()
 
 
-# ─── POST /auth/login ─────────────────────────────────────────────────────────
+# ─── POST /auth/login ──────────────────────────── ─────────────────────────────
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit(settings.rate_limit_login)
 async def login(
@@ -121,16 +121,16 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
-    Authentification en deux étapes :
-    1. Validation email + password
-    2. Si MFA activé → retourne un challenge_token temporaire pour /mfa/verify
-       Sinon → pose les cookies JWT directement
+    Two-step authentication:
+    1. Email validation + password
+    2. If MFA enabled → returns a temporary challenge_token for /mfa/verify
+       Otherwise → set JWT cookies directly
     """
-    # Recherche utilisateur (timing constant contre l'énumération d'emails)
+    # User search (constant timing versus email enumeration)
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
-    # Vérification password (même si user=None pour éviter timing attack)
+    # Password verification (even if user=None to avoid timing attack)
     dummy_hash = "$2b$12$invalidhashfortimingnnnnnnnnnnnnnnnnnnnnn"
     password_ok = verify_password(
         body.password,
@@ -144,7 +144,7 @@ async def login(
             detail="Invalid credentials",
         )
 
-    # Vérifier la rotation du mot de passe
+    # Check password rotation
     if is_password_rotation_required(user.last_password_change, user.password_length):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -152,14 +152,14 @@ async def login(
             headers={"X-Password-Expired": "true"},
         )
 
-    # MFA requis ?
+    # MFA required?
     if user.mfa_enabled or user.mfa_required:
         challenge_token = secrets.token_urlsafe(32)
         await store_mfa_challenge(str(user.id), challenge_token)
         await _log_action(db, "auth.mfa.challenge_issued", request, user.email)
         return TokenResponse(requires_mfa=True, mfa_challenge_token=challenge_token)
 
-    # Connexion directe (pas de MFA)
+    # Direct connection (no MFA)
     _set_auth_cookies(response, user.id, user.email, user.role.value, user.token_version)
     user.last_login_at = datetime.now(UTC)
     await _log_action(db, "auth.login.success", request, user.email)
@@ -174,8 +174,8 @@ async def mfa_verify(
     body: MFAVerifyRequest,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
-    """Valide le code TOTP après le challenge password."""
-    # Retrouver l'utilisateur via le challenge token (Redis)
+    """Validate the TOTP code after the password challenge."""
+    # Find the user via the token challenge (Redis)
     user_id = await verify_mfa_challenge(body.challenge_token)
 
     if not user_id:
@@ -184,7 +184,7 @@ async def mfa_verify(
             detail="Invalid or expired challenge token",
         )
 
-    # Protection contre le brute-force TOTP
+    # TOTP Brute Force Protection
     fail_count = await get_mfa_failures(user_id)
     if fail_count >= 5:
         raise HTTPException(
@@ -201,13 +201,13 @@ async def mfa_verify(
             detail="User not found or inactive",
         )
 
-    # VÃ©rification du code (TOTP standard ou Backup Code de secours)
+    # Code verification (standard TOTP or emergency Backup Code)
     is_valid = False
     is_backup_used = False
 
-    # Accepter les codes de secours (12 caractÃ¨res)
+    # Accept backup codes (12 characters)
     if len(body.totp_code) == 12:
-        # Tentative via code de secours
+        # Attempt via emergency code
         if user.mfa_backup_codes:
             for i, hashed in enumerate(user.mfa_backup_codes):
                 if verify_password(body.totp_code, hashed):
@@ -217,13 +217,13 @@ async def mfa_verify(
                     flag_modified(user, "mfa_backup_codes")
                     is_valid = True
                     is_backup_used = True
-                    # Si un code de secours est utilisÃ©, on force la rÃ©initialisation du MFA
+                    # If a backup code is used, the MFA is forced to reset
                     user.mfa_enabled = False
                     user.mfa_required = True
-                    user.token_version += 1  # Invalider les autres sessions par sÃ©curitÃ©
+                    user.token_version += 1  # Invalidate other sessions for security
                     break
     else:
-        # Tentative via TOTP standard
+        # Attempt via standard TOTP
         is_valid = verify_totp(decrypt_secret(cast(str, user.mfa_secret)), body.totp_code)
 
     if not is_valid:
@@ -234,7 +234,7 @@ async def mfa_verify(
             detail="Invalid verification code",
         )
 
-    # Succès : Nettoyage brute-force et pose cookies JWT
+    # Success: Brute-force cleaning and installation of JWT cookies
     await reset_mfa_failures(user_id)
     _set_auth_cookies(response, user.id, user.email, user.role.value, user.token_version)
     user.last_login_at = datetime.now(UTC)
@@ -246,7 +246,7 @@ async def mfa_verify(
     return TokenResponse()
 
 
-# ─── POST /auth/logout ────────────────────────────────────────────────────────
+# ─── POST /auth/logout ──────────────────────────── ────────────────────────────
 @router.post("/logout")
 async def logout(
     request: Request,
@@ -254,12 +254,12 @@ async def logout(
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Révoque le token courant (blacklist Redis) et supprime les cookies."""
+    """Revokes the current token (Redis blacklist) and deletes cookies."""
     access_token = request.cookies.get("access_token")
     if access_token:
         payload = decode_token(access_token)
         if payload and (jti := payload.get("jti")):
-            # Blacklister jusqu'à l'expiration naturelle du token
+            # Blacklist until the natural expiration of the token
             exp = payload.get("exp", 0)
             now = int(datetime.now(UTC).timestamp())
             ttl = max(exp - now, 0)
@@ -271,30 +271,30 @@ async def logout(
     return {"message": "Logged out successfully"}
 
 
-# ─── GET /auth/me ─────────────────────────────────────────────────────────────
+# ─── GET /auth/me ────────────────────────────── ───────────────────────────────
 @router.get("/me", response_model=UserInfo)
 async def get_me(current_user: ViewerUser) -> User:
-    """Retourne les informations de l'utilisateur connecté."""
+    """Returns the information of the logged in user."""
     return current_user
 
 
-# ─── POST /auth/mfa/setup ─────────────────────────────────────────────────────
+# ─── POST /auth/mfa/setup ────────────────────────── ───────────────────────────
 @router.post("/mfa/setup", response_model=MFASetupResponse)
 async def mfa_setup(
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> MFASetupResponse:
     """
-    Génère un secret TOTP et retourne le QR code pour l'enrôlement.
-    L'utilisateur doit confirmer avec /mfa/confirm avant activation.
+    Generates a TOTP secret and returns the QR code for enrollment.
+    The user must confirm with /mfa/confirm before activation.
     """
     secret = generate_totp_secret()
-    # Stocker temporairement dans l'utilisateur (non activé)
+    # Store temporarily in user (not enabled)
     current_user.mfa_secret = encrypt_secret(secret)
 
-    # Générer 10 codes de secours (backup codes)
+    # Generate 10 backup codes
     backup_codes = generate_backup_codes(10)
-    # Stocker hachés (usage unique)
+    # Store chopped (single use)
     current_user.mfa_backup_codes = [hash_password(c) for c in backup_codes]
 
     await db.flush()
@@ -313,16 +313,16 @@ async def mfa_confirm(
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Valide le premier code TOTP pour activer définitivement le MFA."""
+    """Validates the first TOTP code to permanently activate MFA."""
     code = body.get("totp_code")
     if not code or not verify_totp(decrypt_secret(cast(str, current_user.mfa_secret)), code):
         raise HTTPException(status_code=400, detail="Invalid TOTP code")
 
     current_user.mfa_enabled = True
-    current_user.mfa_required = False  # Si on vient d'un reset via backup code
+    current_user.mfa_required = False  # If we come from a reset via backup code
     current_user.token_version += 1
 
-    # Rafraîchir les cookies avec la nouvelle version
+    # Refresh cookies with the new version
     _set_auth_cookies(
         response,
         current_user.id,
@@ -343,7 +343,7 @@ async def mfa_disable(
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Désactive le MFA de l'utilisateur (requiert code TOTP)."""
+    """Disables user MFA (requires TOTP code)."""
     if not current_user.mfa_enabled:
         raise HTTPException(status_code=400, detail="MFA is not enabled")
 
@@ -358,7 +358,7 @@ async def mfa_disable(
         current_user.mfa_required = False
     current_user.token_version += 1
 
-    # Rafraîchir les cookies avec la nouvelle version
+    # Refresh cookies with the new version
     _set_auth_cookies(
         response,
         current_user.id,
@@ -372,7 +372,7 @@ async def mfa_disable(
     return current_user
 
 
-# ─── POST /auth/password/change ───────────────────────────────────────────────
+# ─── POST /auth/password/change ─────────────────────── ────────────────────────
 @router.post("/password/change", response_model=UserInfo)
 async def change_password(
     request: Request,
@@ -381,7 +381,7 @@ async def change_password(
     current_user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Changement de mot de passe authentifié."""
+    """Authenticated password change."""
     if not verify_password(body.current_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
 
@@ -395,7 +395,7 @@ async def change_password(
     current_user.password_length = len(body.new_password)
     current_user.token_version += 1
 
-    # Rafraîchir les cookies avec la nouvelle version
+    # Refresh cookies with the new version
     _set_auth_cookies(
         response,
         current_user.id,
@@ -409,10 +409,10 @@ async def change_password(
     return current_user
 
 
-# ─── GET /health (quick auth check) ──────────────────────────────────────────
+# ─── GET /health (quick auth check) ───────────────────── ─────────────────────
 @router.get("/status")
 async def auth_status(current_user: ViewerUser) -> dict:
-    """Vérifie si le token est valide — utilisé par le frontend."""
+    """Checks if the token is valid — used by the frontend."""
     return {
         "authenticated": True,
         "email": current_user.email,

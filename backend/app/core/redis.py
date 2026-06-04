@@ -1,14 +1,14 @@
 """
 BreachRadar WebUI — Redis Client
 ================================
-Client Redis pour les sessions JWT révoquées (blacklist) et le rate limiting.
+Redis client for revoked JWT sessions (blacklist) and rate limiting.
 """
 
 import redis.asyncio as aioredis
 
 from app.core.config import settings
 
-# ─── Client Redis singleton ───────────────────────────────────────────────────
+# ─── Redis singleton client ───────────────────────────────────────────────────
 redis_client: aioredis.Redis = aioredis.from_url(
     settings.redis_url,
     encoding="utf-8",
@@ -17,27 +17,27 @@ redis_client: aioredis.Redis = aioredis.from_url(
 
 
 async def blacklist_token(jti: str, expire_seconds: int) -> None:
-    """Ajoute un JTI (JWT ID) à la blacklist Redis lors du logout."""
+    """Adds a JTI (JWT ID) to the Redis blacklist during logout."""
     await redis_client.setex(f"blacklist:{jti}", expire_seconds, "1")
 
 
 async def is_token_blacklisted(jti: str) -> bool:
-    """Vérifie si un token est révoqué (blacklisted)."""
+    """Checks if a token is revoked (blacklisted)."""
     return await redis_client.exists(f"blacklist:{jti}") > 0
 
 
 async def store_mfa_challenge(user_id: str, challenge_token: str, expire_seconds: int = 300) -> None:
     """
-    Stocke un token de challenge MFA temporaire (5 min).
-    Clé : mfa_challenge:{token} -> Valeur : user_id
+    Stores a temporary MFA challenge token (5 min).
+    Key: mfa_challenge:{token} -> Value: user_id
     """
     await redis_client.setex(f"mfa_challenge:{challenge_token}", expire_seconds, user_id)
 
 
 async def verify_mfa_challenge(challenge_token: str) -> str | None:
     """
-    Vérifie et consomme le challenge MFA (usage unique).
-    Retourne le user_id si valide, None sinon.
+    Verifies and consumes the MFA challenge (single use).
+    Returns the user_id if valid, None otherwise.
     """
     res = await redis_client.getdel(f"mfa_challenge:{challenge_token}")
     if res is None:
@@ -49,20 +49,20 @@ async def verify_mfa_challenge(challenge_token: str) -> str | None:
 
 
 async def increment_mfa_failures(user_id: str) -> int:
-    """Incrémente le compteur d'échecs MFA et retourne la nouvelle valeur."""
+    """Increments the MFA failure counter and returns the new value."""
     key = f"mfa_failures:{user_id}"
     count = await redis_client.incr(key)
     if count == 1:
-        await redis_client.expire(key, 900)  # 15 minutes de blocage
+        await redis_client.expire(key, 900)  # 15 minutes of blocking
     return count
 
 
 async def get_mfa_failures(user_id: str) -> int:
-    """Récupère le nombre d'échecs MFA actuels."""
+    """Retrieves the number of current MFA failures."""
     val = await redis_client.get(f"mfa_failures:{user_id}")
     return int(val) if val else 0
 
 
 async def reset_mfa_failures(user_id: str) -> None:
-    """Réinitialise le compteur d'échecs MFA."""
+    """Resets the MFA failure counter."""
     await redis_client.delete(f"mfa_failures:{user_id}")

@@ -1,7 +1,7 @@
 """
 breachradar/clients/pastebin_monitor.py
 
-Client de monitoring pour Pastebin (via un service OSINT public ou scrapé).
+Monitoring client for Pastebin (via a public or scraped OSINT service).
 """
 
 from __future__ import annotations
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 
 class PastebinClient(BaseLeakClient):
     """
-    Client de recherche sur Pastebin.
-    En l'absence d'accès à la Scraping API officielle de Pastebin,
-    ce client peut s'appuyer sur des APIs OSINT tierces ou agir comme stub
-    jusqu'à configuration d'un compte Pro Pastebin ou IntelX.
+    Search client on Pastebin.
+    In the absence of access to the official Pastebin Scraping API,
+    this client can rely on third-party OSINT APIs or act as a stub
+    until you configure a Pro Pastebin or IntelX account.
     """
 
     name = "pastebin"
@@ -29,12 +29,12 @@ class PastebinClient(BaseLeakClient):
     def __init__(self, api_key: str | None = None, sanitizer: DataSanitizer | None = None) -> None:
         super().__init__()
         self.api_key = api_key
-        # psbdmp.ws est un index non-officiel très utilisé en OSINT pour Pastebin
+        # psbdmp.ws is an unofficial index widely used in OSINT for Pastebin
         self.base_url = "https://psbdmp.ws/api/search"
         self.sanitizer = sanitizer or DataSanitizer()
 
     async def check_email(self, email: str) -> list[LeakFinding]:
-        # psbdmp recherche globale
+        # psbdmp global search
         return await self._search(email)
 
     async def check_domain(self, domain: str) -> list[LeakFinding]:
@@ -47,7 +47,7 @@ class PastebinClient(BaseLeakClient):
 
         client = self._build_http_client()
         try:
-            # PsbDmp API retourne { "data": [ {"id": "xxx", "tags": [], "time": "..."} ] }
+            # PsbDmp API returns { "data": [ {"id": "xxx", "tags": [], "time": "..."} ] }
             response = await self._safe_get(client, url)
         finally:
             await client.aclose()
@@ -65,8 +65,8 @@ class PastebinClient(BaseLeakClient):
             return []
 
         findings = []
-        # On limite le nombre de findings pour ne pas noyer le rapport
-        # Souvent une recherche domaine remonte beaucoup de faux positifs
+        # We limit the number of findings so as not to drown out the report
+        # Often a domain search brings up a lot of false positives
         for item in results[:15]:
             paste_id = item.get("id")
             if not paste_id:
@@ -78,12 +78,12 @@ class PastebinClient(BaseLeakClient):
                 breach_name=f"Pastebin Dump ({paste_id})",
                 breach_date=None,
                 data_classes=["Paste/Dump Text"],
-                has_password=False,  # Impossible de savoir sans télécharger et analyser le texte brut
+                has_password=False,  # Impossible to know without downloading and analyzing the raw text
                 has_hash=False,
                 has_api_key=False,
-                severity=Severity.MEDIUM,  # Sévérité modérée pour un dump brut, nécessite investigation manuelle
+                severity=Severity.MEDIUM,  # Moderate severity for a raw dump, requires manual investigation
                 verified=False,
-                is_sensitive=False,  # Le texte brut n'est pas téléchargé ici pour des raisons de perf/privacy
+                is_sensitive=False,  # Plain text is not uploaded here for perf/privacy reasons
             )
             findings.append(finding)
 

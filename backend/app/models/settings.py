@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Modèle SystemSettings (SQLAlchemy)
-======================================================
-Stockage des paramètres de l'instance modifiables via la WebUI.
+BreachRadar WebUI — SystemSettings template (SQLAlchemy)
+============================================================
+Storage of instance parameters modifiable via the WebUI.
 """
 
 import uuid
@@ -17,8 +17,8 @@ from app.core.database import Base
 
 class SystemSettings(Base):
     """
-    Paramètres globaux du système (TARGET_DOMAIN, maintenance_mode, etc.).
-    Utilise une structure Key-Value avec stockage JSON pour la flexibilité.
+    Global system settings (TARGET_DOMAIN, maintenance_mode, etc.).
+    Uses a Key-Value structure with JSON storage for flexibility.
     """
 
     __tablename__ = "system_settings"

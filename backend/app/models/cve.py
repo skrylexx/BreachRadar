@@ -1,7 +1,7 @@
 """
-BreachRadar WebUI — Modèles CVE & Sources Custom (SQLAlchemy)
-=============================================================
-Stockage des alertes de vulnérabilités et des flux RSS personnalisés.
+BreachRadar WebUI — CVE Templates & Custom Sources (SQLAlchemy)
+===============================================================================
+Storage of vulnerability alerts and personalized RSS feeds.
 """
 
 import enum
@@ -33,8 +33,8 @@ class CVESourceType(enum.StrEnum):
 
 class CVEAlert(Base):
     """
-    Cache des alertes CVE récupérées depuis les sources externes.
-    Permet d'afficher les alertes sans interroger les API tierces à chaque requête.
+    Cache CVE alerts retrieved from external sources.
+    Allows you to display alerts without querying third-party APIs on each request.
     """
 
     __tablename__ = "cve_alerts"
@@ -59,7 +59,7 @@ class CVEAlert(Base):
 
 class CustomFeedSource(Base):
     """
-    Sources RSS/Atom personnalisées ajoutées par l'administrateur.
+    Custom RSS/Atom sources added by administrator.
     """
 
     __tablename__ = "custom_feed_sources"
