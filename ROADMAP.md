@@ -826,6 +826,7 @@ Phase 5 — Validation  [██████████] 100%
 **What's left**:
 - [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
 - [ ] **Feature Finalization**: 
+    - Intégration de nouvelles sources (GitGuardian).
     - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
     - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
 - [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
