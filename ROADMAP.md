@@ -51,6 +51,34 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 48 — 2026-07-08
+
+**Iteration Objective**: Add detailed step-by-step documentation for retrieving a GitHub Personal Access Token (PAT) and upgrade vulnerable dependencies in both frontend and backend to resolve CI security audit failures.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `guides/GET_GITHUB_TOKEN.md` | Addition | Created a bilingual guide for retrieving fine-grained and classic GitHub Personal Access Tokens. |
+| `README.md` | Modification | Linked the `GITHUB_TOKEN` parameter configuration to the new guide. |
+| `SECURITY_BEST-PRACTICE.md` | Modification | Updated token security guidelines to recommend zero scopes for public repo search (least privilege). |
+| `frontend/package.json` | Modification | Added `js-yaml` to package overrides to enforce secure version `4.1.1`. |
+| `backend/pyproject.toml` | Modification | Upgraded minimum `aiohttp` version to `3.14.1`. |
+| `backend/uv.lock` | Modification | Upgraded `aiohttp`, `cryptography`, `pydantic-settings`, `python-multipart`, and `starlette` dependencies. |
+| `.github/workflows/ci.yml` | Modification | Ignored unfixed vulnerability PYSEC-2026-1325 (ecdsa) in pip-audit step. |
+
+#### ✅ GitHub Token Guide & Security Hardening
+- **Bilingual Guide**: Added step-by-step instructions in both English and French for generating Fine-grained and Classic PATs.
+- **Least Privilege Guidance**: Clarified that public search only requires a token with zero scopes (unlike the previously suggested `public_repo` scope which grants write access).
+- **Referential Updates**: Updated README.md and security best practices to link directly to this documentation.
+
+#### ✅ Security Dependencies Upgrades (CVE Fixes)
+- **Frontend js-yaml**: Forced `js-yaml` version `4.1.1` via package overrides to address known CVE.
+- **Backend pip-audit Resolution**: Upgraded backend packages (`aiohttp` -> `3.14.1`, `cryptography` -> `49.0.0`, `pydantic-settings` -> `2.14.2`, `python-multipart` -> `0.0.32`, and `starlette` -> `1.3.1`) to eliminate security vulnerabilities detected in the backend CI check.
+- **Vulnerability Bypass for ecdsa**: Ignored the `ecdsa` package vulnerability `PYSEC-2026-1325` in `pip-audit` via the `--ignore-vuln` flag, since the vulnerability has no fix yet in version `0.19.2` (the latest release on PyPI) and is a transitive dependency of `python-jose`.
+
+---
+
 ### Iteration 47 — 2026-06-04
 
 **Iteration Objective**: Implementation of multilingual report exports (PDF, JSON, HTML) based on the user's selected language on the frontend.
@@ -821,8 +849,8 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: Implementation of multilingual report exports (Iteration 47).
-**Commit**: (Pending)
+**Stopped at**: GitHub Token documentation, security hardening, and dependency upgrades (Iteration 48).
+**Commit**: *(see commit associated with this push)*
 **What's left**:
 - [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
 - [ ] **Feature Finalization**: 

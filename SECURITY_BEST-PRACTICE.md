@@ -99,8 +99,9 @@ grep -E "^[A-Z_]+=.+$" .env | grep -v "^#" | wc -l
 For each token, grant **only the necessary rights**:
 
 ```
-GitHub Token   → Scopes: public_repo (read-only ONLY)
-                 ❌ Do not check: repo, admin, write:*, delete:*
+GitHub Token   → Scopes: None / No scopes (for public repositories only)
+                 ❌ Do not check: repo, public_repo, admin, write:*, delete:*
+                 (See guides/GET_GITHUB_TOKEN.md for details)
 
 GitLab Token   → Scopes: read_api ONLY
                  ❌ Do not check: write_repository, api (full)
