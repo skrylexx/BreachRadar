@@ -51,6 +51,29 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 49 — 2026-07-08
+
+**Iteration Objective**: Dynamic Sidebar refactoring — show/hide tool pages based on configured API keys. Tools without a key are grouped in a collapsible "Disconnected Pages" accordion.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `backend/app/routers/api_keys.py` | Modification | Added `GET /api/v1/api-keys/configured-status` endpoint (ViewerUser) returning a lightweight `{service_name, configured}` list without exposing key values. Added `ConfiguredStatus` Pydantic schema and `ViewerUser` import. |
+| `frontend/src/lib/api.ts` | Modification | Added `ApiKeyConfiguredStatus` interface and `apiKeysPublicApi.getConfiguredStatus()` function calling the new endpoint. |
+| `frontend/src/lib/store.ts` | Modification | Extended Zustand store with `useApiKeyStatusStore`: caches `Record<string, boolean>` loaded once on mount, exposes `isConfigured(serviceName)` helper. |
+| `frontend/src/components/layout/Sidebar.tsx` | Modification | Full refactoring: tool pages split into `connectedTools` (shown in main nav) and `disconnectedTools` (collapsible accordion "Pages non connectées"). Extracted reusable `CollapsibleSection` component used for both Admin and Disconnected sections. Cleaned `isExpanded` logic. |
+| `frontend/messages/fr.json` | Modification | Added `Navigation.disconnectedPages = "Pages non connectées"`. |
+| `frontend/messages/en.json` | Modification | Added `Navigation.disconnectedPages = "Disconnected Pages"`. |
+| `TODO.md` | Creation | Initial mission spec for this branch. |
+
+#### ✅ Dynamic Sidebar — API Key Filtering
+- **Backend**: New `GET /api/v1/api-keys/configured-status` endpoint accessible to all authenticated users (Viewer + Admin). Returns only `service_name`, `service_label`, `configured` — no sensitive data exposed.
+- **Frontend store**: `useApiKeyStatusStore` caches the status on first load, preventing repeated API calls from every Sidebar re-render.
+- **Sidebar logic**: `TOOL_NAV_ITEMS` are split into connected/disconnected at render time. Connected tools appear in the main nav; disconnected tools are grouped in a collapsible "Pages non connectées" block (auto-expanded if the current route is inside it).
+- **Graceful degradation**: If the status fetch fails (e.g., user not yet authenticated), all tools fall into the disconnected bucket — safe default, nothing breaks.
+- **i18n**: Both FR and EN translation files updated with the new `disconnectedPages` key.
+
 ### Iteration 48 — 2026-07-08
 
 **Iteration Objective**: Add detailed step-by-step documentation for retrieving a GitHub Personal Access Token (PAT) and upgrade vulnerable dependencies in both frontend and backend to resolve CI security audit failures.

@@ -73,7 +73,8 @@
     "audit": "Audit trail",
     "settings": "Paramètres",
     "changelog": "Changelog",
-    "profile": "Mon profil"
+    "profile": "Mon profil",
+    "disconnectedPages": "Pages non connectées"
   },
   "Dashboard": {
     "title": "Aperçu Global",

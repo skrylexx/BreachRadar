@@ -236,6 +236,16 @@ export interface ApiKeyStatus {
   updated_at: string | null;
 }
 
+// API Keys — Lightweight status (any authenticated user)
+export interface ApiKeyConfiguredStatus {
+  /** Internal service identifier (e.g. "hibp", "github") */
+  service_name: string;
+  /** Human-readable label (e.g. "Have I Been Pwned") */
+  service_label: string;
+  /** true if an active key is configured in the database */
+  configured: boolean;
+}
+
 // Audit log
 export interface AuditLogEntry {
   id: string;
@@ -383,6 +393,13 @@ export const apiKeysApi = {
     api.post<{ ok: boolean; message: string }>(
       `/api/v1/settings/api-keys/${source}/test`
     ),
+};
+
+// API Keys — Lightweight public status (any authenticated user)
+// Used by the Sidebar to determine which tool pages to display.
+export const apiKeysPublicApi = {
+  getConfiguredStatus: () =>
+    api.get<ApiKeyConfiguredStatus[]>("/api/v1/api-keys/configured-status"),
 };
 
 // Audit log (Admin)

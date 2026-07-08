@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import encrypt_secret
-from app.dependencies.auth import AdminUser
+from app.dependencies.auth import AdminUser, ViewerUser
 from app.models.api_key import APIKey
 from app.models.audit_log import AuditLog
 
@@ -81,6 +81,42 @@ async def get_api_keys_status(
         )
 
     return statuses
+
+
+class ConfiguredStatus(BaseModel):
+    """
+    Lightweight status accessible to all authenticated users.
+    Only exposes whether each service has an active API key configured.
+    Never exposes the key value or sensitive audit data.
+    """
+
+    service_name: str
+    service_label: str
+    configured: bool
+
+
+@router.get("/configured-status", response_model=list[ConfiguredStatus])
+async def get_configured_status(
+    current_user: ViewerUser,
+    db: AsyncSession = Depends(get_db),
+) -> list[ConfiguredStatus]:
+    """
+    Returns the configuration status (boolean) of all supported services.
+    Accessible to any authenticated user (Viewer or Admin).
+    Does NOT expose key values, is_active flags, or test results.
+    Used by the frontend Sidebar to show/hide tool pages.
+    """
+    result = await db.execute(select(APIKey).where(APIKey.is_active == True))  # noqa: E712
+    configured_keys: set[str] = {k.service_name for k in result.scalars().all()}
+
+    return [
+        ConfiguredStatus(
+            service_name=service,
+            service_label=label,
+            configured=service in configured_keys,
+        )
+        for service, label in SUPPORTED_SERVICES.items()
+    ]
 
 
 @router.put("/{service_name}")

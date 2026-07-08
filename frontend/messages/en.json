@@ -73,7 +73,8 @@
     "audit": "Audit Trail",
     "settings": "Settings",
     "changelog": "Changelog",
-    "profile": "My Profile"
+    "profile": "My Profile",
+    "disconnectedPages": "Disconnected Pages"
   },
   "Dashboard": {
     "title": "Global Overview",
