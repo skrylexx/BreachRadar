@@ -288,6 +288,24 @@ Any change made must be documented **immediately** in ROADMAP.md according to th
 
 ## 6. Handoff History
 
+### Handoff #20 — 2026-07-08
+
+- **Outgoing Agent**           : Gemini 3.5 Flash
+- **Incoming Agent**           : undefined
+- **End-of-session commit**    : *(see commit associated with this push)*
+- **Tasks accomplished**       :
+  - Added bilingual step-by-step guide for retrieving GitHub Personal Access Tokens (PATs) under `guides/GET_GITHUB_TOKEN.md`.
+  - Updated `README.md` key configuration section to link directly to the new guide.
+  - Hardened `SECURITY_BEST-PRACTICE.md` by correcting the recommended scopes to zero scopes for public repo search (least privilege).
+  - Resolved security vulnerabilities (CVEs) in frontend and backend dependencies: enforced `js-yaml` version `4.1.1` via overrides, and upgraded backend dependencies (`aiohttp`, `cryptography`, `pydantic-settings`, `python-multipart`, and `starlette`) in `uv.lock`.
+  - Configured `pip-audit` to ignore the unfixed `ecdsa` vulnerability (`PYSEC-2026-1325`) in the CI pipeline (`.github/workflows/ci.yml`).
+- **Next task**                : Resume Backend QA (Mypy zero-defects) or other features listed in the roadmap.
+- **Points of vigilance**     :
+  - Remind developers that classic PATs with no scopes checked are safer for public repositories than `public_repo` scope.
+- **Updated files**            : guides/GET_GITHUB_TOKEN.md | README.md | SECURITY_BEST-PRACTICE.md | frontend/package.json | backend/pyproject.toml | backend/uv.lock | .github/workflows/ci.yml | ROADMAP.md | AI_AGENT_GUIDE.md
+
+***
+
 ### Handoff #19 — 2026-06-04
 
 - **Outgoing Agent**           : Gemini CLI

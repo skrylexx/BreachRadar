@@ -134,7 +134,7 @@ See [`.env.example`](.env.example) for the full list.
 |---|---|---|---|
 | `TARGET_DOMAIN` | The domain you are monitoring | *NA* | **Required** |
 | `HIBP_API_KEY` | haveibeenpwned.com/API/Key | ~3.50 USD/month | **Essential** |
-| `GITHUB_TOKEN` | github.com/settings/tokens | Free | **Essential** |
+| `GITHUB_TOKEN` | [How to get a token](guides/GET_GITHUB_TOKEN.md) | Free | **Essential** |
 | `URLSCAN_API_KEY` | urlscan.io | Free | **Essential** |
 | `OTX_API_KEY` | otx.alienvault.com | Free | **Essential** |
 | `LEAKCHECK_API_KEY` | leakcheck.io | ~10 USD/month | Highly recommended |

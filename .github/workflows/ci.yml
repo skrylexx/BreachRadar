@@ -36,7 +36,7 @@ jobs:
         working-directory: ./backend
         run: |
           uv export --format requirements-txt --no-hashes > req.txt
-          uvx pip-audit -r req.txt
+          uvx pip-audit -r req.txt --ignore-vuln PYSEC-2026-1325
 
   # ─── SECTION BACKEND (PYTHON) ─────────────────────────────────────────────
   backend-checks:
