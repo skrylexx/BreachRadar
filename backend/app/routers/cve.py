@@ -20,7 +20,7 @@ async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Checks if displaying demo data is enabled."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
-    return setting.value if setting else False
+    return setting.value == "true" if setting else False
 
 
 @router.get("/alerts", response_model=PaginatedResponse[CVEAlertSchema])
