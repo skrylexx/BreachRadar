@@ -12,8 +12,21 @@ from app.core.database import get_db
 from app.dependencies.auth import ViewerUser
 from app.models.finding import CyberFinding, Severity
 from app.schemas.finding import CyberFindingList
+from app.engine.intelligence_monitor import IntelligenceMonitor
+from app.dependencies.auth import AdminUser
 
 router = APIRouter()
+
+@router.post("/refresh")
+async def refresh_intelligence(current_user: AdminUser, db: AsyncSession = Depends(get_db)):
+    """Manually trigger the intelligence monitor (RSS, GitHub, etc.)."""
+    monitor = IntelligenceMonitor(db)
+    try:
+        await monitor.run_all()
+    finally:
+        await monitor.close()
+    return {"status": "ok", "message": "Veille numérique actualisée avec succès."}
+
 
 
 @router.get("", response_model=CyberFindingList)

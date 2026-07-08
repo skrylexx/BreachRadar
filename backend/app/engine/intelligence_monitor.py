@@ -119,20 +119,8 @@ class IntelligenceMonitor:
             feed = feedparser.parse(response.text)
             new_items_count = 0
 
-            # Filter keywords for relevance
-            keywords = [settings.target_domain.lower()]
-            domain_name = settings.target_domain.split(".")[0]
-            if len(domain_name) > 3:
-                keywords.append(domain_name.lower())
-
             for entry in feed.entries:
                 content = (entry.get("title", "") + " " + entry.get("summary", "")).lower()
-
-                # Filtering: We keep if mention of the domain OR if the source is a critical alert source (CERT/CISA)
-                is_relevant = any(k in content for k in keywords) or cfg["category"] == "Alerts"
-
-                if not is_relevant:
-                    continue
 
                 # Generate a unique ID based on the item URL or link
                 link = entry.get("link", url)

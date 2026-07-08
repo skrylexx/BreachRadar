@@ -31,6 +31,7 @@ import {
   Save,
   Plus,
   Link as LinkIcon,
+  Filter,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { cveApi, api, type CVESettings } from "@/lib/api";
@@ -184,12 +185,19 @@ function TabGeneral({ showToast }: { showToast: (msg: string, type?: "success" |
 function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "error") => void }) {
   const [settings, setSettings] = useState<CVESettings | null>(null);
   const [nvdKey, setNvdKey] = useState("");
+  const [techFilters, setTechFilters] = useState("");
   const [showNvdKey, setShowNvdKey] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
+  const [savingFilters, setSavingFilters] = useState(false);
 
   useEffect(() => {
     cveApi.getSettings().then((data) => setSettings(data)).catch(() => {});
+    api.get<Record<string, any>>("/api/v1/settings/general").then((res) => {
+      if (res.cve_tech_filters) {
+        setTechFilters(res.cve_tech_filters);
+      }
+    }).catch(() => {});
   }, []);
 
   const toggleCategory = (id: string) => {
@@ -230,6 +238,18 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
     }
   };
 
+  const handleSaveFilters = async () => {
+    setSavingFilters(true);
+    try {
+      await api.put("/api/v1/settings/general", { key: "cve_tech_filters", value: techFilters.trim() });
+      showToast("Filtres technologiques sauvegardés.");
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Erreur.", "error");
+    } finally {
+      setSavingFilters(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl">
       {/* NVD Key */}
@@ -256,13 +276,41 @@ function TabCVE({ showToast }: { showToast: (msg: string, type?: "success" | "er
               </button>
             </div>
             <Button
-              id="save-nvd-key"
               onClick={handleSaveNvdKey}
-              disabled={savingKey || !nvdKey.trim()}
-              size="sm"
-              className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30 h-8"
+              disabled={savingKey}
+              className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30 h-8 text-xs px-3"
             >
               {savingKey ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Enregistrer"}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tech Filters */}
+      <div className="card-soc p-4 flex items-start gap-3 border-l-2 border-l-radar/40 max-w-2xl mt-4">
+        <Filter className="w-4 h-4 text-radar mt-0.5 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-xs font-medium text-foreground/80 mb-1">Technologies à surveiller (optionnel)</p>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            Séparez par des virgules (ex: Windows, Debian, VEEAM, Proxmox). Si rempli, seules les CVE mentionnant ces termes seront remontées.
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                id="cve-tech-filters"
+                type="text"
+                value={techFilters}
+                onChange={(e) => setTechFilters(e.target.value)}
+                placeholder="Ex: Windows, Debian, VEEAM..."
+                className="bg-secondary border-border/50 focus:border-radar/50 font-data text-sm h-8"
+              />
+            </div>
+            <Button
+              onClick={handleSaveFilters}
+              disabled={savingFilters}
+              className="bg-radar/20 hover:bg-radar/30 text-radar border border-radar/30 h-8 text-xs px-3"
+            >
+              {savingFilters ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Enregistrer"}
             </Button>
           </div>
         </div>

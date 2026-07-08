@@ -1,51 +1,26 @@
-# Mission : Refactoring Dynamique du Menu de Gauche (Sidebar)
+# Ce qui a été fait (État actuel)
 
-L'objectif de cette mission est d'adapter le menu latéral pour qu'il affiche dynamiquement les pages en fonction de la configuration des clés API des différents connecteurs/outils d'OSINT.
-
-## 📋 Spécifications Fonctionnelles
-
-1. **Pages Disponibles par Défaut (Toujours Affichées)** :
-   - Tableaux de bord (Dashboard)
-   - Veille CVE
-   - Renseignements (Intelligence)
-   - Scans
-   - Rapports
-   - Alertes Ransomware
-   - Profil utilisateur / Changelog
-   - Pages d'administration (pour les administrateurs)
-
-2. **Pages Outils Conditionnelles** :
-   - Les pages d'outils OSINT spécifiques ([HIBP](file:///home/alex/Bureau/BreachRadar/frontend/src/app/tools/hibp/page.tsx), [GitHub](file:///home/alex/Bureau/BreachRadar/frontend/src/app/tools/github/page.tsx), [RansomLook](file:///home/alex/Bureau/BreachRadar/frontend/src/app/tools/ransomlook/page.tsx), [LeakCheck](file:///home/alex/Bureau/BreachRadar/frontend/src/app/tools/leakcheck/page.tsx), [URLScan](file:///home/alex/Bureau/BreachRadar/frontend/src/app/tools/urlscan/page.tsx), etc.) ne doivent s'afficher dans la navigation principale que si leur clé API correspondante a été configurée dans l'application.
-
-3. **Section "Pages non connectées"** :
-   - Tout outil dont la clé API **n'est pas renseignée** doit être déplacé de la navigation principale vers un sous-menu rétractable/déroulant (accordéon) situé en bas de la navigation principale.
-   - Ce sous-menu s'intitulera **"Pages non connectées"** (ou équivalent traduit).
-   - Cliquer sur ce sous-menu déroulera la liste des pages d'outils inactifs/non configurés afin que l'utilisateur puisse toujours y accéder s'il le souhaite (par exemple pour voir un message d'invitation à configurer la clé).
+- **Veille Numérique (Cyber Intel)** : Le filtrage restrictif basé sur le nom de domaine cible a été supprimé dans `IntelligenceMonitor`. Désormais, toutes les actualités RSS provenant des flux configurés (ex: The Hacker News, Dark Reading, CERT-FR, DevOps, InfoQ, IT-Connect) sont ingérées en base et disponibles pour la lecture/formation. 191 articles ont été ajoutés en base manuellement lors du test.
+- **Filtres Technologiques CVE** : Un nouveau champ "Technologies à surveiller" a été ajouté dans l'interface `Paramètres > CVE` (sous la forme d'un champ texte séparé par des virgules). Ce paramètre est sauvegardé dans `SystemSettings` (clé `cve_tech_filters`) et est utilisé par `CVEMonitor` pour filtrer dynamiquement les alertes CVE issues de NVD, OSV, GitHub Advisories et CVEFeed, limitant ainsi le volume (over flood) aux seules technos de l'utilisateur (ex: "Windows, Debian, VEEAM").
+- **UI & Expérience** : Les listes de vulnérabilités CVE et de Cyber Intel utilisent désormais les données à jour et un bouton "Actions" a été ajouté pour commenter / taguer sur les CVE. Des animations de chargement ont été ajoutées sur les boutons d'actualisation.
+- **Scripts de test** : Des scripts temporaires ont été utilisés pour tester l'ingestion puis supprimés.
 
 ---
 
-## 🛠️ Étapes d'Implémentation Prévues
+# 📋 Ce qu'il reste à faire / tester
 
-### Étape 1 : backend — Endpoint Public de Statut des Clés API
-Actuellement, l'endpoint `/api/api-keys/status` dans [api_keys.py](file:///home/alex/Bureau/BreachRadar/backend/app/routers/api_keys.py) nécessite des privilèges d'administrateur (`AdminUser`).
-- **TODO** : Créer un nouvel endpoint accessible aux utilisateurs standards (ou toute personne authentifiée avec `ViewerUser`) renvoyant uniquement l'information d'activation/configuration sans exposer les clés chiffrées ou d'autres détails sensibles.
-  - Exemple de route : `/api/api-keys/configured-status`
-  - Exemple de réponse : `{"hibp": true, "github": false, "leakcheck": true, ...}`
+1. **Test visuel de l'onglet Cyber Intel** :
+   - [ ] Vérifier que les articles issus du RSS (The Hacker News, etc.) remontent bien en nombre dans l'onglet "Veille / Intelligence" de l'interface graphique. (Note : s'assurer de bien tester en réactualisant la page car le chargement asynchrone a pu être décalé de la première tentative).
+   
+2. **Test du Filtre Technologique CVE** :
+   - [ ] Dans l'interface d'administration, entrer une liste spécifique (ex: `VEEAM, Proxmox`).
+   - [ ] Déclencher un nouveau scan ou attendre le polling automatique.
+   - [ ] Confirmer que les nouvelles entrées CVE remontées ne concernent *que* les technos ciblées.
 
-### Étape 2 : frontend — Intégration de l'API & State Management
-- **TODO** : Créer ou mettre à jour un service/helper API dans le frontend pour interroger ce nouvel endpoint.
-- **TODO** : Mettre en cache ces informations de statut ou les charger au chargement de l'application / du layout principal pour éviter des requêtes répétées.
+3. **Vérification du Polling au Démarrage (Scheduler Lock)** :
+   - [ ] Analyser le mécanisme de `ScanScheduler` (`backend/app/main.py`) et son verrou Redis (`breachradar:scheduler_lock`). Parfois, un redémarrage sauvage du container API maintient le verrou actif trop longtemps, ce qui bloque le polling immédiat au démarrage.
+   - [ ] Trouver une solution pour libérer le verrou proprement lors d'un `docker compose down` ou adapter le délai d'expiration pour s'assurer que la veille se lance toujours de manière fiable après un déploiement.
 
-### Étape 3 : frontend — Refactoring de [Sidebar.tsx](file:///home/alex/Bureau/BreachRadar/frontend/src/components/layout/Sidebar.tsx)
-- **TODO** : Récupérer le statut de configuration des clés API dans le composant `Sidebar`.
-- **TODO** : Séparer dynamiquement la liste `NAV_ITEMS` (ou les items d'outils) en deux groupes :
-  1. Les outils actifs / configurés (qui restent dans le menu principal).
-  2. Les outils inactifs / non configurés.
-- **TODO** : Implémenter le composant d'accordéon/collapsible pour le bloc **"Pages non connectées"** :
-  - Conserver un style UI homogène avec le reste du menu (gestion du survol, icônes, états actif/inactif).
-  - Gérer l'état replié/déplié (et éventuellement le sauvegarder localement via un store ou `localStorage`).
-
-### Étape 4 : Traduction (i18n)
-- **TODO** : Ajouter la chaîne de traduction pour le titre du sous-menu dans les fichiers de langue :
-  - Dans [fr.json](file:///home/alex/Bureau/BreachRadar/frontend/messages/fr.json) : `"disconnectedPages": "Pages non connectées"`
-  - Dans [en.json](file:///home/alex/Bureau/BreachRadar/frontend/messages/en.json) : `"disconnectedPages": "Disconnected Pages"`
+4. **Test de l'ajout de Commentaires / Tags (CVE)** :
+   - [ ] Tester de bout en bout l'action "Commenter / Taguer" ajoutée dans le tableau CVE (`frontend/src/app/(dashboard)/alerts/cve/client.tsx`).
+   - [ ] S'assurer que le commentaire est bien persisté en base de données et restitué lors du rechargement de la page.

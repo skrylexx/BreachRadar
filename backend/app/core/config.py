@@ -149,6 +149,10 @@ class Settings(BaseSettings):
         default=60,
         description="Intervalle de polling CVE en minutes (défaut: 60)",
     )
+    cve_tech_filters: str = Field(
+        default="",
+        description="Liste de technologies pour filtrer les CVE (ex: Windows, Debian, VEEAM)",
+    )
 
     # ─── Proxy ───────────────────────────────────────────────────────────────
     http_proxy: str = Field(default="")

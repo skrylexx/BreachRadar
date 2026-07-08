@@ -48,10 +48,11 @@ services:
     environment:
       - TOR_MaxCircuitDirtiness=600
     healthcheck:
-      test: ["CMD", "curl", "--socks5", "localhost:9050", "https://check.torproject.org/api/ip"]
+      test: ["CMD", "curl", "--socks5", "localhost:9050", "--max-time", "10", "https://check.torproject.org/api/ip"]
       interval: 30s
       timeout: 15s
-      retries: 5
+      retries: 10
+      start_period: 60s  # Tor takes time to establish a circuit
 
   # ─── RansomLook — Application principale ────────────────────────────────────
   ransomlook-app:
@@ -70,7 +71,7 @@ services:
       ransomlook-redis:
         condition: service_healthy
       ransomlook-tor:
-        condition: service_healthy
+        condition: service_started  # Tor is up immediately; circuit establishment is async
     ports:
       # Exposé UNIQUEMENT en localhost — jamais sur 0.0.0.0
       - "${RANSOMLOOK_HOST:-127.0.0.1}:${RANSOMLOOK_PORT:-8888}:8888"

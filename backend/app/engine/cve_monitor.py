@@ -40,28 +40,43 @@ class CVEMonitor:
         self.db = db
         self.client = httpx.AsyncClient(timeout=30.0, headers={"User-Agent": "BreachRadar/1.0 (Cyber-Governance-Tool)"})
 
+    async def _get_tech_filters(self) -> list[str]:
+        from app.models.settings import SystemSettings
+        stmt = select(SystemSettings).where(SystemSettings.key == "cve_tech_filters")
+        result = await self.db.execute(stmt)
+        setting = result.scalar_one_or_none()
+        if setting and isinstance(setting.value, str):
+            return [t.strip() for t in setting.value.split(",") if t.strip()]
+        
+        # Fallback to env setting if not in DB
+        if settings.cve_tech_filters:
+            return [t.strip() for t in settings.cve_tech_filters.split(",") if t.strip()]
+        return []
+
     async def poll_all(self, active_categories: list[str]):
         """Starts collection for all active categories."""
         logger.info(f"Démarrage du polling CVE pour {len(active_categories)} catégories.")
 
+        tech_filters = await self._get_tech_filters()
+
         # 1. NVD collection (Rate limited)
-        await self._poll_nvd(active_categories)
+        await self._poll_nvd(active_categories, tech_filters)
 
         # 2. Collect OSV.dev
-        await self._poll_osv(active_categories)
+        await self._poll_osv(active_categories, tech_filters)
 
         # 3. GitHub Advisories collection
-        await self._poll_github_advisories()
+        await self._poll_github_advisories(tech_filters)
 
         # 4. CVEFeed collection
-        await self._poll_cvefeed()
+        await self._poll_cvefeed(tech_filters)
 
         await self.db.commit()
         logger.info("Polling CVE terminé.")
 
     # ─── NVD (NIST) ───────────────────────────── ─────────────────────────────
 
-    async def _poll_nvd(self, categories: list[str]):
+    async def _poll_nvd(self, categories: list[str], tech_filters: list[str]):
         """Queries the NVD 2.0 API."""
         # Filter NVD categories (ex: nvd_windows, nvd_linux)
         nvd_cats = [c for c in categories if c.startswith("nvd_")]
@@ -74,11 +89,17 @@ class CVEMonitor:
         if settings.cve_nvd_api_key:
             headers["apiKey"] = settings.cve_nvd_api_key
 
-        for cat in nvd_cats:
-            keyword = self._get_nvd_keyword(cat)
-            if not keyword:
-                continue
+        # Determine keywords to query
+        if tech_filters:
+            keywords_to_query = tech_filters
+        else:
+            keywords_to_query = [self._get_nvd_keyword(cat) for cat in nvd_cats]
+            keywords_to_query = [k for k in keywords_to_query if k]
 
+        if not keywords_to_query:
+            return
+
+        for keyword in keywords_to_query:
             try:
                 # We retrieve CVEs published in the last 24 hours by default
                 now = datetime.now(UTC)
@@ -93,12 +114,12 @@ class CVEMonitor:
                 response = await self.client.get(NVD_API_URL, params=params, headers=headers)
                 if response.status_code == 200:
                     data = response.json()
-                    await self._process_nvd_data(data, cat)
+                    await self._process_nvd_data(data, "Custom" if tech_filters else "General")
                 elif response.status_code == 429:
                     logger.warning("Rate limit NVD atteint. Pause nécessaire.")
 
             except Exception as e:
-                logger.error(f"Erreur lors du polling NVD pour {cat}: {e}")
+                logger.error(f"Erreur lors du polling NVD pour {keyword}: {e}")
 
             await asyncio.sleep(delay)
 
@@ -147,13 +168,17 @@ class CVEMonitor:
 
     # ─── GitHub Advisories ───────────────────────── ─────────────────────────
 
-    async def _poll_github_advisories(self):
+    async def _poll_github_advisories(self, tech_filters: list[str]):
         """Parses the GitHub Advisories Atom feed."""
         try:
             response = await self.client.get(GITHUB_ADVISORIES_URL)
             if response.status_code == 200:
                 feed = feedparser.parse(response.text)
                 for entry in feed.entries:
+                    content = (entry.title + " " + entry.summary).lower()
+                    if tech_filters and not any(t.lower() in content for t in tech_filters):
+                        continue
+
                     # Extraction of the CVE ID if present in the title or tags
                     cve_id = None
                     if "CVE-" in entry.title:
@@ -190,7 +215,7 @@ class CVEMonitor:
 
     # ─── OSV (Google) ──────────────────────────── ────────────────────────────
 
-    async def _poll_osv(self, categories: list[str]):
+    async def _poll_osv(self, categories: list[str], tech_filters: list[str]):
         """
         Queries the OSV.dev API by ecosystem.
         Use modified_id.csv to list recent IDs and GET /v1/vulns/<id> for details.
@@ -228,20 +253,24 @@ class CVEMonitor:
                         continue
 
                     vuln_id = parts[1].strip()
-                    await self._fetch_osv_detail(vuln_id, cat)
+                    await self._fetch_osv_detail(vuln_id, cat, tech_filters)
                     # Break to avoid spamming api.osv.dev
                     await asyncio.sleep(0.2)
 
             except Exception as e:
                 logger.error(f"Erreur OSV pour {cat}: {e}")
 
-    async def _fetch_osv_detail(self, vuln_id: str, category: str):
+    async def _fetch_osv_detail(self, vuln_id: str, category: str, tech_filters: list[str]):
         """Retrieves full details of an OSV vulnerability."""
         try:
             url = f"https://api.osv.dev/v1/vulns/{vuln_id}"
             res = await self.client.get(url)
             if res.status_code == 200:
                 data = res.json()
+
+                content = (data.get("summary", "") + " " + data.get("details", "")).lower()
+                if tech_filters and not any(t.lower() in content for t in tech_filters):
+                    return
 
                 # Severity extraction (OSV often uses CVSS v3)
                 severity_str = "UNKNOWN"
@@ -300,7 +329,7 @@ class CVEMonitor:
         else:
             self.db.add(alert)
 
-    async def _poll_cvefeed(self):
+    async def _poll_cvefeed(self, tech_filters: list[str]):
         """Parses RSS feeds from CVEFeed.io."""
         for url, sev in [
             (CVEFEED_CRITICAL_URL, CVESeverity.CRITICAL),
@@ -310,6 +339,10 @@ class CVEMonitor:
                 response = await self.client.get(url)
                 feed = feedparser.parse(response.text)
                 for entry in feed.entries:
+                    content = (entry.title + " " + entry.summary).lower()
+                    if tech_filters and not any(t.lower() in content for t in tech_filters):
+                        continue
+
                     cve_id = entry.title.split(":")[0].strip()
                     if not cve_id.startswith("CVE-"):
                         continue

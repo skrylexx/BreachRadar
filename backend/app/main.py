@@ -119,6 +119,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             scheduler = ScanScheduler(settings=settings, scan_callback=_scan_callback, cve_callback=_watch_callback)
             scheduler.start()
 
+            # Execute the watch callback immediately at startup
+            asyncio.create_task(_watch_callback())
+
             # Background task to maintain the scheduler lock
             async def _maintain_scheduler_lock():
                 while True:

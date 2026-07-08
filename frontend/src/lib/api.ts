@@ -208,6 +208,7 @@ export interface CVESettings {
   nvd_api_key?: string;
   polling_interval_minutes: number;
   include_no_cvss: boolean;
+  tech_filters?: string;
 }
 
 export interface CVESourceStatus {

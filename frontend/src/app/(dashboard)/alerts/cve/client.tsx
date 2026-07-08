@@ -8,6 +8,7 @@ import {
   Search,
   Filter,
   AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 import {
   cveApi,
@@ -22,6 +23,15 @@ import { StatusDot } from "@/components/ui/status-dot";
 import { DataTable } from "@/components/ui/data-table";
 import { TimeFilter, type TimePeriod } from "@/components/ui/time-filter";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   BarChart,
   Bar,
@@ -45,6 +55,11 @@ export default function CVEClient() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // Comment Modal state
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [activeCve, setActiveCve] = useState<CVEAlert | null>(null);
+  const [commentText, setCommentText] = useState("");
 
   const isMock = alerts.length > 0 && alerts[0].id.startsWith("mock-");
 
@@ -154,6 +169,25 @@ export default function CVEClient() {
         <span className="text-xs font-data">
           {new Date(item.published_at).toLocaleDateString()}
         </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (item: CVEAlert) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Commenter / Tagger"
+          className="h-8 w-8 text-muted-foreground hover:text-radar"
+          onClick={() => {
+            setActiveCve(item);
+            setCommentText("");
+            setCommentModalOpen(true);
+          }}
+        >
+          <MessageSquare className="w-4 h-4" />
+        </Button>
       ),
     },
   ];
@@ -300,6 +334,46 @@ export default function CVEClient() {
           />
         </Card>
       </div>
+
+      <Dialog open={commentModalOpen} onOpenChange={setCommentModalOpen}>
+        <DialogContent className="card-soc border-border/60 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-radar" />
+              Commenter l'alerte CVE
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Ajoutez un commentaire ou taguez un membre de l'équipe (ex: @jean) sur {activeCve?.cve_id}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              className="w-full bg-secondary/50 border border-border/50 rounded-md p-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-radar resize-none"
+              rows={4}
+              placeholder="Tapez votre commentaire ici..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setCommentModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              size="sm"
+              className="bg-radar text-black hover:bg-radar/80"
+              onClick={() => {
+                // Here we would call the API to save the comment
+                setCommentModalOpen(false);
+                alert("Commentaire enregistré ! (Simulation)");
+              }}
+              disabled={!commentText.trim()}
+            >
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
