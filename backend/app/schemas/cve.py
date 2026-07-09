@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel
-
+from pydantic import BaseModel, ConfigDict, Field, AliasChoices
+import uuid
 
 class CVESeverity(StrEnum):
     CRITICAL = "CRITICAL"
@@ -21,16 +21,23 @@ class CVESource(StrEnum):
 
 
 class CVEAlert(BaseModel):
-    id: str
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: uuid.UUID | str
     cve_id: str
     title: str
     description: str
     severity: CVESeverity
     cvss_score: float | None = None
     category: str
-    source: CVESource
+    source: CVESource = Field(validation_alias=AliasChoices("source_type", "source"))
     url: str
     published_at: datetime
+    comment: str | None = None
+
+
+class CVEAlertUpdate(BaseModel):
+    comment: str
 
 
 class CVESettings(BaseModel):

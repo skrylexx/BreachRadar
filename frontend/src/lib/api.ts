@@ -201,6 +201,7 @@ export interface CVEAlert {
   category: string;
   source: "NVD" | "OSV" | "GitHub" | "CVEFeed" | "custom";
   published_at: string;
+  comment?: string | null;
 }
 
 export interface CVESettings {
@@ -369,6 +370,8 @@ export const cveApi = {
   getSettings: () => api.get<CVESettings>("/api/v1/cve/settings"),
   updateSettings: (settings: CVESettings) =>
     api.put<void>("/api/v1/cve/settings", settings),
+  updateAlert: (id: string, data: { comment: string }) =>
+    api.patch<CVEAlert>(`/api/v1/cve/alerts/${id}`, data),
 };
 
 // Users (Admin)
@@ -400,7 +403,7 @@ export const apiKeysApi = {
 // Used by the Sidebar to determine which tool pages to display.
 export const apiKeysPublicApi = {
   getConfiguredStatus: () =>
-    api.get<ApiKeyConfiguredStatus[]>("/api/v1/api-keys/configured-status"),
+    api.get<ApiKeyConfiguredStatus[]>("/api/v1/settings/api-keys/configured-status"),
 };
 
 // Audit log (Admin)

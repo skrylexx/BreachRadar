@@ -10,8 +10,7 @@ import { useTranslations, useLocale } from "next-intl";
 export function CVEAlertsBlock({ alerts = [] }: { alerts?: CVEAlert[] }) {
   const t = useTranslations();
   const locale = useLocale();
-  if (!alerts || alerts.length === 0) return null;
-
+  if (!alerts) alerts = [];
   const isMock = alerts.length > 0 && alerts[0].id.startsWith("mock-");
 
   const formatDate = (iso: string) => {

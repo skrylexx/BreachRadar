@@ -55,6 +55,7 @@ class CVEAlert(Base):
 
     published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class CustomFeedSource(Base):

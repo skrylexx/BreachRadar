@@ -163,9 +163,7 @@ export default async function DashboardPage({
       )}
 
       {/* ─── Rangée 4 : Dernières CVE (si configuré) ─────────────────────────────── */}
-      {Array.isArray(cveAlerts) && cveAlerts.length > 0 && (
-        <CVEAlertsBlock alerts={cveAlerts} />
-      )}
+      <CVEAlertsBlock alerts={cveAlerts} />
 
       {/* ─── Rangée 5 : Tableau des dernières trouvailles ─────────────────────────── */}
       <FindingsTable

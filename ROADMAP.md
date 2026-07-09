@@ -51,6 +51,26 @@ Phase 5 — Validation  [██████████] 100%
 
 ## CHANGELOG
 
+### Iteration 50 — 2026-07-09
+
+**Iteration Objective**: Fix backend scheduler lock issue and implement CVE comments/tags.
+
+#### Created/Modified Files
+
+| File | Nature | Description |
+|---|---|---|
+| `backend/app/main.py` | Modification | Fixed `scheduler_lock_key` release on shutdown for the leader instance. |
+| `backend/app/models/cve.py` | Modification | Added `comment` column (`Text`) to the `CVEAlert` model. |
+| `backend/app/core/init_db.py` | Modification | Added manual DB migration (`ALTER TABLE cve_alerts ADD COLUMN IF NOT EXISTS comment TEXT`). |
+| `backend/app/schemas/cve.py` | Modification | Updated schemas to include `comment` and added `CVEAlertUpdate` schema. |
+| `backend/app/routers/cve.py` | Modification | Added `PATCH /alerts/{alert_id}` endpoint to update CVE comments. |
+| `frontend/src/lib/api.ts` | Modification | Added `comment` to `CVEAlert` interface and `updateAlert` method to `cveApi`. |
+| `frontend/src/app/(dashboard)/alerts/cve/client.tsx` | Modification | Connected the UI to the real `updateAlert` API endpoint to persist and display CVE comments. |
+
+#### ✅ Backend Fixes & CVE Comments
+- **Scheduler Lock**: Proper cleanup of the Redis scheduler lock on backend shutdown to prevent blocking polling during rapid container restarts.
+- **CVE Comments**: Fully implemented the ability to add and persist comments or tags on CVE alerts. The data is saved to the database and re-fetched natively.
+
 ### Iteration 49 — 2026-07-08
 
 **Iteration Objective**: Dynamic Sidebar refactoring — show/hide tool pages based on configured API keys. Tools without a key are grouped in a collapsible "Disconnected Pages" accordion.
@@ -872,7 +892,7 @@ Phase 5 — Validation  [██████████] 100%
 
 ## 🤖 Next Agent — Resume Here
 
-**Stopped at**: GitHub Token documentation, security hardening, and dependency upgrades (Iteration 48).
+**Stopped at**: CVE comments implementation and scheduler lock fix (Iteration 50).
 **Commit**: *(see commit associated with this push)*
 **What's left**:
 - [ ] **Backend Zero Defects**: Achieve a clean `mypy --strict app` run for the entire backend (66 files). This is a mandatory requirement for v0.5.0.
@@ -880,7 +900,7 @@ Phase 5 — Validation  [██████████] 100%
     - Intégration de nouvelles sources (GitGuardian).
     - Complete the OSV.dev fetcher with CVSS extraction in `backend/app/engine/cve_monitor.py`.
     - Confirm full connectivity between the Frontend Profile page and Backend MFA/Password endpoints.
-- [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version.
+- [ ] **Full QA**: Perform a full end-to-end manual test of the v0.5.0 Open Source version (Including visual test of the Cyber Intel tab and CVE Technology Filter).
 
 **Watch points**:
 - The backend must maintain strict typing standards for any new contributions.

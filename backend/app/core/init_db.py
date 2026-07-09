@@ -60,6 +60,7 @@ async def initialize_database() -> None:
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_backup_codes JSON"))
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_password_change TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL"))
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_length INTEGER DEFAULT 0 NOT NULL"))
+            await conn.execute(text("ALTER TABLE cve_alerts ADD COLUMN IF NOT EXISTS comment TEXT"))
 
         # 2. Initial admin creation
         async with AsyncSessionLocal() as session:

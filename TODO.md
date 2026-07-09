@@ -4,6 +4,8 @@
 - **Filtres Technologiques CVE** : Un nouveau champ "Technologies à surveiller" a été ajouté dans l'interface `Paramètres > CVE` (sous la forme d'un champ texte séparé par des virgules). Ce paramètre est sauvegardé dans `SystemSettings` (clé `cve_tech_filters`) et est utilisé par `CVEMonitor` pour filtrer dynamiquement les alertes CVE issues de NVD, OSV, GitHub Advisories et CVEFeed, limitant ainsi le volume (over flood) aux seules technos de l'utilisateur (ex: "Windows, Debian, VEEAM").
 - **UI & Expérience** : Les listes de vulnérabilités CVE et de Cyber Intel utilisent désormais les données à jour et un bouton "Actions" a été ajouté pour commenter / taguer sur les CVE. Des animations de chargement ont été ajoutées sur les boutons d'actualisation.
 - **Scripts de test** : Des scripts temporaires ont été utilisés pour tester l'ingestion puis supprimés.
+- **Polling au Démarrage (Scheduler Lock)** : Le mécanisme de `ScanScheduler` dans `backend/app/main.py` a été corrigé. Le verrou Redis (`breachradar:scheduler_lock`) est désormais correctement libéré lors de l'arrêt du service, évitant ainsi de bloquer le polling après un redémarrage.
+- **Ajout de Commentaires / Tags (CVE)** : L'action de commenter / taguer a été entièrement implémentée (Backend & Frontend) via `frontend/src/app/(dashboard)/alerts/cve/client.tsx`, l'API (`cveApi`) et la base de données. Les commentaires sont persistés et affichés correctement.
 
 ---
 
@@ -16,11 +18,3 @@
    - [ ] Dans l'interface d'administration, entrer une liste spécifique (ex: `VEEAM, Proxmox`).
    - [ ] Déclencher un nouveau scan ou attendre le polling automatique.
    - [ ] Confirmer que les nouvelles entrées CVE remontées ne concernent *que* les technos ciblées.
-
-3. **Vérification du Polling au Démarrage (Scheduler Lock)** :
-   - [ ] Analyser le mécanisme de `ScanScheduler` (`backend/app/main.py`) et son verrou Redis (`breachradar:scheduler_lock`). Parfois, un redémarrage sauvage du container API maintient le verrou actif trop longtemps, ce qui bloque le polling immédiat au démarrage.
-   - [ ] Trouver une solution pour libérer le verrou proprement lors d'un `docker compose down` ou adapter le délai d'expiration pour s'assurer que la veille se lance toujours de manière fiable après un déploiement.
-
-4. **Test de l'ajout de Commentaires / Tags (CVE)** :
-   - [ ] Tester de bout en bout l'action "Commenter / Taguer" ajoutée dans le tableau CVE (`frontend/src/app/(dashboard)/alerts/cve/client.tsx`).
-   - [ ] S'assurer que le commentaire est bien persisté en base de données et restitué lors du rechargement de la page.

@@ -106,6 +106,11 @@ async def get_configured_status(
     Does NOT expose key values, is_active flags, or test results.
     Used by the frontend Sidebar to show/hide tool pages.
     """
+    from app.models.settings import SystemSettings
+    mock_result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
+    mock_setting = mock_result.scalar_one_or_none()
+    mock_enabled = mock_setting.value.lower() == "true" if mock_setting else False
+
     result = await db.execute(select(APIKey).where(APIKey.is_active == True))  # noqa: E712
     configured_keys: set[str] = {k.service_name for k in result.scalars().all()}
 
@@ -113,7 +118,7 @@ async def get_configured_status(
         ConfiguredStatus(
             service_name=service,
             service_label=label,
-            configured=service in configured_keys,
+            configured=True if mock_enabled else (service in configured_keys),
         )
         for service, label in SUPPORTED_SERVICES.items()
     ]

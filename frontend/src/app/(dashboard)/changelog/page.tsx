@@ -9,6 +9,16 @@ import { Card } from "@/components/ui/card";
 
 const RELEASES = [
   {
+    version: "v0.5.0.2",
+    date: "2026-07-09",
+    type: "Bugfixes & Enhancements",
+    description: "Correction et amélioration de la veille CVE, et réorganisation dynamique des connecteurs.",
+    changes: [
+      { type: "fix", text: "Correction et amélioration de la veille CVE." },
+      { type: "feat", text: "Réorganisation des connecteurs non présents au démarrage de la stack." },
+    ],
+  },
+  {
     version: "v0.5.0.1",
     date: "2026-06-04",
     type: "UI & i18n Polish",

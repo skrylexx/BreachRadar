@@ -179,10 +179,10 @@ export default function CVEClient() {
           variant="ghost"
           size="icon"
           title="Commenter / Tagger"
-          className="h-8 w-8 text-muted-foreground hover:text-radar"
+          className={`h-8 w-8 ${item.comment ? "text-radar" : "text-muted-foreground hover:text-radar"}`}
           onClick={() => {
             setActiveCve(item);
-            setCommentText("");
+            setCommentText(item.comment || "");
             setCommentModalOpen(true);
           }}
         >
@@ -362,10 +362,16 @@ export default function CVEClient() {
             <Button
               size="sm"
               className="bg-radar text-black hover:bg-radar/80"
-              onClick={() => {
-                // Here we would call the API to save the comment
-                setCommentModalOpen(false);
-                alert("Commentaire enregistré ! (Simulation)");
+              onClick={async () => {
+                if (!activeCve) return;
+                try {
+                  const updated = await cveApi.updateAlert(activeCve.id, { comment: commentText });
+                  setAlerts(alerts.map(a => a.id === updated.id ? updated : a));
+                  setCommentModalOpen(false);
+                } catch (error) {
+                  console.error(error);
+                  alert("Erreur lors de l'enregistrement du commentaire.");
+                }
               }}
               disabled={!commentText.trim()}
             >

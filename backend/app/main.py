@@ -52,12 +52,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Start the background Scheduler
     scheduler = None
+    is_scheduler_leader = False
+    scheduler_lock_key = "breachradar:scheduler_lock"
+    
     if getattr(settings, "schedule_enabled", False):
         import logging
         logger = logging.getLogger("breachradar.scheduler")
 
         # Redis Lock to ensure only one worker starts the scheduler
-        scheduler_lock_key = "breachradar:scheduler_lock"
         is_scheduler_leader = await redis_client.set(scheduler_lock_key, "1", nx=True, ex=60)
 
         if is_scheduler_leader:
@@ -137,6 +139,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Shutdown
     if scheduler:
         scheduler.stop()
+    if is_scheduler_leader:
+        try:
+            await redis_client.delete(scheduler_lock_key)
+        except Exception:
+            pass
     await redis_client.aclose()
     await engine.dispose()
 

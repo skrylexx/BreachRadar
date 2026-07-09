@@ -9,7 +9,9 @@ from app.dependencies.auth import ViewerUser
 from app.models.cve import CVEAlert, CVESeverity
 from app.schemas.common import PaginatedResponse
 from app.schemas.cve import CVEAlert as CVEAlertSchema
-from app.schemas.cve import CVESource
+from app.schemas.cve import CVEAlertUpdate, CVESource
+import uuid
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -20,7 +22,7 @@ async def _get_mock_data_enabled(db: AsyncSession) -> bool:
     """Checks if displaying demo data is enabled."""
     result = await db.execute(select(SystemSettings).where(SystemSettings.key == "mock_data_enabled"))
     setting = result.scalar_one_or_none()
-    return setting.value == "true" if setting else False
+    return setting.value.lower() == "true" if setting else False
 
 
 @router.get("/alerts", response_model=PaginatedResponse[CVEAlertSchema])
@@ -59,6 +61,26 @@ async def get_cve_alerts(
     )
 
 
+@router.patch("/alerts/{alert_id}", response_model=CVEAlertSchema)
+async def update_cve_alert(
+    alert_id: uuid.UUID,
+    alert_update: CVEAlertUpdate,
+    current_user: ViewerUser,
+    db: AsyncSession = Depends(get_db),
+) -> CVEAlertSchema:
+    """Updates a CVE alert (e.g., adding a comment)."""
+    result = await db.execute(select(CVEAlert).where(CVEAlert.id == alert_id))
+    alert = result.scalar_one_or_none()
+    
+    if not alert:
+        raise HTTPException(status_code=404, detail="CVE Alert not found")
+        
+    alert.comment = alert_update.comment
+    await db.commit()
+    await db.refresh(alert)
+    return alert  # type: ignore
+
+
 def _get_mock_cve_alerts(limit: int, offset: int) -> PaginatedResponse[CVEAlertSchema]:
     from app.schemas.cve import CVESeverity
 
@@ -92,6 +114,36 @@ async def get_cve_trend(
     # Since aggregate logic was mock-like before, let's keep it but make it conditional on mock mode too if no real data
     # For now, let's assume we want real data or mock data.
     return _get_mock_cve_trend_data(period)
+
+
+@router.get("/status")
+async def get_cve_status(
+    current_user: ViewerUser,
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Returns the status and item count for each CVE source."""
+    stmt = select(CVEAlert.source_type, func.count(CVEAlert.id), func.max(CVEAlert.published_at)).group_by(CVEAlert.source_type)
+    result = await db.execute(stmt)
+    rows = result.all()
+    
+    if not rows and await _get_mock_data_enabled(db):
+        return [
+            {"source": "NVD", "status": "ok", "last_synced_at": datetime.now(UTC).isoformat(), "item_count": 1250},
+            {"source": "OSV.dev", "status": "ok", "last_synced_at": datetime.now(UTC).isoformat(), "item_count": 830},
+            {"source": "GitHub", "status": "ok", "last_synced_at": datetime.now(UTC).isoformat(), "item_count": 420},
+            {"source": "CVEFeed", "status": "ok", "last_synced_at": datetime.now(UTC).isoformat(), "item_count": 510},
+        ]
+        
+    sources = []
+    for row in rows:
+        source, count, last_synced = row
+        sources.append({
+            "source": source.value if hasattr(source, "value") else str(source),
+            "status": "ok",
+            "last_synced_at": last_synced.isoformat() if last_synced else None,
+            "item_count": count
+        })
+    return sources
 
 
 def _get_mock_cve_trend_data(period: str) -> list[dict]:
